@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Current Affairs | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #0E4F4C;
+    --teal: #15706B;
+    --teal-soft: #E3EFEC;
+    --paper: #F5F8F7;
+    --ink: #142625;
+    --muted: #536564;
+    --line: #D3E0DC;
+    --marigold: #D9A13B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Hind Siliguri", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--paper);
+  }
+
+  /* Header */
+  .site-header { background: var(--teal-deep); color: #F2F7F6; }
+  .site-header .wrap { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; }
+  .brand { font-family: Sora, sans-serif; font-weight: 700; font-size: 20px; color: #F2F7F6; text-decoration: none; }
+  .brand span { color: var(--marigold); }
+
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  /* Page title */
+  .page-head { padding: 40px 20px 8px; }
+  .page-head h1 { font-family: Sora, sans-serif; font-size: 34px; line-height: 1.15; color: var(--teal-deep); }
+  .page-head p { color: var(--muted); margin-top: 8px; max-width: 60ch; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; padding: 24px 20px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--paper); z-index: 5; }
+  .tab {
+    font: inherit; font-weight: 600; font-size: 16px;
+    padding: 12px 18px; border: 0; background: none; color: var(--muted);
+    border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--teal); }
+  .tab[aria-selected="true"] { color: var(--teal-deep); border-bottom-color: var(--marigold); }
+  .tab:focus-visible, a:focus-visible, .retry:focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; border-radius: 4px; }
+
+  /* News list */
+  main { padding: 8px 20px 64px; }
+  .day { margin-top: 32px; }
+  .day h2 {
+    font-family: Sora, sans-serif; font-size: 15px; font-weight: 600;
+    color: var(--teal); padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft);
+  }
+  .item { padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .item h3 { font-size: 19px; font-weight: 600; line-height: 1.4; }
+  .item h3 a { color: var(--ink); text-decoration: none; }
+  .item h3 a:hover { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
+  .item .summary { color: var(--ink); margin-top: 6px; }
+  .item .meta { color: var(--muted); font-size: 15px; margin-top: 6px; }
+
+  .state { padding: 48px 0; color: var(--muted); }
+  .state strong { display: block; color: var(--ink); font-size: 18px; margin-bottom: 4px; }
+  .retry { margin-top: 12px; font: inherit; font-weight: 600; padding: 8px 16px; border: 1px solid var(--teal); background: none; color: var(--teal); border-radius: 6px; cursor: pointer; }
+
+  @media (max-width: 560px) {
+    .page-head h1 { font-size: 28px; }
+    .tab { padding: 12px 12px; font-size: 15px; }
+    .item h3 { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#">Tripura <span>Job Pulse</span></a>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="page-head">
+    <h1>Current affairs</h1>
+    <p>Daily news for TPSC and Tripura government exam preparation. Tap a headline to read the full story.</p>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="News sections">
+    <button class="tab" role="tab" data-section="tripura" aria-selected="true">Tripura</button>
+    <button class="tab" role="tab" data-section="india" aria-selected="false">India</button>
+    <button class="tab" role="tab" data-section="international" aria-selected="false">International</button>
+  </nav>
+
+  <main id="news" aria-live="polite"></main>
+</div>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+  // ===== Paste your values here =====
+  // Use the PUBLISHABLE key (sb_publishable_...). Never the secret key.
+  const SUPABASE_URL = "https://rdhogmznwuqmmxhjdqed.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_xTBTwVM75ZchO-pTH6J67Q_cEK5ud4Z";
+  // ==================================
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const box = document.getElementById("news");
+  const tabs = document.querySelectorAll(".tab");
+  const cache = {};
+
+  function dayLabel(date) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = new Date(date); d.setHours(0, 0, 0, 0);
+    const diff = Math.round((today - d) / 86400000);
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Yesterday";
+    return d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
+  }
+
+  function timeLabel(date) {
+    return new Date(date).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  }
+
+  function showState(title, text, withRetry) {
+    box.innerHTML = "";
+    const div = document.createElement("div");
+    div.className = "state";
+    const strong = document.createElement("strong");
+    strong.textContent = title;
+    div.append(strong, document.createTextNode(text));
+    if (withRetry) {
+      const btn = document.createElement("button");
+      btn.className = "retry";
+      btn.textContent = "Try again";
+      btn.onclick = () => load(currentSection(), true);
+      div.append(document.createElement("br"), btn);
+    }
+    box.append(div);
+  }
+
+  function render(items) {
+    box.innerHTML = "";
+    if (!items.length) {
+      showState("No news in this section yet.", "New updates are added every morning and evening.");
+      return;
+    }
+    let currentDay = null, group = null;
+    for (const item of items) {
+      const label = dayLabel(item.published_at);
+      if (label !== currentDay) {
+        currentDay = label;
+        group = document.createElement("section");
+        group.className = "day";
+        const h2 = document.createElement("h2");
+        h2.textContent = label;
+        group.append(h2);
+        box.append(group);
+      }
+      const art = document.createElement("article");
+      art.className = "item";
+
+      const h3 = document.createElement("h3");
+      const a = document.createElement("a");
+      a.href = item.source_url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = item.title;
+      h3.append(a);
+      art.append(h3);
+
+      if (item.summary) {
+        const p = document.createElement("p");
+        p.className = "summary";
+        p.textContent = item.summary;
+        art.append(p);
+      }
+
+      const meta = document.createElement("p");
+      meta.className = "meta";
+      meta.textContent = (item.source_name ? item.source_name + ", " : "") + timeLabel(item.published_at);
+      art.append(meta);
+
+      group.append(art);
+    }
+  }
+
+  function currentSection() {
+    return document.querySelector('.tab[aria-selected="true"]').dataset.section;
+  }
+
+  async function load(section, force = false) {
+    if (cache[section] && !force) { render(cache[section]); return; }
+    showState("Loading news…", "");
+    const { data, error } = await supabase
+      .from("current_affairs")
+      .select("title, summary, source_name, source_url, published_at")
+      .eq("section", section)
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(50);
+    if (error) {
+      console.error(error);
+      showState("Couldn't load the news.", "Check your internet connection, then try again.", true);
+      return;
+    }
+    cache[section] = data;
+    render(data);
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.setAttribute("aria-selected", "false"));
+      tab.setAttribute("aria-selected", "true");
+      load(tab.dataset.section);
+    });
+  });
+
+  load("tripura");
+</script>
+</body>
+</html>
