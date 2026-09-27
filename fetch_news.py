@@ -124,7 +124,7 @@ def collect(section, seen_urls, seen_titles):
                 "source_name": source.get("title") if isinstance(source, dict) else None,
                 "source_url": link,
                 "published_at": entry_time(e).isoformat(),
-                "status": "draft",
+                "status": "published",
             })
             seen_urls.add(link)
             seen_titles.add(key)
