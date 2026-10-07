@@ -1,3 +1,6 @@
 feedparser
 supabase
 python-dotenv
+requests
+Pillow
+qrcode
