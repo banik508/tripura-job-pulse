@@ -1,0 +1,52 @@
+name: Post jobs to Facebook and Instagram
+
+on:
+  schedule:
+    # 04:10 UTC = 9:40 am IST, every day
+    - cron: "10 4 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Draw and upload the card, but don't post it"
+        type: boolean
+        default: true
+      max_posts:
+        description: "How many jobs to post this run"
+        default: "1"
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Fetch fonts
+        run: |
+          mkdir -p fonts
+          curl -sSfL -o "fonts/Sora.ttf" \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/sora/Sora%5Bwght%5D.ttf"
+          for w in Regular Medium SemiBold Bold; do
+            curl -sSfL -o "fonts/HindSiliguri-$w.ttf" \
+              "https://raw.githubusercontent.com/google/fonts/main/ofl/hindsiliguri/HindSiliguri-$w.ttf"
+          done
+          ls -la fonts
+
+      - name: Post jobs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          SITE_URL: https://tripurajobpulse.com
+          FONT_DIR: fonts
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          MAX_POSTS: ${{ inputs.max_posts || '2' }}
+        run: python post_social.py
