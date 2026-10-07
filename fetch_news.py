@@ -117,10 +117,15 @@ def collect(section, seen_urls, seen_titles):
             if normalise_title(snippet)[:40] == key[:40]:
                 snippet = ""
 
+            # Keep only a short teaser, and always link back to the source
+            if len(snippet) > 150:
+                cut = snippet[:150].rsplit(" ", 1)[0]
+                snippet = cut + "\u2026"
+
             found.append({
                 "section": section,
                 "title": re.sub(r"\s+-\s+[^-]+$", "", title),
-                "summary": snippet[:500] or None,
+                "summary": snippet or None,
                 "source_name": source.get("title") if isinstance(source, dict) else None,
                 "source_url": link,
                 "published_at": entry_time(e).isoformat(),
