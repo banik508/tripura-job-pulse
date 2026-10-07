@@ -6,10 +6,13 @@ on:
     - cron: "10 4 * * *"
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: "Draw and upload the card, but don't post it"
-        type: boolean
-        default: true
+      mode:
+        description: "What to do"
+        type: choice
+        default: "Practice only - do not post"
+        options:
+          - "Practice only - do not post"
+          - "POST FOR REAL to Facebook and Instagram"
       max_posts:
         description: "How many jobs to post this run"
         default: "1"
@@ -47,6 +50,7 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           SITE_URL: https://tripurajobpulse.com
           FONT_DIR: fonts
-          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          # A scheduled run has no inputs, so it posts for real.
+          DRY_RUN: ${{ inputs.mode == 'POST FOR REAL to Facebook and Instagram' && 'false' || (inputs.mode && 'true' || 'false') }}
           MAX_POSTS: ${{ inputs.max_posts || '2' }}
         run: python post_social.py
