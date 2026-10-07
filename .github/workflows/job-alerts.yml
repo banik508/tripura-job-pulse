@@ -1,0 +1,35 @@
+name: Weekly job alerts
+
+on:
+  schedule:
+    # 03:40 UTC on Mondays = 9:10 am IST
+    - cron: "40 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print the email instead of sending it"
+        type: boolean
+        default: true
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Send job alerts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          SITE_URL: https://tripurajobpulse.com
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: python send_alerts.py
