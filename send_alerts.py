@@ -58,14 +58,14 @@ def last_send_time():
     """When did we last send? Falls back to 7 days ago on the very first run."""
     rows = (
         sb.table("email_sends")
-        .select("sent_at")
-        .order("sent_at", desc=True)
+        .select("created_at")
+        .order("created_at", desc=True)
         .limit(1)
         .execute()
         .data
     )
     if rows:
-        return rows[0]["sent_at"]
+        return rows[0]["created_at"]
     return (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
 
 
@@ -299,9 +299,9 @@ def main():
     sb.table("email_sends").insert(
         {
             "kind": "job_alert",
-            "subject": subject,
             "job_count": total,
-            "recipient_count": sent,
+            "sent_to": sent,
+            "failed": failed,
         }
     ).execute()
 
