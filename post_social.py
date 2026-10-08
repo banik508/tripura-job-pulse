@@ -138,10 +138,24 @@ def record(job_id, platform, post_id, image_url):
     }).execute()
 
 
+def summary(line):
+    """Also show the result at the top of the GitHub run page, so there is
+    no need to dig through the log."""
+    print(line)
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if path:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(line + "\n\n")
+
+
 def main():
+    summary("## Result")
+    summary("**Mode: PRACTICE — nothing will be posted.**" if DRY_RUN
+            else "**Mode: POSTING FOR REAL.**")
+
     jobs = jobs_to_post()
     if not jobs:
-        print("Nothing new to post.")
+        summary("Nothing new to post — every open job has already been posted.")
         return
 
     print(f"{len(jobs)} job(s) to post.")
@@ -156,23 +170,24 @@ def main():
         text = caption_for(job)
 
         if DRY_RUN:
-            print("    DRY RUN - not posting. Caption would be:")
+            summary(f"- Practice run for **{job['title']}** — card made, nothing posted.")
+            print("    Caption would be:")
             print("    " + text.replace("\n", "\n    "))
             continue
 
         try:
             fb_id = post_to_facebook(url, text)
             record(job["id"], "facebook", fb_id, url)
-            print(f"    Facebook: posted ({fb_id})")
+            summary(f"- Facebook: **posted** — {job['title']}")
         except Exception as err:
-            print(f"    Facebook failed: {err}")
+            summary(f"- Facebook: **FAILED** — {err}")
 
         try:
             ig_id = post_to_instagram(url, text)
             record(job["id"], "instagram", ig_id, url)
-            print(f"    Instagram: posted ({ig_id})")
+            summary(f"- Instagram: **posted** — {job['title']}")
         except Exception as err:
-            print(f"    Instagram failed: {err}")
+            summary(f"- Instagram: **FAILED** — {err}")
 
     print("\nDone.")
 
