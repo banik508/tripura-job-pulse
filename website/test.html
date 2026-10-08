@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock test | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.test { max-width: 1000px; padding-top: 28px; }
+  .intro { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px; margin-top: 12px; }
+  .intro h1 { font-size: 26px; }
+  .intro ul { margin: 18px 0 0 20px; display: flex; flex-direction: column; gap: 6px; }
+  .intro .btn { margin-top: 24px; }
+
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--paper); padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .bar .name { font-family: Sora, sans-serif; font-weight: 600; font-size: 16px; color: var(--teal-deep); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .timer { font-family: Sora, sans-serif; font-weight: 700; font-size: 20px; background: var(--teal-deep); color: #fff; padding: 6px 14px; border-radius: 8px; min-width: 92px; text-align: center; }
+  .timer.low { background: var(--error); }
+  .layout { display: grid; grid-template-columns: 1fr 250px; gap: 24px; margin-top: 20px; align-items: start; }
+
+  .qcard { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+  .qnum { font-size: 14px; font-weight: 600; color: var(--teal); }
+  .qtext { font-size: 19px; font-weight: 500; margin-top: 8px; white-space: pre-line; }
+  .opts { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .opt { font: inherit; text-align: left; display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid #B9CBC6; border-radius: 10px; background: #fff; cursor: pointer; }
+  .opt:hover { border-color: var(--teal); }
+  .opt .letter { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #B9CBC6; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+  .opt[aria-checked="true"] { border-color: var(--teal); background: var(--teal-soft); }
+  .opt[aria-checked="true"] .letter { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .opt:focus-visible, .pal button:focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; }
+  .nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .sbtn { font: inherit; font-size: 15px; font-weight: 600; padding: 9px 16px; border-radius: 8px; cursor: pointer; border: 1px solid var(--teal); background: #fff; color: var(--teal); }
+  .sbtn.solid { background: var(--teal); color: #fff; }
+  .sbtn:disabled { opacity: .45; cursor: default; }
+
+  .side { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; position: sticky; top: 76px; }
+  .side h2 { font-family: Sora, sans-serif; font-size: 15px; color: var(--teal-deep); }
+  .pal { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px; }
+  .pal button { font: inherit; font-size: 14px; font-weight: 600; aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; color: var(--ink); }
+  .pal button.done { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .pal button.current { outline: 2px solid var(--marigold); outline-offset: 1px; }
+  .legend { font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .side .sbtn { width: 100%; margin-top: 16px; }
+
+  dialog { border: 0; border-radius: 14px; padding: 24px; width: min(440px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgba(14, 40, 38, .55); }
+  dialog h2 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); }
+  dialog p { margin-top: 8px; color: var(--muted); }
+  dialog .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+    .side { position: static; }
+    .pal { grid-template-columns: repeat(8, 1fr); }
+    .qtext { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<main class="page test">
+  <div id="intro"><p class="lead">Loading…</p></div>
+
+  <div id="running" hidden>
+    <div class="bar">
+      <span class="name" id="t-name"></span>
+      <span class="timer" id="timer" aria-live="off">--:--</span>
+    </div>
+    <div class="layout">
+      <section class="qcard" aria-live="polite">
+        <p class="qnum" id="qnum"></p>
+        <p class="qtext" id="qtext"></p>
+        <div class="opts" id="opts" role="radiogroup"></div>
+        <div class="nav">
+          <button class="sbtn" id="prev" type="button">Previous</button>
+          <button class="sbtn" id="clear" type="button">Clear answer</button>
+          <button class="sbtn solid" id="next" type="button">Next</button>
+        </div>
+      </section>
+      <aside class="side">
+        <h2>Questions</h2>
+        <div class="pal" id="pal"></div>
+        <p class="legend" id="legend"></p>
+        <button class="sbtn solid" id="submit" type="button">Submit test</button>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<dialog id="confirm">
+  <h2>Submit the test?</h2>
+  <p id="confirm-text"></p>
+  <div class="row">
+    <button class="sbtn" id="keep" type="button">Keep going</button>
+    <button class="sbtn solid" id="do-submit" type="button">Submit</button>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const fmt = n => Number(n) % 1 === 0 ? String(Number(n)) : String(Number(n));
+
+  const testId = new URLSearchParams(location.search).get("id");
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=" + encodeURIComponent("test.html?id=" + testId); throw new Error("Not signed in"); }
+
+  function introMessage(text) { $("intro").innerHTML = ""; const d = el("div", "intro"); d.append(el("p", "lead", text)); const a = el("a", "", "Back to all tests"); a.href = "mock-tests.html"; a.style.display = "inline-block"; a.style.marginTop = "14px"; d.append(a); $("intro").append(d); }
+  if (!testId) { introMessage("This test link is incomplete."); throw new Error("No id"); }
+
+  // ---------- Intro screen ----------
+  const { data: list } = await supabase.rpc("list_mock_tests");
+  const info = (list || []).find(t => t.id === testId);
+  if (!info || !info.question_count) { introMessage("This test isn't available right now."); throw new Error("Not found"); }
+
+  $("intro").innerHTML = "";
+  const box = el("div", "intro");
+  box.append(el("h1", "", info.title));
+  if (info.description) box.append(el("p", "lead", info.description));
+  const ul = el("ul");
+  ul.append(el("li", "", `${info.question_count} questions, ${info.duration_minutes} minutes.`),
+    el("li", "", `${fmt(info.marks_per_question)} mark${Number(info.marks_per_question) === 1 ? "" : "s"} for each correct answer.`),
+    el("li", "", Number(info.negative_marks) ? `${fmt(info.negative_marks)} marks deducted for each wrong answer. Skipped questions don't lose marks.` : "No marks deducted for wrong answers."),
+    el("li", "", "The timer starts when you click Start. When time runs out, your answers are submitted automatically."),
+    el("li", "", "You can move between questions and change answers any time before submitting."));
+  box.append(ul);
+  const startBtn = el("button", "btn", "Start test"); startBtn.type = "button";
+  const startMsg = el("p", "msg error"); startMsg.hidden = true; startMsg.style.marginTop = "14px";
+  box.append(startBtn, startMsg);
+  $("intro").append(box);
+
+  // ---------- Running ----------
+  let attemptId, questions = [], answers = {}, current = 0, deadline, tick, submitting = false;
+  const storeKey = () => "tjp-attempt-" + attemptId;
+  const save = () => { try { localStorage.setItem(storeKey(), JSON.stringify(answers)); } catch (e) {} };
+
+  startBtn.onclick = async () => {
+    startBtn.disabled = true; startBtn.textContent = "Starting…";
+    const { data: res, error } = await supabase.rpc("start_test", { p_test_id: testId });
+    if (error || !res || res.status !== "ok") {
+      console.error(error);
+      startBtn.disabled = false; startBtn.textContent = "Start test";
+      startMsg.textContent = "Couldn't start the test. Check your connection and try again."; startMsg.hidden = false;
+      return;
+    }
+    attemptId = res.attempt_id;
+    questions = res.questions;
+    try { answers = JSON.parse(localStorage.getItem(storeKey()) || "{}"); } catch (e) { answers = {}; }
+    deadline = Date.now() + res.seconds_left * 1000;
+    $("t-name").textContent = res.test.title;
+    $("intro").hidden = true; $("running").hidden = false;
+    buildPalette(); show(0); startTimer();
+  };
+
+  function startTimer() {
+    const update = () => {
+      const left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
+      const m = Math.floor(left / 60), s = left % 60;
+      $("timer").textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      $("timer").classList.toggle("low", left <= 60);
+      if (left === 0) { clearInterval(tick); submit(true); }
+    };
+    update(); tick = setInterval(update, 1000);
+  }
+
+  function buildPalette() {
+    const pal = $("pal"); pal.innerHTML = "";
+    questions.forEach((q, i) => {
+      const b = el("button", "", String(i + 1)); b.type = "button";
+      b.setAttribute("aria-label", "Question " + (i + 1));
+      b.onclick = () => show(i);
+      pal.append(b);
+    });
+    refreshPalette();
+  }
+  function refreshPalette() {
+    const btns = $("pal").children;
+    questions.forEach((q, i) => {
+      btns[i].classList.toggle("done", !!answers[q.id]);
+      btns[i].classList.toggle("current", i === current);
+    });
+    const done = questions.filter(q => answers[q.id]).length;
+    $("legend").textContent = `${done} answered, ${questions.length - done} left`;
+  }
+
+  function show(i) {
+    current = i;
+    const q = questions[i];
+    $("qnum").textContent = `Question ${i + 1} of ${questions.length}`;
+    $("qtext").textContent = q.question;
+    const opts = $("opts"); opts.innerHTML = "";
+    for (const L of ["A", "B", "C", "D"]) {
+      const b = el("button", "opt"); b.type = "button";
+      b.setAttribute("role", "radio");
+      b.setAttribute("aria-checked", String(answers[q.id] === L));
+      b.append(el("span", "letter", L), el("span", "", q[L.toLowerCase()]));
+      b.onclick = () => { answers[q.id] = L; save(); show(current); };
+      opts.append(b);
+    }
+    $("prev").disabled = i === 0;
+    $("next").textContent = i === questions.length - 1 ? "Review and submit" : "Next";
+    refreshPalette();
+  }
+  $("prev").onclick = () => current > 0 && show(current - 1);
+  $("next").onclick = () => current < questions.length - 1 ? show(current + 1) : askSubmit();
+  $("clear").onclick = () => { delete answers[questions[current].id]; save(); show(current); };
+  $("submit").onclick = askSubmit;
+
+  function askSubmit() {
+    const left = questions.filter(q => !answers[q.id]).length;
+    $("confirm-text").textContent = left
+      ? `You haven't answered ${left} question${left > 1 ? "s" : ""}. Unanswered questions get no marks. You can't change answers after submitting.`
+      : "You've answered every question. You can't change answers after submitting.";
+    $("confirm").showModal();
+  }
+  $("keep").onclick = () => $("confirm").close();
+  $("do-submit").onclick = () => { $("confirm").close(); submit(false); };
+
+  async function submit(auto) {
+    if (submitting) return;
+    submitting = true;
+    clearInterval(tick);
+    $("submit").disabled = true; $("submit").textContent = auto ? "Time's up, submitting…" : "Submitting…";
+    for (let tries = 0; tries < 3; tries++) {
+      const { error } = await supabase.rpc("submit_test", { p_attempt_id: attemptId, p_answers: answers });
+      if (!error) {
+        try { localStorage.removeItem(storeKey()); } catch (e) {}
+        window.location.href = "result.html?attempt=" + attemptId;
+        return;
+      }
+      console.error(error);
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    submitting = false;
+    $("submit").disabled = false; $("submit").textContent = "Submit test";
+    alert("Couldn't submit your answers. Check your internet connection, then click Submit test again. Your answers are saved on this device.");
+  }
+
+  window.addEventListener("beforeunload", e => { if (attemptId && !submitting) { e.preventDefault(); e.returnValue = ""; } });
+</script>
+</body>
+</html>

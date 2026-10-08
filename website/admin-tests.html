@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin: mock tests | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1060px; }
+  .admin-nav { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .panel { margin-top: 36px; }
+  .panel h2 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+  .panel form { max-width: 700px; }
+  .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.bad { color: var(--error); } td.good { color: var(--ok); }
+  .pill { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--teal-soft); color: var(--teal-deep); }
+  .pill.off { background: #EDEDED; color: #666; }
+  .small-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; background: #fff; border: 1px solid var(--teal); color: var(--teal); margin: 0 6px 4px 0; }
+  .small-btn.danger { border-color: var(--error); color: var(--error); }
+  .upload-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 16px; }
+  .upload-row .field { min-width: 260px; }
+  input[type="file"] { background: #fff; }
+  .summary-line { margin-top: 14px; font-weight: 600; }
+  @media (max-width: 640px) { .row3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Mock tests</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+  </nav>
+
+  <div id="admin-area" hidden>
+
+    <section class="panel">
+      <h2>1. Create a test</h2>
+      <form id="create-form" novalidate>
+        <div class="field">
+          <label for="t-title">Test name</label>
+          <input id="t-title" placeholder="Module 1 test: Constitution basics">
+        </div>
+        <div class="field">
+          <label for="t-desc">Description <span class="optional">(optional)</span></label>
+          <textarea id="t-desc" style="min-height:70px" placeholder="What the test covers"></textarea>
+        </div>
+        <div class="field">
+          <label for="t-kind">Type</label>
+          <select id="t-kind" style="max-width:320px">
+            <option value="practice">Practice mock test</option>
+            <option value="certification">Certification exam</option>
+          </select>
+        </div>
+        <div class="row3" id="cert-fields" hidden>
+          <div class="field">
+            <label for="t-pass">Pass mark (%)</label>
+            <input id="t-pass" type="number" min="1" max="100" step="1" value="60">
+          </div>
+          <div class="field">
+            <label for="t-fee">Certificate fee (₹)</label>
+            <input id="t-fee" type="number" min="0" step="1" value="149">
+            <p class="hint">0 makes the certificate free.</p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="t-subject">Subject</label>
+          <select id="t-subject" style="max-width:320px"></select>
+        </div>
+        <div class="row3">
+          <div class="field">
+            <label for="t-mins">Time limit (minutes)</label>
+            <input id="t-mins" type="number" min="1" max="300" step="1" value="15">
+          </div>
+          <div class="field">
+            <label for="t-marks">Marks per question</label>
+            <input id="t-marks" type="number" min="0.25" step="0.25" value="1">
+          </div>
+          <div class="field">
+            <label for="t-neg">Minus for wrong answer</label>
+            <input id="t-neg" type="number" min="0" step="0.25" value="0">
+            <p class="hint">0 means no negative marking.</p>
+          </div>
+        </div>
+        <p id="create-msg" class="msg" hidden></p>
+        <button id="create-btn" class="btn" type="submit">Create test</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>2. Add questions from Excel</h2>
+      <p class="lead">Use the questions template. You'll see a preview before anything is saved. New questions are added after any existing ones.</p>
+      <div class="upload-row">
+        <div class="field">
+          <label for="u-test">Add questions to</label>
+          <select id="u-test"></select>
+        </div>
+        <div class="field">
+          <label for="u-file">Excel file</label>
+          <input id="u-file" type="file" accept=".xlsx,.xls">
+        </div>
+      </div>
+      <p id="upload-msg" class="msg" hidden></p>
+      <p id="preview-summary" class="summary-line" hidden></p>
+      <div id="preview-wrap" class="table-wrap" hidden>
+        <table>
+          <thead><tr><th>Row</th><th>Question</th><th>Correct</th><th>Check</th></tr></thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+      <div class="upload-row"><button id="save-q-btn" class="btn" type="button" hidden>Save questions</button></div>
+    </section>
+
+    <section class="panel">
+      <h2>Your tests</h2>
+      <p class="lead">A test only appears on the site once it has questions. Hidden tests disappear from the site.</p>
+      <p id="list-msg" class="msg" hidden></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Test</th><th>Questions</th><th>Time</th><th>Marking</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="list-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script src="subjects.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const cell = (text, cls) => { const td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; return td; };
+  function showMsg(node, text, type) { node.textContent = text; node.className = "msg " + (type || "error"); node.hidden = !text; }
+
+  // Access check
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-tests.html"; throw new Error("Not signed in"); }
+  const { data: adminRow } = await supabase.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("Not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false;
+  $("admin-area").hidden = false;
+
+  for (const name of Object.keys(window.TJP_SUBJECTS || { Other: {} })) {
+    const o = document.createElement("option"); o.value = o.textContent = name; $("t-subject").append(o);
+  }
+  $("t-subject").value = "Indian polity";
+
+  let tests = [], counts = {}, readyQs = [];
+  $("t-kind").addEventListener("change", () => { $("cert-fields").hidden = $("t-kind").value !== "certification"; });
+
+  // ---------- Create ----------
+  $("create-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = $("t-title").value.trim();
+    const mins = parseInt($("t-mins").value, 10);
+    const marks = parseFloat($("t-marks").value);
+    const neg = parseFloat($("t-neg").value || "0");
+    if (!title) return showMsg($("create-msg"), "Enter a test name.");
+    if (!(mins >= 1 && mins <= 300)) return showMsg($("create-msg"), "Time limit must be between 1 and 300 minutes.");
+    if (!(marks > 0)) return showMsg($("create-msg"), "Marks per question must be more than 0.");
+    if (!(neg >= 0)) return showMsg($("create-msg"), "Minus for a wrong answer must be 0 or more.");
+    const kind = $("t-kind").value;
+    const pass = parseInt($("t-pass").value, 10), fee = parseInt($("t-fee").value, 10);
+    if (kind === "certification" && !(pass >= 1 && pass <= 100)) return showMsg($("create-msg"), "Pass mark must be between 1 and 100.");
+    if (kind === "certification" && !(fee >= 0)) return showMsg($("create-msg"), "Certificate fee must be 0 or more.");
+    $("create-btn").disabled = true;
+    const { data, error } = await supabase.from("mock_tests").insert({
+      title, description: $("t-desc").value.trim() || null, subject: $("t-subject").value,
+      duration_minutes: mins, marks_per_question: marks, negative_marks: neg,
+      kind, pass_percent: kind === "certification" ? pass : null, cert_fee: kind === "certification" ? fee : 0
+    }).select("id").single();
+    $("create-btn").disabled = false;
+    if (error) return showMsg($("create-msg"), "Couldn't create the test: " + error.message);
+    $("create-form").reset(); $("t-subject").value = "Indian polity"; $("t-mins").value = 15; $("t-marks").value = 1; $("t-neg").value = 0; $("t-kind").value = "practice"; $("cert-fields").hidden = true; $("t-pass").value = 60; $("t-fee").value = 149;
+    showMsg($("create-msg"), "Test created. Now add its questions in step 2.", "ok");
+    await loadTests();
+    $("u-test").value = data.id;
+  });
+
+  // ---------- Upload questions ----------
+  const COLS = { "question": "question", "option a": "option_a", "option b": "option_b", "option c": "option_c",
+                 "option d": "option_d", "correct answer": "correct", "correct": "correct", "explanation": "explanation" };
+
+  function resetPreview() {
+    readyQs = [];
+    $("preview-body").innerHTML = ""; $("preview-wrap").hidden = true;
+    $("preview-summary").hidden = true; $("save-q-btn").hidden = true;
+  }
+
+  $("u-file").addEventListener("change", async (e) => {
+    resetPreview(); showMsg($("upload-msg"), "");
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!$("u-test").value) { showMsg($("upload-msg"), "Create a test first, then choose it above."); $("u-file").value = ""; return; }
+    let rows;
+    try {
+      const wb = XLSX.read(await file.arrayBuffer());
+      const sheet = wb.Sheets["Questions"] || wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
+    } catch (err) { return showMsg($("upload-msg"), "Couldn't read this file. Make sure it's the questions template saved as .xlsx."); }
+    rows = rows.filter(r => Object.values(r).some(v => String(v).trim() !== ""));
+    if (!rows.length) return showMsg($("upload-msg"), "The Questions sheet is empty. Add questions from row 2 onwards.");
+
+    let good = 0, bad = 0;
+    rows.forEach((raw, i) => {
+      const q = {};
+      for (const [h, v] of Object.entries(raw)) { const col = COLS[h.trim().toLowerCase()]; if (col) q[col] = String(v).trim() || null; }
+      const letter = (q.correct || "").toUpperCase().replace(/^OPTION\s*/, "").trim().charAt(0);
+      q.correct = ["A", "B", "C", "D"].includes(letter) ? letter : null;
+      const problems = [];
+      if (!q.question) problems.push("question is missing");
+      for (const k of ["a", "b", "c", "d"]) if (!q["option_" + k]) problems.push("option " + k.toUpperCase() + " is missing");
+      if (!q.correct) problems.push("correct answer must be A, B, C or D");
+
+      const tr = document.createElement("tr");
+      tr.append(cell(String(i + 2)), cell((q.question || "–").slice(0, 120)), cell(q.correct || "–"),
+        problems.length ? cell("Fix: " + problems.join("; "), "bad") : cell("Ready", "good"));
+      $("preview-body").append(tr);
+      if (problems.length) bad++; else { good++; readyQs.push(q); }
+    });
+    $("preview-wrap").hidden = false; $("preview-summary").hidden = false;
+    $("preview-summary").textContent = bad
+      ? `${good} ready, ${bad} need fixing. Only ready questions will be saved. Fix the others in Excel and upload them again.`
+      : `All ${good} questions are ready.`;
+    if (good) { $("save-q-btn").hidden = false; $("save-q-btn").textContent = `Save ${good} question${good > 1 ? "s" : ""}`; }
+  });
+
+  $("save-q-btn").addEventListener("click", async () => {
+    const testId = $("u-test").value;
+    if (!readyQs.length || !testId) return;
+    $("save-q-btn").disabled = true;
+    const { data: last } = await supabase.from("mock_questions").select("position").eq("test_id", testId)
+      .order("position", { ascending: false }).limit(1);
+    const start = last && last.length ? last[0].position : 0;
+    const rows = readyQs.map((q, i) => ({ ...q, test_id: testId, position: start + i + 1 }));
+    const { error } = await supabase.from("mock_questions").insert(rows);
+    $("save-q-btn").disabled = false;
+    if (error) return showMsg($("upload-msg"), "Couldn't save questions: " + error.message);
+    showMsg($("upload-msg"), `${rows.length} questions saved.`, "ok");
+    $("u-file").value = ""; resetPreview();
+    loadTests();
+  });
+
+  // ---------- List ----------
+  async function loadTests() {
+    const [{ data: t, error }, { data: qs }] = await Promise.all([
+      supabase.from("mock_tests").select("*").order("created_at", { ascending: true }),
+      supabase.from("mock_questions").select("test_id")
+    ]);
+    if (error) return showMsg($("list-msg"), "Couldn't load tests. Refresh the page.");
+    tests = t; counts = {};
+    (qs || []).forEach(q => counts[q.test_id] = (counts[q.test_id] || 0) + 1);
+
+    const sel = $("u-test"); const keep = sel.value;
+    sel.innerHTML = "";
+    if (!tests.length) { const o = document.createElement("option"); o.value = ""; o.textContent = "No tests yet"; sel.append(o); }
+    for (const x of tests) { const o = document.createElement("option"); o.value = x.id; o.textContent = x.title; sel.append(o); }
+    if (tests.some(x => x.id === keep)) sel.value = keep;
+
+    const body = $("list-body"); body.innerHTML = "";
+    if (!tests.length) { const tr = document.createElement("tr"); const td = cell("No tests yet. Create one above."); td.colSpan = 6; tr.append(td); body.append(tr); return; }
+    for (const x of tests) {
+      const n = counts[x.id] || 0;
+      const tr = document.createElement("tr");
+      const status = document.createElement("td");
+      const pill = document.createElement("span");
+      pill.className = "pill" + (x.is_active && n ? "" : " off");
+      pill.textContent = !x.is_active ? "Hidden" : n ? "Live" : "Needs questions";
+      status.append(pill);
+
+      const actions = document.createElement("td");
+      const add = document.createElement("button"); add.className = "small-btn"; add.textContent = "Add questions";
+      add.onclick = () => { $("u-test").value = x.id; $("u-file").focus(); $("u-file").scrollIntoView({ behavior: "smooth", block: "center" }); };
+      const toggle = document.createElement("button"); toggle.className = "small-btn"; toggle.textContent = x.is_active ? "Hide" : "Show";
+      toggle.onclick = async () => {
+        const { error } = await supabase.from("mock_tests").update({ is_active: !x.is_active }).eq("id", x.id);
+        if (error) showMsg($("list-msg"), "Couldn't update: " + error.message); else loadTests();
+      };
+      const clear = document.createElement("button"); clear.className = "small-btn danger"; clear.textContent = "Remove questions";
+      clear.onclick = async () => {
+        if (!confirm(`Remove all ${n} questions from "${x.title}"? You can then upload a corrected set.`)) return;
+        const { error } = await supabase.from("mock_questions").delete().eq("test_id", x.id);
+        if (error) showMsg($("list-msg"), "Couldn't remove: " + error.message); else loadTests();
+      };
+      const del = document.createElement("button"); del.className = "small-btn danger"; del.textContent = "Delete test";
+      del.onclick = async () => {
+        if (!confirm(`Delete "${x.title}" permanently, with its questions and everyone's results? Hiding is usually safer.`)) return;
+        const { error } = await supabase.from("mock_tests").delete().eq("id", x.id);
+        if (error) showMsg($("list-msg"), "Couldn't delete: " + error.message); else loadTests();
+      };
+      actions.append(add, toggle);
+      if (n) actions.append(clear);
+      actions.append(del);
+      const marking = `+${x.marks_per_question}` + (Number(x.negative_marks) ? ` / −${x.negative_marks}` : ", no minus");
+      const titleTd = cell(x.title);
+      if (x.kind === "certification") {
+        titleTd.append(document.createElement("br"));
+        const wrap = document.createElement("span"); wrap.style.fontSize = "14px"; wrap.style.color = "var(--muted)";
+        wrap.append(document.createTextNode("Certification · pass "));
+        const passIn = document.createElement("input"); passIn.type = "number"; passIn.min = 1; passIn.max = 100; passIn.value = x.pass_percent || 60; passIn.style.width = "64px"; passIn.style.padding = "3px 6px";
+        const feeIn = document.createElement("input"); feeIn.type = "number"; feeIn.min = 0; feeIn.value = x.cert_fee; feeIn.style.width = "74px"; feeIn.style.padding = "3px 6px";
+        const sv = document.createElement("button"); sv.className = "small-btn"; sv.textContent = "Save"; sv.style.marginLeft = "6px";
+        sv.onclick = async () => {
+          const p = parseInt(passIn.value, 10), f = parseInt(feeIn.value, 10);
+          if (!(p >= 1 && p <= 100) || !(f >= 0)) return showMsg($("list-msg"), "Pass mark must be 1–100 and the fee 0 or more.");
+          const { error } = await supabase.from("mock_tests").update({ pass_percent: p, cert_fee: f }).eq("id", x.id);
+          if (error) showMsg($("list-msg"), "Couldn't save: " + error.message); else { showMsg($("list-msg"), "Saved. The new fee applies to certificates earned from now on.", "ok"); loadTests(); }
+        };
+        wrap.append(passIn, document.createTextNode("% · fee ₹"), feeIn, sv);
+        titleTd.append(wrap);
+      }
+      tr.append(titleTd, cell(String(n)), cell(x.duration_minutes + " min"), cell(marking), status, actions);
+      body.append(tr);
+    }
+  }
+  loadTests();
+
+  $("logout").addEventListener("click", async () => { await supabase.auth.signOut(); window.location.href = "login.html"; });
+</script>
+</body>
+</html>

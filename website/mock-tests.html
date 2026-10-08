@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock tests | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.grid-page { max-width: 1100px; }
+  .page.grid-page h1 { font-size: 28px; }
+  .page.grid-page .lead { font-size: 16px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+  .chip { font: inherit; font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--teal-deep); border-color: var(--teal-deep); color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 24px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .band { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
+  .band .subject { font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+  .icon { width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
+  .body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .body h2 { font-family: "Hind Siliguri", sans-serif; font-size: 17px; font-weight: 600; line-height: 1.35; }
+  .desc { font-size: 14px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .facts { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: var(--ink); }
+  .facts span { background: var(--teal-soft); padding: 2px 9px; border-radius: 6px; }
+  .mine { font-size: 14px; color: var(--muted); }
+  .mine a { color: var(--teal); font-weight: 600; }
+  .foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); display: flex; gap: 8px; }
+  .sbtn { font: inherit; font-size: 15px; font-weight: 600; padding: 8px 16px; border-radius: 7px; cursor: pointer; border: 1px solid var(--teal); background: var(--teal); color: #fff; text-decoration: none; }
+  .sbtn:hover { background: var(--teal-deep); }
+  .state { padding: 40px 0; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+    <a id="account-link" class="header-link" href="login.html?next=mock-tests.html">Sign in</a>
+  </div>
+</header>
+
+<main class="page grid-page">
+  <h1>Mock tests</h1>
+  <p class="lead">Free timed practice tests for TPSC and Tripura government exams. See your score and every answer explained.</p>
+  <div id="chips" class="chips" hidden></div>
+  <div id="grid" class="grid" aria-live="polite"><p class="state">Loading…</p></div>
+</main>
+
+<script src="config.js"></script>
+<script src="subjects.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const SUBJECTS = window.TJP_SUBJECTS || {};
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const ICON_BASE = "https://cdn.jsdelivr.net/npm/@tabler/icons@3.47.0/icons/outline/";
+  const theme = s => SUBJECTS[s] || SUBJECTS["Other"] || { bg: "#35524F", soft: "#CFDDDB", icon: "ballpen" };
+  const fmt = n => Number(n) % 1 === 0 ? String(Number(n)) : Number(n).toFixed(2).replace(/0$/, "");
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
+
+  let tests = [], lastAttempt = {}, filter = "all";
+
+  const { data, error } = await supabase.rpc("list_mock_tests");
+  if (error) { console.error(error); $("grid").innerHTML = ""; $("grid").append(el("p", "state", "Couldn't load tests. Check your connection and refresh the page.")); throw error; }
+  tests = (data || []).filter(t => t.question_count > 0 && (t.kind || "practice") === "practice").map(t => ({ ...t, subject: t.subject || "Other" }));
+
+  if (session) {
+    const { data: atts } = await supabase.from("test_attempts").select("id, test_id, submitted_at")
+      .not("submitted_at", "is", null).order("submitted_at", { ascending: false });
+    for (const a of atts || []) if (!lastAttempt[a.test_id]) lastAttempt[a.test_id] = a.id;
+  }
+
+  function renderChips() {
+    const subjects = [...new Set(tests.map(t => t.subject))];
+    const box = $("chips"); box.innerHTML = "";
+    if (subjects.length < 2) { box.hidden = true; return; }
+    box.hidden = false;
+    for (const s of ["all", ...subjects]) {
+      const c = el("button", "chip", s === "all" ? "All subjects" : s); c.type = "button";
+      c.setAttribute("aria-pressed", String(filter === s));
+      c.onclick = () => { filter = s; renderChips(); render(); };
+      box.append(c);
+    }
+  }
+
+  function render() {
+    const grid = $("grid"); grid.innerHTML = "";
+    const list = tests.filter(t => filter === "all" || t.subject === filter);
+    if (!list.length) { grid.append(el("p", "state", "No tests yet. New practice tests are on the way.")); return; }
+    for (const t of list) {
+      const th = theme(t.subject);
+      const card = el("article", "card");
+      const band = el("div", "band"); band.style.background = th.bg; band.style.color = th.soft;
+      const ic = el("span", "icon"); ic.style.setProperty("--icon", `url("${ICON_BASE}${th.icon}.svg")`); ic.setAttribute("aria-hidden", "true");
+      band.append(el("span", "subject", t.subject), ic);
+      card.append(band);
+
+      const body = el("div", "body");
+      body.append(el("h2", "", t.title));
+      if (t.description) body.append(el("p", "desc", t.description));
+      const facts = el("div", "facts");
+      facts.append(el("span", "", t.question_count + " questions"), el("span", "", t.duration_minutes + " min"),
+        el("span", "", Number(t.negative_marks) ? `−${fmt(t.negative_marks)} for wrong` : "No negative marking"));
+      body.append(facts);
+
+      if (session && t.my_attempts > 0) {
+        const mine = el("p", "mine", `Taken ${t.my_attempts} time${t.my_attempts > 1 ? "s" : ""}. Best score ${fmt(t.my_best)} / ${fmt(t.question_count * t.marks_per_question)}. `);
+        if (lastAttempt[t.id]) { const a = el("a", "", "Review last attempt"); a.href = "result.html?attempt=" + lastAttempt[t.id]; mine.append(a); }
+        body.append(mine);
+      }
+
+      const foot = el("div", "foot");
+      const go = el("a", "sbtn", !session ? "Sign in to start" : t.my_attempts > 0 ? "Take again" : "Start test");
+      go.href = session ? "test.html?id=" + t.id : "login.html?next=" + encodeURIComponent("test.html?id=" + t.id);
+      foot.append(go);
+      body.append(foot);
+      card.append(body);
+      grid.append(card);
+    }
+  }
+
+  renderChips();
+  render();
+</script>
+</body>
+</html>

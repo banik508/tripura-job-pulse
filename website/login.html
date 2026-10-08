@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .switch { margin-top: 22px; font-size: 16px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+  .pw-wrap { position: relative; }
+  .pw-wrap input { padding-right: 70px; }
+  .show-pw { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: inherit; font-size: 14px; font-weight: 600; background: none; border: 0; color: var(--teal); cursor: pointer; padding: 4px 8px; }
+  .steps { font-size: 14px; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+  </div>
+</header>
+
+<main class="page narrow">
+
+  <!-- 1. Sign in with password -->
+  <section id="v-signin">
+    <h1>Sign in</h1>
+    <p class="lead">Welcome back. Enter your email and password.</p>
+    <form id="f-signin" novalidate>
+      <div class="field">
+        <label for="si-email">Email address</label>
+        <input id="si-email" type="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="si-pw">Password</label>
+        <div class="pw-wrap">
+          <input id="si-pw" type="password" autocomplete="current-password">
+          <button type="button" class="show-pw" data-for="si-pw">Show</button>
+        </div>
+      </div>
+      <p id="m-signin" class="msg error" hidden></p>
+      <button id="b-signin" class="btn" type="submit">Sign in</button>
+    </form>
+    <div class="switch">
+      <span>New here? <button class="link-btn" type="button" data-go="signup">Create an account</button></span>
+      <span>Forgot your password, or never set one? <button class="link-btn" type="button" data-go="reset">Set a new password</button></span>
+    </div>
+  </section>
+
+  <!-- 2. Email for sign up / reset -->
+  <section id="v-email" hidden>
+    <h1 id="email-title">Create an account</h1>
+    <p class="lead" id="email-lead">We'll email you a code once to confirm your address. Then you'll choose a password.</p>
+    <p class="steps" id="email-steps">Step 1 of 3</p>
+    <form id="f-email" novalidate>
+      <div class="field">
+        <label for="e-email">Email address</label>
+        <input id="e-email" type="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <p id="m-email" class="msg error" hidden></p>
+      <button id="b-email" class="btn" type="submit">Send code</button>
+    </form>
+    <div class="switch">
+      <span>Already have a password? <button class="link-btn" type="button" data-go="signin">Sign in</button></span>
+    </div>
+  </section>
+
+  <!-- 3. Enter code -->
+  <section id="v-code" hidden>
+    <h1>Check your email</h1>
+    <p class="lead">We sent a code to <strong id="sent-to"></strong>. It can take a minute, and may land in spam.</p>
+    <p class="steps" id="code-steps">Step 2 of 3</p>
+    <form id="f-code" novalidate>
+      <div class="field">
+        <label for="code">Code</label>
+        <input id="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="10">
+      </div>
+      <p id="m-code" class="msg error" hidden></p>
+      <button id="b-code" class="btn" type="submit">Confirm</button>
+      <div class="actions">
+        <button class="link-btn" type="button" data-go="back-email">Use a different email</button>
+        <button id="resend" class="link-btn" type="button" disabled>Resend code</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 4. Choose password -->
+  <section id="v-password" hidden>
+    <h1 id="pw-title">Choose a password</h1>
+    <p class="lead">You'll use this with your email to sign in from now on.</p>
+    <p class="steps" id="pw-steps">Step 3 of 3</p>
+    <form id="f-password" novalidate>
+      <div class="field">
+        <label for="pw1">New password</label>
+        <div class="pw-wrap">
+          <input id="pw1" type="password" autocomplete="new-password">
+          <button type="button" class="show-pw" data-for="pw1">Show</button>
+        </div>
+        <p class="hint">At least 8 characters. A mix of letters and numbers is safer.</p>
+      </div>
+      <div class="field">
+        <label for="pw2">Type it again</label>
+        <input id="pw2" type="password" autocomplete="new-password">
+      </div>
+      <p id="m-password" class="msg error" hidden></p>
+      <button id="b-password" class="btn" type="submit">Save password</button>
+    </form>
+  </section>
+
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+
+  // Where to go after signing in. Only our own pages are allowed.
+  const nextParam = new URLSearchParams(location.search).get("next") || "";
+  const nextPage = /^[a-z-]+\.html(\?[\w=&%-]*)?$/i.test(nextParam) ? nextParam : "profile.html";
+
+  let mode = "signup";   // "signup" or "reset"
+  let email = "";
+  let timer = null;
+
+  // Already signed in? Go straight on.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) window.location.href = nextPage;
+
+  const VIEWS = ["v-signin", "v-email", "v-code", "v-password"];
+  function show(view) {
+    VIEWS.forEach(v => $(v).hidden = v !== view);
+    document.querySelectorAll(".msg").forEach(m => m.hidden = true);
+    const first = $(view).querySelector("input");
+    if (first) setTimeout(() => first.focus(), 30);
+  }
+  function msg(id, text) { $(id).textContent = text; $(id).hidden = !text; }
+  function busy(btn, on, label) { btn.disabled = on; btn.textContent = on ? "Please wait…" : label; }
+  const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
+  function friendly(error) {
+    const m = (error && error.message || "").toLowerCase();
+    if (m.includes("invalid login")) return "Email or password is wrong. If you've never set a password, use \"Set a new password\" below.";
+    if (m.includes("rate") || m.includes("seconds")) return "Please wait a minute before asking for another code.";
+    if (m.includes("expired") || m.includes("invalid")) return "That code is wrong or has expired. Check the latest email, or request a new code.";
+    if (m.includes("signups not allowed") || m.includes("not found")) return "There's no account with this email. Create an account instead.";
+    if (m.includes("weak") || m.includes("at least")) return "That password is too weak. Use at least 8 characters.";
+    if (m.includes("same")) return "Choose a password different from your old one.";
+    if (m.includes("fetch")) return "Can't reach the server. Check your internet connection and try again.";
+    return error.message || "Something went wrong. Please try again.";
+  }
+
+  // ---------- Navigation links ----------
+  document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
+    const go = b.dataset.go;
+    if (go === "signin") return show("v-signin");
+    if (go === "back-email") { clearInterval(timer); return show("v-email"); }
+    mode = go;
+    $("email-title").textContent = mode === "signup" ? "Create an account" : "Set a new password";
+    $("email-lead").textContent = mode === "signup"
+      ? "We'll email you a code once to confirm your address. Then you'll choose a password."
+      : "We'll email you a code to confirm it's you. Then you'll choose a new password.";
+    $("pw-title").textContent = mode === "signup" ? "Choose a password" : "Choose a new password";
+    $("b-email").textContent = "Send code";
+    const pre = $("si-email").value.trim();
+    if (pre && !$("e-email").value) $("e-email").value = pre;
+    show("v-email");
+  }));
+
+  document.querySelectorAll(".show-pw").forEach(b => b.addEventListener("click", () => {
+    const input = $(b.dataset.for);
+    const hidden = input.type === "password";
+    input.type = hidden ? "text" : "password";
+    b.textContent = hidden ? "Hide" : "Show";
+  }));
+
+  // ---------- 1. Sign in with password ----------
+  $("f-signin").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const em = $("si-email").value.trim().toLowerCase();
+    const pw = $("si-pw").value;
+    if (!validEmail(em)) return msg("m-signin", "Enter a valid email address, like name@gmail.com.");
+    if (!pw) return msg("m-signin", "Enter your password.");
+    msg("m-signin", "");
+    busy($("b-signin"), true, "Sign in");
+    const { error } = await supabase.auth.signInWithPassword({ email: em, password: pw });
+    busy($("b-signin"), false, "Sign in");
+    if (error) return msg("m-signin", friendly(error));
+    window.location.href = nextPage;
+  });
+
+  // ---------- 2. Send code ----------
+  function startResendTimer() {
+    let left = 60;
+    $("resend").disabled = true;
+    $("resend").textContent = `Resend code in ${left}s`;
+    clearInterval(timer);
+    timer = setInterval(() => {
+      left--;
+      if (left <= 0) { clearInterval(timer); $("resend").disabled = false; $("resend").textContent = "Resend code"; }
+      else $("resend").textContent = `Resend code in ${left}s`;
+    }, 1000);
+  }
+
+  async function sendCode() {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: mode === "signup" }
+    });
+    return error;
+  }
+
+  $("f-email").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    email = $("e-email").value.trim().toLowerCase();
+    if (!validEmail(email)) return msg("m-email", "Enter a valid email address, like name@gmail.com.");
+    msg("m-email", "");
+    busy($("b-email"), true, "Send code");
+    const error = await sendCode();
+    busy($("b-email"), false, "Send code");
+    if (error) return msg("m-email", friendly(error));
+    $("sent-to").textContent = email;
+    $("code").value = "";
+    show("v-code");
+    startResendTimer();
+  });
+
+  $("resend").addEventListener("click", async () => {
+    msg("m-code", "");
+    const error = await sendCode();
+    if (error) return msg("m-code", friendly(error));
+    startResendTimer();
+  });
+
+  // ---------- 3. Verify code ----------
+  $("f-code").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = $("code").value.replace(/\s/g, "");
+    if (!/^\d{6,10}$/.test(token)) return msg("m-code", "Enter the code from the email, numbers only.");
+    msg("m-code", "");
+    busy($("b-code"), true, "Confirm");
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+    busy($("b-code"), false, "Confirm");
+    if (error) return msg("m-code", friendly(error));
+    clearInterval(timer);
+    $("pw1").value = ""; $("pw2").value = "";
+    show("v-password");
+  });
+
+  // ---------- 4. Save password ----------
+  $("f-password").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const p1 = $("pw1").value, p2 = $("pw2").value;
+    if (p1.length < 8) return msg("m-password", "Use at least 8 characters.");
+    if (p1 !== p2) return msg("m-password", "The two passwords don't match. Type them again.");
+    msg("m-password", "");
+    busy($("b-password"), true, "Save password");
+    const { error } = await supabase.auth.updateUser({ password: p1 });
+    busy($("b-password"), false, "Save password");
+    if (error) return msg("m-password", friendly(error));
+    window.location.href = nextPage;
+  });
+</script>
+</body>
+</html>

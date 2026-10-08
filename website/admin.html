@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1000px; }
+  .panel { margin-top: 36px; }
+  .panel h2 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+  .panel .lead { margin-top: 10px; }
+  .upload-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 18px; }
+  input[type="file"] { background: #fff; max-width: 420px; }
+  .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.bad { color: var(--error); }
+  td.good { color: var(--ok); }
+  .pill { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--teal-soft); color: var(--teal-deep); }
+  .pill.off { background: #EDEDED; color: #666; }
+  .small-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; background: #fff; border: 1px solid var(--teal); color: var(--teal); margin-right: 6px; }
+  .small-btn.danger { border-color: var(--error); color: var(--error); }
+  .summary-line { margin-top: 14px; font-weight: 600; }
+  .bulk { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+  .bulk .sel-count { font-size: 15px; color: var(--muted); }
+  th.tick, td.tick { width: 38px; }
+  td.tick input { width: 18px; height: 18px; }
+  dialog { border: 0; border-radius: 14px; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+  dialog::backdrop { background: rgba(14,79,76,.55); }
+  .dlg { padding: 24px; }
+  .dlg h2 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); }
+  .dlg form { margin-top: 16px; gap: 14px; }
+  .dlg .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .dlg .foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+  .dlg textarea { min-height: 80px; }
+  @media (max-width: 640px) { .dlg .row2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Manage jobs</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+
+  <div id="admin-area" hidden>
+
+    <section class="panel">
+      <h2>Upload jobs from Excel</h2>
+      <p class="lead">Use the Tripura Job Pulse Excel template. You'll see a preview before anything goes live.</p>
+      <div class="upload-row">
+        <input id="file" type="file" accept=".xlsx,.xls">
+      </div>
+      <p id="upload-msg" class="msg" hidden></p>
+      <p id="preview-summary" class="summary-line" hidden></p>
+      <div id="preview-wrap" class="table-wrap" hidden>
+        <table>
+          <thead><tr><th>Row</th><th>Job title</th><th>Type</th><th>Place</th><th>Goes to</th><th>Check</th></tr></thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+      <div class="upload-row">
+        <button id="publish-btn" class="btn" type="button" hidden>Publish jobs</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Your jobs</h2>
+      <p class="lead">Hidden jobs stay in the database but don't appear on the website.</p>
+      <p id="list-msg" class="msg" hidden></p>
+      <div class="bulk">
+        <button class="small-btn" id="select-all" type="button">Select all</button>
+        <button class="small-btn" id="select-none" type="button">Clear selection</button>
+        <button class="small-btn danger" id="del-selected" type="button">Delete selected</button>
+        <span class="sel-count" id="sel-count">0 selected</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="tick"></th><th>Job title</th><th>Type</th><th>Place</th><th>Section</th><th>Last date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="jobs-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<dialog id="edit-dlg" aria-labelledby="edit-title">
+  <div class="dlg">
+    <h2 id="edit-title">Edit job</h2>
+    <form id="edit-form" novalidate>
+      <div class="field"><label for="e-title">Job title</label><input id="e-title"></div>
+      <div class="row2">
+        <div class="field"><label for="e-org">Organisation</label><input id="e-org"></div>
+        <div class="field">
+          <label for="e-type">Job type</label>
+          <select id="e-type"><option value="government">government</option><option value="private">private</option><option value="remote">remote</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="e-city">City</label><input id="e-city"></div>
+        <div class="field"><label for="e-state">State <span class="optional">(blank or Tripura keeps it in Tripura jobs)</span></label><input id="e-state"></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="e-exp">Experience</label>
+          <select id="e-exp"><option value="">Not specified</option><option>Fresher</option><option>0-2 years</option><option>2-5 years</option><option>5-10 years</option><option>10+ years</option></select>
+        </div>
+        <div class="field"><label for="e-ind">Industry</label><input id="e-ind"></div>
+      </div>
+      <div class="field"><label for="e-qual">Qualification</label><input id="e-qual"></div>
+      <div class="row2">
+        <div class="field"><label for="e-vac">Vacancies</label><input id="e-vac"></div>
+        <div class="field"><label for="e-sal">Salary</label><input id="e-sal"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="e-age">Age limit</label><input id="e-age"></div>
+        <div class="field"><label for="e-date">Last date</label><input id="e-date" type="date"></div>
+      </div>
+      <div class="field"><label for="e-apply">How to apply</label><textarea id="e-apply"></textarea></div>
+      <div class="field"><label for="e-link">Apply link <span class="optional">(web address or email)</span></label><input id="e-link" placeholder="https://... or hr@example.com"></div>
+      <div class="field"><label for="e-desc">Description</label><textarea id="e-desc"></textarea></div>
+      <div class="field"><label><input type="checkbox" id="e-active" style="width:18px;height:18px;margin-right:8px">Show this job on the website</label></div>
+      <p id="edit-msg" class="msg" hidden></p>
+      <div class="foot">
+        <button class="small-btn" id="edit-cancel" type="button">Cancel</button>
+        <button class="btn" id="edit-save" type="submit">Save changes</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script src="job-filters.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
+
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+
+  // Excel header -> database column
+  const F = window.TJP_JOB_FILTERS || { EXPERIENCE: [], INDUSTRY: [] };
+  const COLUMNS = {
+    "job title": "title",
+    "organisation": "organisation",
+    "job type": "job_type",
+    "location": "location",
+    "city": "city",
+    "state": "state",
+    "experience": "experience",
+    "industry": "industry",
+    "qualification": "qualification",
+    "vacancies": "vacancies",
+    "salary": "salary",
+    "age limit": "age_limit",
+    "last date": "last_date",
+    "how to apply": "how_to_apply",
+    "apply link": "apply_link",
+    "description": "description"
+  };
+  const TYPES = ["government", "private", "remote"];
+  let readyRows = [];
+
+  function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className = "msg " + (type || "error");
+    el.hidden = !text;
+  }
+
+  // ---------- Access check ----------
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html"; throw new Error("Not signed in"); }
+
+  const { data: adminRow } = await supabase
+    .from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+
+  if (!adminRow) {
+    $("gate-msg").textContent = "This page is only for the site admin. You're signed in as " + session.user.email + ".";
+    throw new Error("Not admin");
+  }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-area").hidden = false;
+
+  // ---------- Helpers ----------
+  // No last date in the sheet? Use 10 months from today, so the job stays listed.
+  function tenMonthsFromNow() {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 10);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  function toDate(value) {
+    const text = String(value == null ? "" : value).trim();
+    if (typeof value === "number") {
+      const d = XLSX.SSF.parse_date_code(value);
+      if (d) return { value: `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`, guessed: false };
+    }
+    const m = text.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+    if (m) {
+      const [, dd, mm, yyyy] = m;
+      if (+mm >= 1 && +mm <= 12 && +dd >= 1 && +dd <= 31)
+        return { value: `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`, guessed: false };
+    }
+    return { value: tenMonthsFromNow(), guessed: true };
+  }
+
+  // Any wording of experience becomes one of the five filter values, using the minimum years asked for.
+  const EXP_LIST = ["Fresher", "0-2 years", "2-5 years", "5-10 years", "10+ years"];
+  function toExperience(value) {
+    const text = String(value == null ? "" : value).trim();
+    if (!text) return null;
+    if (EXP_LIST.includes(text)) return text;
+    const low = text.toLowerCase();
+    if (/fresher|apprentice|trainee|none required|no experience/.test(low)) return "Fresher";
+    if (/month/.test(low) && !/year|yr/.test(low)) return "0-2 years";
+    const nums = (low.match(/\d+/g) || []).map(Number);
+    if (!nums.length) return null;
+    const min = Math.min(...nums);
+    if (min < 1) return "Fresher";
+    if (min < 2) return "0-2 years";
+    if (min < 5) return "2-5 years";
+    if (min < 10) return "5-10 years";
+    return "10+ years";
+  }
+
+  function prettyDate(iso) {
+    if (!iso) return "–";
+    const [y, m, d] = iso.split("-");
+    return `${d}-${m}-${y}`;
+  }
+
+  function cell(text, cls) {
+    const td = document.createElement("td");
+    td.textContent = text;
+    if (cls) td.className = cls;
+    return td;
+  }
+
+  // ---------- Read Excel ----------
+  $("file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    readyRows = [];
+    $("preview-body").innerHTML = "";
+    $("preview-wrap").hidden = true;
+    $("preview-summary").hidden = true;
+    $("publish-btn").hidden = true;
+    showMsg($("upload-msg"), "");
+    if (!file) return;
+
+    let rows;
+    try {
+      const wb = XLSX.read(await file.arrayBuffer());
+      const sheet = wb.Sheets["Jobs"] || wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: true });
+    } catch (err) {
+      console.error(err);
+      showMsg($("upload-msg"), "Couldn't read this file. Make sure it's the Excel template saved as .xlsx.");
+      return;
+    }
+
+    rows = rows.filter(r => Object.values(r).some(v => String(v).trim() !== ""));
+    if (!rows.length) {
+      showMsg($("upload-msg"), "The Jobs sheet is empty. Add at least one job from row 2 onwards.");
+      return;
+    }
+
+    let good = 0, bad = 0;
+    rows.forEach((raw, i) => {
+      const job = {};
+      const problems = [];
+      const notes = [];
+
+      for (const [header, value] of Object.entries(raw)) {
+        const col = COLUMNS[header.trim().toLowerCase()];
+        if (!col) continue;
+        if (col === "last_date") {
+          const d = toDate(value);
+          job.last_date = d.value;
+          if (d.guessed) notes.push("no last date, set to " + prettyDate(d.value));
+        } else if (col === "experience") {
+          job.experience = toExperience(value);
+        } else {
+          const text = String(value).trim();
+          job[col] = text === "" ? null : text;
+        }
+      }
+
+      if (!job.title) problems.push("job title is missing");
+      if (job.job_type) job.job_type = job.job_type.toLowerCase();
+      if (!TYPES.includes(job.job_type)) problems.push("job type must be government, private or remote");
+      // Apply link may be a web address or an email address. Anything else moves into How to apply.
+      if (job.apply_link) {
+        const v = job.apply_link.trim();
+        if (/^https?:\/\//i.test(v)) {
+          job.apply_link = v;
+        } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+          job.apply_link = "mailto:" + v.toLowerCase();
+          notes.push("applications go to " + v.toLowerCase());
+        } else {
+          job.how_to_apply = [job.how_to_apply, v].filter(Boolean).join(" ");
+          job.apply_link = null;
+          notes.push("apply link was not a web or email address, moved into How to apply");
+        }
+      }
+      if (job.salary && !/\d/.test(job.salary) && !/not specified/i.test(job.salary)) {
+        notes.push("salary has no figure in it");
+      }
+
+      const tr = document.createElement("tr");
+      const place = [job.city, job.state].filter(Boolean).join(", ") || "–";
+      const goesTo = job.job_type === "remote" ? "Remote jobs"
+        : (!job.state || job.state.trim().toLowerCase() === "tripura") ? "Tripura jobs" : "Jobs within India";
+      tr.append(
+        cell(String(i + 2)),
+        cell(job.title || "–"),
+        cell(job.job_type || "–"),
+        cell(place),
+        cell(goesTo),
+        problems.length ? cell("Fix: " + problems.join("; "), "bad")
+          : cell(notes.length ? "Ready - " + notes.join("; ") : "Ready", "good")
+      );
+      $("preview-body").append(tr);
+
+      if (problems.length) bad++; else { good++; readyRows.push(job); }
+    });
+
+    $("preview-wrap").hidden = false;
+    $("preview-summary").hidden = false;
+    $("preview-summary").textContent = bad
+      ? `${good} ready, ${bad} need fixing. Only the ready ones will be published. Fix the others in Excel and upload again.`
+      : `All ${good} jobs are ready.`;
+    if (good) {
+      $("publish-btn").hidden = false;
+      $("publish-btn").textContent = `Publish ${good} job${good > 1 ? "s" : ""}`;
+    }
+  });
+
+  // ---------- Publish ----------
+  $("publish-btn").addEventListener("click", async () => {
+    if (!readyRows.length) return;
+    $("publish-btn").disabled = true;
+    $("publish-btn").textContent = "Publishing…";
+    const { error } = await supabase.from("jobs").insert(readyRows);
+    $("publish-btn").disabled = false;
+    if (error) {
+      console.error(error);
+      $("publish-btn").textContent = "Publish jobs";
+      showMsg($("upload-msg"), "Couldn't publish: " + error.message);
+      return;
+    }
+    showMsg($("upload-msg"), `${readyRows.length} job${readyRows.length > 1 ? "s" : ""} published.`, "ok");
+    readyRows = [];
+    $("publish-btn").hidden = true;
+    $("preview-wrap").hidden = true;
+    $("preview-summary").hidden = true;
+    $("file").value = "";
+    loadJobs();
+  });
+
+  // ---------- List, hide, delete ----------
+  const selected = new Set();
+  function refreshSelCount() { $("sel-count").textContent = selected.size + " selected"; }
+
+  async function loadJobs() {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("id, title, job_type, city, state, region, last_date, is_active")
+      .order("created_at", { ascending: false });
+    const body = $("jobs-body");
+    body.innerHTML = "";
+    if (error) { showMsg($("list-msg"), "Couldn't load jobs. Refresh the page."); return; }
+    if (!data.length) {
+      const tr = document.createElement("tr");
+      const td = cell("No jobs yet. Upload your Excel file above.");
+      td.colSpan = 8;
+      tr.append(td);
+      body.append(tr);
+      return;
+    }
+    for (const id of [...selected]) if (!data.some(j => j.id === id)) selected.delete(id);
+    refreshSelCount();
+
+    for (const job of data) {
+      const tr = document.createElement("tr");
+      const tick = document.createElement("td"); tick.className = "tick";
+      const box = document.createElement("input"); box.type = "checkbox"; box.checked = selected.has(job.id);
+      box.onchange = () => { box.checked ? selected.add(job.id) : selected.delete(job.id); refreshSelCount(); };
+      tick.append(box);
+      const status = document.createElement("td");
+      const pill = document.createElement("span");
+      pill.className = "pill" + (job.is_active ? "" : " off");
+      pill.textContent = job.is_active ? "Live" : "Hidden";
+      status.append(pill);
+
+      const actions = document.createElement("td");
+      const toggle = document.createElement("button");
+      toggle.className = "small-btn";
+      toggle.textContent = job.is_active ? "Hide" : "Show";
+      toggle.onclick = async () => {
+        const { error } = await supabase.from("jobs").update({ is_active: !job.is_active }).eq("id", job.id);
+        if (error) showMsg($("list-msg"), "Couldn't update: " + error.message); else loadJobs();
+      };
+      const del = document.createElement("button");
+      del.className = "small-btn danger";
+      del.textContent = "Delete";
+      del.onclick = async () => {
+        if (!confirm(`Delete "${job.title}" permanently?`)) return;
+        const { error } = await supabase.from("jobs").delete().eq("id", job.id);
+        if (error) showMsg($("list-msg"), "Couldn't delete: " + error.message); else loadJobs();
+      };
+      const edit = document.createElement("button");
+      edit.className = "small-btn"; edit.textContent = "Edit";
+      edit.onclick = () => openEdit(job.id);
+      actions.append(edit, toggle, del);
+
+      tr.append(tick, cell(job.title), cell(job.job_type), cell([job.city, job.state].filter(Boolean).join(", ") || "–"), cell(job.region === "remote" ? "Remote" : job.region === "india" ? "Within India" : "Tripura"), cell(prettyDate(job.last_date)), status, actions);
+      body.append(tr);
+    }
+  }
+  loadJobs();
+
+  // ---------- select and delete several at once ----------
+  $("select-all").onclick = () => {
+    document.querySelectorAll("#list-body .tick input").forEach(b => { b.checked = true; b.dispatchEvent(new Event("change")); });
+  };
+  $("select-none").onclick = () => {
+    document.querySelectorAll("#list-body .tick input").forEach(b => { b.checked = false; b.dispatchEvent(new Event("change")); });
+  };
+  $("del-selected").onclick = async () => {
+    if (!selected.size) return showMsg($("list-msg"), "Tick the jobs you want to delete first.");
+    if (!confirm(`Delete ${selected.size} job${selected.size > 1 ? "s" : ""} permanently? This cannot be undone.`)) return;
+    const ids = [...selected];
+    const { error } = await supabase.from("jobs").delete().in("id", ids);
+    if (error) return showMsg($("list-msg"), "Couldn't delete: " + error.message);
+    selected.clear();
+    showMsg($("list-msg"), ids.length + " jobs deleted.", "ok");
+    loadJobs();
+  };
+
+  // ---------- edit one job ----------
+  const E = { title: "e-title", organisation: "e-org", job_type: "e-type", city: "e-city", state: "e-state",
+              experience: "e-exp", industry: "e-ind", qualification: "e-qual", vacancies: "e-vac",
+              salary: "e-sal", age_limit: "e-age", last_date: "e-date", how_to_apply: "e-apply",
+              apply_link: "e-link", description: "e-desc" };
+  let editingId = null;
+
+  async function openEdit(id) {
+    // Column rules block a direct select of every field, so use the checked route instead.
+    const { data: res, error } = await supabase.rpc("get_job_details", { p_job_id: id });
+    const job = res && res.job ? res.job : null;
+    if (error || !job) {
+      console.error(error || res);
+      return showMsg($("list-msg"), "Couldn't open that job for editing. Refresh the page and try again.");
+    }
+    editingId = id;
+    for (const [col, el] of Object.entries(E)) {
+      let v = job[col] == null ? "" : String(job[col]);
+      if (col === "apply_link") v = v.replace(/^mailto:/i, "");
+      $(el).value = v;
+    }
+    $("e-active").checked = !!job.is_active;
+    $("edit-msg").hidden = true;
+    $("edit-dlg").showModal();
+  }
+
+  $("edit-cancel").onclick = () => $("edit-dlg").close();
+  $("edit-dlg").addEventListener("click", e => { if (e.target === $("edit-dlg")) $("edit-dlg").close(); });
+
+  $("edit-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const values = {};
+    for (const [col, el] of Object.entries(E)) values[col] = $(el).value.trim() || null;
+    if (!values.title) return showMsg($("edit-msg"), "Enter a job title.");
+    if (!["government", "private", "remote"].includes(values.job_type)) return showMsg($("edit-msg"), "Choose a job type.");
+    const link = values.apply_link;
+    if (link) {
+      if (/^https?:\/\//i.test(link)) values.apply_link = link;
+      else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(link)) values.apply_link = "mailto:" + link.toLowerCase();
+      else return showMsg($("edit-msg"), "Apply link must start with https:// or be an email address.");
+    }
+    values.is_active = $("e-active").checked;
+
+    $("edit-save").disabled = true; $("edit-save").textContent = "Saving...";
+    const { error } = await supabase.from("jobs").update(values).eq("id", editingId);
+    $("edit-save").disabled = false; $("edit-save").textContent = "Save changes";
+    if (error) { console.error(error); return showMsg($("edit-msg"), "Couldn't save: " + error.message); }
+    $("edit-dlg").close();
+    showMsg($("list-msg"), "Job updated.", "ok");
+    loadJobs();
+  });
+
+  $("logout").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "login.html";
+  });
+</script>
+</body>
+</html>

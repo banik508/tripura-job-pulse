@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study material | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.grid-page { max-width: 1100px; }
+  .page.grid-page h1 { font-size: 28px; }
+  .page.grid-page .lead { font-size: 16px; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+  .chip { font: inherit; font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--teal-deep); border-color: var(--teal-deep); color: #fff; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 24px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
+  .card:hover { border-color: #B9CBC6; transform: translateY(-2px); }
+
+  .cover { position: relative; height: 168px; padding: 16px 16px 14px 30px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+  .cover .spine { position: absolute; inset: 0 auto 0 0; width: 14px; }
+  .cover .ring { position: absolute; border-radius: 50%; border: 18px solid rgba(255,255,255,.07); }
+  .cover .r1 { width: 150px; height: 150px; right: -50px; top: -60px; }
+  .cover .r2 { width: 110px; height: 110px; right: 30px; bottom: -70px; border-width: 12px; }
+  .cover .head { display: flex; justify-content: space-between; align-items: center; position: relative; }
+  .cover .subject { font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+  .icon { width: 22px; height: 22px; background: currentColor; -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
+  .cover .num { font-family: Sora, sans-serif; font-size: 36px; font-weight: 700; line-height: 1; position: relative; }
+  .cover .short { font-family: Sora, sans-serif; font-size: 15px; font-weight: 600; line-height: 1.3; margin-top: 6px; position: relative; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cover .brand-mark { font-size: 12px; position: relative; }
+
+  .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .body h2 { font-family: "Hind Siliguri", sans-serif; font-size: 16px; font-weight: 600; line-height: 1.35; }
+  .body .desc { font-size: 14px; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .badge { align-self: flex-start; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+  .badge.review { background: #FFF3DA; color: #7A5413; }
+  .badge.rejected { background: #F8E7E6; color: var(--error); }
+  .badge.owned { background: #E4F2E8; color: var(--ok); }
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+  .price { font-family: Sora, sans-serif; font-weight: 700; font-size: 17px; color: var(--teal-deep); }
+  .price.free { color: var(--ok); }
+  .foot .btns { display: flex; gap: 6px; }
+  .sbtn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 12px; border-radius: 7px; cursor: pointer; border: 1px solid var(--teal); background: #fff; color: var(--teal); text-decoration: none; white-space: nowrap; }
+  .sbtn.solid { background: var(--teal); color: #fff; }
+  .sbtn.solid:hover { background: var(--teal-deep); border-color: var(--teal-deep); }
+  .sbtn:focus-visible, .chip:focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; }
+  .state { padding: 40px 0; color: var(--muted); }
+
+  /* Details / payment dialog */
+  dialog { border: 0; border-radius: 14px; padding: 0; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+  dialog::backdrop { background: rgba(14, 40, 38, .55); }
+  .dlg-head { display: flex; gap: 16px; padding: 22px 24px 0; }
+  .dlg-head .mini { width: 64px; height: 84px; border-radius: 6px; flex: none; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .dlg-head .mini .spine { position: absolute; inset: 0 auto 0 0; width: 7px; }
+  .dlg-head .mini .num { font-family: Sora, sans-serif; font-weight: 700; font-size: 22px; padding-left: 6px; }
+  .dlg-head h2 { font-family: Sora, sans-serif; font-size: 20px; line-height: 1.25; color: var(--teal-deep); }
+  .dlg-head .sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .dlg-body { padding: 16px 24px 24px; }
+  .dlg-body .full { white-space: pre-line; font-size: 16px; }
+  .dlg-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .close { position: absolute; top: 12px; right: 12px; font: inherit; font-size: 22px; line-height: 1; background: none; border: 0; cursor: pointer; color: var(--muted); padding: 6px 10px; border-radius: 6px; }
+  .close:hover { background: var(--teal-soft); }
+
+  .pay { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--line); display: grid; grid-template-columns: 190px 1fr; gap: 22px; }
+  .qr { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px; width: 190px; }
+  .qr svg { width: 100%; height: auto; display: block; }
+  .pay h3 { font-family: Sora, sans-serif; font-size: 15px; color: var(--teal); margin-bottom: 6px; }
+  .pay ol { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .upi-id { font-weight: 600; font-family: ui-monospace, Consolas, monospace; background: var(--teal-soft); padding: 1px 6px; border-radius: 4px; }
+  .pay form { margin-top: 10px; gap: 10px; }
+
+  @media (max-width: 600px) {
+    .pay { grid-template-columns: 1fr; }
+    .dlg-head { padding: 20px 18px 0; }
+    .dlg-body { padding: 14px 18px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+    <a id="account-link" class="header-link" href="login.html?next=study-material.html">Sign in</a>
+  </div>
+</header>
+
+<main class="page grid-page">
+  <h1>Study material</h1>
+  <p class="lead">Notes for TPSC and Tripura government exams. Pay once by UPI and download any time.</p>
+  <div id="chips" class="chips" hidden></div>
+  <div id="grid" class="grid" aria-live="polite"><p class="state">Loading…</p></div>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div style="position:relative">
+    <button class="close" id="dlg-close" aria-label="Close">×</button>
+    <div id="dlg-content"></div>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script src="subjects.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
+
+  const { SUPABASE_URL, SUPABASE_KEY, UPI_ID, UPI_NAME } = window.TJP_CONFIG;
+  const SUBJECTS = window.TJP_SUBJECTS || {};
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const ICON_BASE = "https://cdn.jsdelivr.net/npm/@tabler/icons@3.47.0/icons/outline/";
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
+
+  let materials = [], payments = [], filter = "all";
+
+  // ---------- Helpers ----------
+  const theme = s => SUBJECTS[s] || SUBJECTS["Other"] || { bg: "#35524F", spine: "#253A38", soft: "#CFDDDB", icon: "ballpen" };
+
+  // Joins lines that were broken mid-sentence when text was pasted
+  function tidy(text) {
+    return (text || "").replace(/\r/g, "")
+      .replace(/\n{2,}/g, "\u0000").replace(/\n/g, " ").replace(/\u0000/g, "\n\n")
+      .replace(/[ \t]{2,}/g, " ").trim();
+  }
+
+  // "Module 2: Preamble of the Constitution" -> { num: "02", short: "Preamble of the Constitution" }
+  function parseTitle(title) {
+    const m = title.match(/^\s*module\s*(\d+)\s*[:\-–—.]?\s*(.*)$/i);
+    if (m) return { num: m[1].padStart(2, "0"), short: m[2] || title };
+    return { num: "", short: title };
+  }
+
+  function icon(name) {
+    const i = el("span", "icon");
+    i.style.setProperty("--icon", `url("${ICON_BASE}${name}.svg")`);
+    i.setAttribute("aria-hidden", "true");
+    return i;
+  }
+
+  const latestPayment = id => payments.find(p => p.item_id === id);
+  function access(m) {
+    if (m.price === 0) return "free";
+    const p = latestPayment(m.id);
+    return p ? p.status : "none";   // approved | pending | rejected | none
+  }
+
+  // ---------- Load ----------
+  async function load() {
+    const { data, error } = await supabase.from("study_materials")
+      .select("id, title, description, price, file_path, subject")
+      .order("created_at", { ascending: true });
+    if (error) { console.error(error); $("grid").innerHTML = ""; $("grid").append(el("p", "state", "Couldn't load study material. Check your connection and refresh the page.")); return; }
+    materials = data.map(m => ({ ...m, description: tidy(m.description), subject: m.subject || "Other" }));
+
+    if (session) {
+      const { data: pays } = await supabase.from("payments")
+        .select("item_id, status, created_at").eq("item_type", "study_material")
+        .order("created_at", { ascending: false });
+      payments = pays || [];
+    }
+    renderChips();
+    render();
+  }
+
+  function renderChips() {
+    const subjects = [...new Set(materials.map(m => m.subject))];
+    const box = $("chips");
+    box.innerHTML = "";
+    if (subjects.length < 2) { box.hidden = true; return; }
+    box.hidden = false;
+    for (const s of ["all", ...subjects]) {
+      const c = el("button", "chip", s === "all" ? "All subjects" : s);
+      c.type = "button";
+      c.setAttribute("aria-pressed", String(filter === s));
+      c.onclick = () => { filter = s; renderChips(); render(); };
+      box.append(c);
+    }
+  }
+
+  function render() {
+    const grid = $("grid");
+    grid.innerHTML = "";
+    const list = materials.filter(m => filter === "all" || m.subject === filter);
+    if (!list.length) { grid.append(el("p", "state", "No study material yet. New modules are on the way.")); return; }
+    for (const m of list) grid.append(card(m));
+  }
+
+  // ---------- Card ----------
+  function cover(m) {
+    const t = theme(m.subject), { num, short } = parseTitle(m.title);
+    const c = el("div", "cover");
+    c.style.background = t.bg; c.style.color = t.soft;
+    const spine = el("div", "spine"); spine.style.background = t.spine;
+    c.append(spine, el("div", "ring r1"), el("div", "ring r2"));
+
+    const head = el("div", "head");
+    head.append(el("span", "subject", m.subject), icon(t.icon));
+    const mid = el("div");
+    if (num) { const n = el("div", "num", num); n.style.color = "#fff"; mid.append(n); }
+    const s = el("div", "short", short); s.style.color = "#fff";
+    mid.append(s);
+    c.append(head, mid, el("div", "brand-mark", "Tripura Job Pulse"));
+    return c;
+  }
+
+  function card(m) {
+    const a = access(m);
+    const box = el("article", "card");
+    box.append(cover(m));
+
+    const body = el("div", "body");
+    if (a === "pending") body.append(el("span", "badge review", "Payment under review"));
+    if (a === "rejected") body.append(el("span", "badge rejected", "Payment not verified"));
+    if (a === "approved") body.append(el("span", "badge owned", "Purchased"));
+    body.append(el("h2", "", m.title));
+    if (m.description) body.append(el("p", "desc", m.description));
+
+    const foot = el("div", "foot");
+    foot.append(el("span", "price" + (m.price === 0 ? " free" : ""), m.price === 0 ? "Free" : "₹" + m.price));
+    const btns = el("div", "btns");
+    const det = el("button", "sbtn", "Details"); det.type = "button";
+    det.onclick = () => openDialog(m, false);
+    btns.append(det, primaryButton(m, a));
+    foot.append(btns);
+    body.append(foot);
+    box.append(body);
+    return box;
+  }
+
+  function primaryButton(m, a) {
+    if (!session) {
+      const link = el("a", "sbtn solid", m.price === 0 ? "Sign in" : "Sign in to buy");
+      link.href = "login.html?next=study-material.html";
+      return link;
+    }
+    if (a === "free" || a === "approved") {
+      const b = el("button", "sbtn solid", "Download"); b.type = "button";
+      b.onclick = () => download(m, b);
+      return b;
+    }
+    if (a === "pending") {
+      const b = el("button", "sbtn", "View status"); b.type = "button";
+      b.onclick = () => openDialog(m, false);
+      return b;
+    }
+    const b = el("button", "sbtn solid", "Buy ₹" + m.price); b.type = "button";
+    b.onclick = () => openDialog(m, true);
+    return b;
+  }
+
+  async function download(m, btn) {
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = "Preparing…";
+    const { data, error } = await supabase.storage.from("study-materials")
+      .createSignedUrl(m.file_path, 120, { download: m.title.replace(/[^\w\- ]+/g, "").trim() + ".pdf" });
+    btn.disabled = false; btn.textContent = label;
+    if (error) { console.error(error); alert("Couldn't start the download. Please try again."); return; }
+    window.location.href = data.signedUrl;
+  }
+
+  // ---------- Dialog ----------
+  function openDialog(m, showPay) {
+    const a = access(m), t = theme(m.subject), { num } = parseTitle(m.title);
+    const box = $("dlg-content");
+    box.innerHTML = "";
+
+    const head = el("div", "dlg-head");
+    const mini = el("div", "mini");
+    mini.style.background = t.bg; mini.style.color = "#fff";
+    const sp = el("div", "spine"); sp.style.background = t.spine;
+    mini.append(sp);
+    if (num) mini.append(el("span", "num", num)); else { const ic = icon(t.icon); ic.style.marginLeft = "6px"; mini.append(ic); }
+    const txt = el("div");
+    const h = el("h2", "", m.title); h.id = "dlg-title";
+    txt.append(h, el("p", "sub", m.subject));
+    head.append(mini, txt);
+    box.append(head);
+
+    const body = el("div", "dlg-body");
+    if (m.description) body.append(el("p", "full", m.description));
+
+    if (a === "pending") body.append(el("p", "msg ok", "Payment received and under review. You'll be able to download as soon as it's approved, usually within a few hours."));
+    if (a === "rejected") body.append(el("p", "msg error", "We couldn't verify your last payment for this module. If you paid, check the UPI reference number and submit it again."));
+    if (a === "pending" || a === "rejected") body.lastChild.style.marginTop = "16px";
+
+    const foot = el("div", "dlg-foot");
+    foot.append(el("span", "price" + (m.price === 0 ? " free" : ""), m.price === 0 ? "Free" : "₹" + m.price));
+    const needsPay = session && (a === "none" || a === "rejected");
+    if (!(needsPay && showPay)) {
+      const btn = primaryButton(m, a);
+      if (needsPay) btn.onclick = () => openDialog(m, true);
+      if (a !== "pending") foot.append(btn);
+    }
+    body.append(foot);
+    if (needsPay && showPay) body.append(payPanel(m));
+    box.append(body);
+
+    if (!$("dlg").open) $("dlg").showModal();
+  }
+  $("dlg-close").onclick = () => $("dlg").close();
+  $("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
+
+  function payPanel(m) {
+    const panel = el("div", "pay");
+    const upiLink = "upi://pay?pa=" + encodeURIComponent(UPI_ID) + "&pn=" + encodeURIComponent(UPI_NAME) +
+      "&am=" + m.price + ".00&cu=INR&tn=" + encodeURIComponent("TJP " + m.title.slice(0, 40));
+
+    const qrBox = el("div", "qr");
+    try { const qr = qrcode(0, "M"); qr.addData(upiLink); qr.make(); qrBox.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+    catch (e) { qrBox.textContent = "QR code unavailable. Pay using the UPI ID instead."; }
+
+    const right = el("div");
+    right.append(el("h3", "", "1. Pay ₹" + m.price + " by UPI"));
+    const steps = el("ol");
+    steps.append(el("li", "", "Scan the QR code with any UPI app."));
+    const li2 = el("li", "", "Or pay to ");
+    li2.append(el("span", "upi-id", UPI_ID), document.createTextNode(" for exactly ₹" + m.price + "."));
+    const li3 = el("li");
+    const link = el("a", "", "Open your UPI app"); link.href = upiLink;
+    li3.append(link, document.createTextNode(" (on your phone)."));
+    steps.append(li2, li3);
+    right.append(steps);
+
+    const h3 = el("h3", "", "2. Enter your UPI reference number"); h3.style.marginTop = "16px";
+    right.append(h3);
+    const form = el("form"); form.noValidate = true;
+    const field = el("div", "field");
+    const label = el("label", "", "12-digit UPI reference (UTR)"); label.htmlFor = "utr";
+    const input = el("input"); input.id = "utr"; input.inputMode = "numeric"; input.maxLength = 12; input.placeholder = "412345678901";
+    field.append(label, input, el("p", "hint", "In your UPI app, open this payment's details. It may be called UPI Ref No., UTR or Transaction ID."));
+    const msg = el("p", "msg error"); msg.hidden = true;
+    const submit = el("button", "btn", "Submit payment"); submit.type = "submit";
+    form.append(field, msg, submit);
+    right.append(form);
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const utr = input.value.replace(/\s/g, "");
+      if (!/^\d{12}$/.test(utr)) { msg.textContent = "The UPI reference number is 12 digits, numbers only."; msg.hidden = false; return; }
+      msg.hidden = true; submit.disabled = true; submit.textContent = "Submitting…";
+      const { error } = await supabase.from("payments").insert({ item_type: "study_material", item_id: m.id, amount: m.price, utr });
+      submit.disabled = false; submit.textContent = "Submit payment";
+      if (error) {
+        console.error(error);
+        const t = (error.message || "").toLowerCase();
+        msg.textContent = t.includes("one_purchase") ? "You've already submitted a payment for this module. It's under review."
+          : (t.includes("utr") || error.code === "23505") ? "This UPI reference number has already been used. Check you've entered the right one."
+          : "Couldn't submit. Check your connection and try again.";
+        msg.hidden = false; return;
+      }
+      await load();
+      openDialog(materials.find(x => x.id === m.id), false);
+    };
+
+    panel.append(qrBox, right);
+    setTimeout(() => input.focus(), 50);
+    return panel;
+  }
+
+  load();
+</script>
+</body>
+</html>

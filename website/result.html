@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test result | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.res { max-width: 860px; }
+  .score { margin-top: 20px; background: var(--teal-deep); color: #fff; border-radius: 14px; padding: 24px; display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center; }
+  .big { font-family: Sora, sans-serif; font-size: 44px; font-weight: 700; line-height: 1; }
+  .big small { font-size: 20px; color: #BFE3DC; font-weight: 600; }
+  .pct { color: #BFE3DC; margin-top: 6px; font-size: 15px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stat { background: rgba(255,255,255,.08); border-radius: 10px; padding: 12px; }
+  .stat .n { font-family: Sora, sans-serif; font-size: 24px; font-weight: 700; }
+  .stat .l { font-size: 14px; color: #D5ECE7; }
+  .meta { margin-top: 12px; color: var(--muted); font-size: 15px; }
+  .actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  a.btn { text-decoration: none; display: inline-block; }
+  .btn.outline { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 30px; }
+  .chip { font: inherit; font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--teal-deep); border-color: var(--teal-deep); color: #fff; }
+  .q { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-top: 14px; }
+  .q .top { display: flex; justify-content: space-between; gap: 10px; }
+  .q .num { font-size: 14px; font-weight: 600; color: var(--teal); }
+  .tag { font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+  .tag.right { background: #E4F2E8; color: var(--ok); }
+  .tag.wrong { background: #F8E7E6; color: var(--error); }
+  .tag.skip { background: #EDEDED; color: #555; }
+  .q .text { font-weight: 500; margin-top: 6px; white-space: pre-line; }
+  .q ul { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .q li { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); font-size: 16px; }
+  .q li.correct { border-color: #9CCFAE; background: #EEF8F1; }
+  .q li.picked-wrong { border-color: #E3AFAB; background: #FCEFEE; }
+  .q li .mark { font-size: 13px; font-weight: 600; margin-left: 6px; }
+  .cert { margin-top: 18px; border-radius: 12px; padding: 18px 20px; background: #fff; }
+  .cert.pass { border: 2px solid var(--ok); }
+  .cert.fail { border: 2px solid var(--line); }
+  .cert h2 { font-family: Sora, sans-serif; font-size: 18px; }
+  .cert.pass h2 { color: var(--ok); }
+  .cert p { margin-top: 6px; }
+  .cert .code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
+  .explain { margin-top: 12px; font-size: 15px; background: var(--teal-soft); padding: 10px 12px; border-radius: 8px; white-space: pre-line; }
+  @media (max-width: 640px) { .score { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+    <a class="header-link" href="mock-tests.html">All tests</a>
+  </div>
+</header>
+
+<main class="page res" id="main"><p class="lead">Loading your result…</p></main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const fmt = n => { const x = Math.round(Number(n) * 100) / 100; return String(x); };
+  const main = document.getElementById("main");
+
+  const attemptId = new URLSearchParams(location.search).get("attempt");
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=" + encodeURIComponent("result.html?attempt=" + attemptId); throw new Error("Not signed in"); }
+
+  const { data: r, error } = await supabase.rpc("get_attempt_result", { p_attempt_id: attemptId });
+  if (error || !r) { console.error(error); main.innerHTML = ""; main.append(el("p", "lead", "This result isn't available.")); throw error || new Error("No result"); }
+
+  const a = r.attempt, t = r.test;
+  main.innerHTML = "";
+  main.append(el("h1", "", t.title));
+
+  const pct = a.max_score > 0 ? Math.max(0, Math.round((a.score / a.max_score) * 100)) : 0;
+  const score = el("section", "score");
+  const left = el("div");
+  const big = el("div", "big", fmt(a.score)); big.append(el("small", "", " / " + fmt(a.max_score)));
+  left.append(big, el("p", "pct", pct + "% score"));
+  const stats = el("div", "stats");
+  for (const [n, l] of [[a.correct, "Correct"], [a.wrong, "Wrong"], [a.skipped, "Skipped"]]) {
+    const s = el("div", "stat"); s.append(el("div", "n", String(n)), el("div", "l", l)); stats.append(s);
+  }
+  score.append(left, stats);
+  main.append(score);
+
+  const secs = Math.max(0, Math.round((new Date(a.submitted_at) - new Date(a.started_at)) / 1000));
+  const when = new Date(a.submitted_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  let meta = `Taken on ${when}, in ${Math.floor(secs / 60)} min ${secs % 60} s.`;
+  if (Number(t.negative_marks) && a.wrong) meta += ` Negative marking took off ${fmt(a.wrong * t.negative_marks)} marks.`;
+  main.append(el("p", "meta", meta));
+
+  const isCert = t.kind === "certification";
+  if (isCert) {
+    const pass = t.pass_percent || 60;
+    const certPct = a.max_score > 0 ? Math.floor(Math.max(0, a.score) / a.max_score * 100) : 0;
+    const box = el("section", "cert " + (certPct >= pass ? "pass" : "fail"));
+    main.append(box);
+    if (certPct < pass) {
+      box.append(el("h2", "", "Not passed this time"));
+      box.append(el("p", "", `The pass mark is ${pass}%, and you scored ${certPct}%. Review the answers below, then try again. There's no limit on attempts.`));
+    } else {
+      box.append(el("h2", "", "✓ You passed"));
+      const p = el("p", "", "Creating your certificate…");
+      box.append(p);
+      const { data: c, error: ce } = await supabase.rpc("claim_certificate", { p_attempt_id: attemptId });
+      if (ce || !c) { console.error(ce); p.textContent = "Couldn't create your certificate. Refresh this page to try again."; }
+      else if (c.status === "no_name") {
+        p.textContent = "Your certificate needs your full name. Add it to your profile, then open this result again to claim it. ";
+        const a = el("a", "", "Go to my profile"); a.href = "profile.html"; p.append(a);
+      } else if (c.status === "ok") {
+        p.textContent = "Your Certificate ID is ";
+        p.append(el("span", "code", c.code), document.createTextNode(". "));
+        const a = el("a", "", c.issued ? "Download your certificate" : `Get your certificate for ₹${c.fee}`);
+        a.href = "certifications.html#mine"; p.append(a);
+      } else { p.textContent = "Couldn't create your certificate. Refresh this page to try again."; }
+    }
+  }
+
+  const actions = el("div", "actions");
+  const again = el("a", "btn", isCert ? "Retake the exam" : "Take the test again"); again.href = "test.html?id=" + t.id;
+  const all = el("a", "btn outline", isCert ? "All certifications" : "All mock tests"); all.href = isCert ? "certifications.html" : "mock-tests.html";
+  actions.append(again, all);
+  main.append(actions);
+
+  // ---------- Review ----------
+  const status = q => !q.your_answer ? "skip" : q.your_answer === q.correct ? "right" : "wrong";
+  let filter = "all";
+  const chips = el("div", "chips");
+  const list = el("div");
+  main.append(chips, list);
+
+  function renderChips() {
+    chips.innerHTML = "";
+    const count = s => r.questions.filter(q => status(q) === s).length;
+    for (const [key, label] of [["all", `All (${r.questions.length})`], ["wrong", `Wrong (${count("wrong")})`], ["skip", `Skipped (${count("skip")})`], ["right", `Correct (${count("right")})`]]) {
+      const c = el("button", "chip", label); c.type = "button";
+      c.setAttribute("aria-pressed", String(filter === key));
+      c.onclick = () => { filter = key; renderChips(); renderList(); };
+      chips.append(c);
+    }
+  }
+
+  function renderList() {
+    list.innerHTML = "";
+    const qs = r.questions.filter(q => filter === "all" || status(q) === filter);
+    if (!qs.length) { list.append(el("p", "meta", "Nothing here.")); return; }
+    for (const q of qs) {
+      const st = status(q);
+      const card = el("article", "q");
+      const top = el("div", "top");
+      top.append(el("span", "num", "Question " + q.position),
+        el("span", "tag " + st, st === "right" ? "Correct" : st === "wrong" ? "Wrong" : "Skipped"));
+      card.append(top, el("p", "text", q.question));
+      const ul = el("ul");
+      for (const L of ["A", "B", "C", "D"]) {
+        const li = el("li");
+        if (L === q.correct) li.className = "correct";
+        else if (L === q.your_answer) li.className = "picked-wrong";
+        li.append(document.createTextNode(`${L}. ${q[L.toLowerCase()]}`));
+        if (L === q.correct) li.append(el("span", "mark", "✓ Correct answer"));
+        if (L === q.your_answer && L !== q.correct) li.append(el("span", "mark", "Your answer"));
+        if (L === q.your_answer && L === q.correct) li.lastChild.textContent = "✓ Your answer";
+        ul.append(li);
+      }
+      card.append(ul);
+      if (q.explanation) card.append(el("p", "explain", q.explanation));
+      list.append(card);
+    }
+  }
+  renderChips(); renderList();
+</script>
+</body>
+</html>

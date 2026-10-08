@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CV builder | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .check { margin-top: 24px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; }
+  .check h2 { font-family: Sora, sans-serif; font-size: 17px; color: var(--teal-deep); margin-bottom: 8px; }
+  .check ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .check li::before { content: "✓  "; color: var(--ok); font-weight: 700; }
+  .check li.missing::before { content: "–  "; color: var(--muted); }
+  .check li.missing { color: var(--muted); }
+  a.btn { text-decoration: none; display: inline-block; text-align: center; }
+  .btn.outline { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .btn.outline:hover { background: var(--teal-soft); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+    <a class="header-link" href="profile.html">My profile</a>
+  </div>
+</header>
+
+<main class="page">
+  <h1>Build your CV</h1>
+  <p class="lead" id="lead">Your CV is made from your profile details and downloads as a Word file you can edit.</p>
+
+  <div id="incomplete" hidden>
+    <p class="msg error" style="margin-top:24px">Your profile is missing some details a CV needs: <span id="missing-list"></span>.</p>
+    <p style="margin-top:20px"><a class="btn" href="profile.html">Complete my profile</a></p>
+  </div>
+
+  <form id="cv-form" novalidate hidden>
+    <div class="check">
+      <h2>What goes into your CV</h2>
+      <ul id="sections"></ul>
+      <p class="hint" style="margin-top:10px">Want to change something? <a href="profile.html">Edit your profile</a>, then come back.</p>
+    </div>
+
+    <div class="field">
+      <label for="job">Tailor it for a job <span class="optional">(optional)</span></label>
+      <p class="hint">Pick a job and we'll write your career objective for it.</p>
+      <select id="job"><option value="">No specific job</option></select>
+    </div>
+
+    <div class="field">
+      <label for="objective">Career objective</label>
+      <p class="hint">A short line at the top of your CV. Edit it freely.</p>
+      <textarea id="objective"></textarea>
+    </div>
+
+    <p id="form-msg" class="msg" hidden></p>
+    <button id="download-btn" class="btn" type="submit">Download CV (Word)</button>
+  </form>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import * as docx from "https://cdn.jsdelivr.net/npm/docx@9.7.1/+esm";
+
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+
+  // ---------- Login and profile ----------
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=cv.html"; throw new Error("Not signed in"); }
+
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", session.user.id).maybeSingle();
+  const { data: myCerts } = await supabase.rpc("my_certificates");
+  const p = { ...(profile || {}), email: session.user.email, certificates: (myCerts || []).filter(c => c.issued) };
+
+  const REQUIRED = [["full_name", "full name"], ["phone", "mobile number"], ["district", "district"], ["highest_qualification", "highest qualification"]];
+  const missing = REQUIRED.filter(([k]) => !p[k]).map(([, label]) => label);
+  if (missing.length) {
+    $("missing-list").textContent = missing.join(", ");
+    $("incomplete").hidden = false;
+    throw new Error("Profile incomplete");
+  }
+
+  // ---------- Show what will be included ----------
+  const has = t => (t || "").trim().length > 0;
+  const sections = [
+    ["Name and contact details", true],
+    ["Education", has(p.education) || has(p.highest_qualification)],
+    ["Work experience", has(p.experience)],
+    ["Certifications", p.certificates.length > 0],
+    ["Skills", has(p.skills)],
+    ["Languages", has(p.languages)],
+    ["Date of birth", has(p.date_of_birth)]
+  ];
+  for (const [label, ok] of sections) {
+    const li = document.createElement("li");
+    li.textContent = ok ? label : label + " (not added, will be left out)";
+    if (!ok) li.className = "missing";
+    $("sections").append(li);
+  }
+
+  // ---------- Career objective ----------
+  const QUAL = {
+    "10th pass": "A 10th-pass candidate", "12th pass": "A 12th-pass candidate",
+    "ITI / Diploma": "An ITI/Diploma holder", "Graduate": "A graduate",
+    "Post graduate": "A postgraduate", "PhD": "A PhD holder", "Other": "A candidate"
+  };
+  const skillList = (p.skills || "").split(",").map(s => s.trim()).filter(Boolean).slice(0, 3);
+  const skillText = skillList.length > 1
+    ? skillList.slice(0, -1).join(", ") + " and " + skillList[skillList.length - 1]
+    : skillList[0] || "";
+  const isFresher = !has(p.experience);
+
+  function objectiveFor(job) {
+    const who = QUAL[p.highest_qualification] || "A candidate";
+    const skillsPart = skillText ? ` my skills in ${skillText}` : " my education and skills";
+    if (job) {
+      const at = job.organisation ? ` at ${job.organisation}` : "";
+      return `${who} seeking the position of ${job.title}${at}, where I can apply${skillsPart} and contribute with dedication.`;
+    }
+    return isFresher
+      ? `${who} seeking an entry-level role where I can apply${skillsPart}, learn quickly and grow with the organisation.`
+      : `${who} with work experience, seeking a role where I can apply${skillsPart} and take on greater responsibility.`;
+  }
+  $("objective").value = objectiveFor(null);
+
+  const { data: jobs } = await supabase.from("jobs").select("id, title, organisation").order("created_at", { ascending: false }).limit(200);
+  (jobs || []).forEach(j => {
+    const o = document.createElement("option");
+    o.value = j.id;
+    o.textContent = j.title + (j.organisation ? " – " + j.organisation : "");
+    $("job").append(o);
+  });
+  const preselect = new URLSearchParams(location.search).get("job");
+  if (preselect && (jobs || []).some(j => j.id === preselect)) {
+    $("job").value = preselect;
+    $("objective").value = objectiveFor(jobs.find(j => j.id === preselect));
+  }
+  $("job").addEventListener("change", () => {
+    const job = (jobs || []).find(j => j.id === $("job").value);
+    $("objective").value = objectiveFor(job || null);
+  });
+
+  $("cv-form").hidden = false;
+
+  // ---------- Word file ----------
+function buildCv(docx, p, objective) {
+  const { Document, Paragraph, TextRun, AlignmentType, BorderStyle, LevelFormat } = docx;
+  const TEAL = "0E4F4C", GREY = "536564", FONT = "Arial";
+  const lines = t => (t || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const list = t => (t || "").split(",").map(s => s.trim()).filter(Boolean);
+
+  const heading = text => new Paragraph({
+    spacing: { before: 280, after: 100 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "D3E0DC", space: 2 } },
+    children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 22, color: TEAL, font: FONT, characterSpacing: 20 })]
+  });
+  const body = (text, opts = {}) => new Paragraph({
+    spacing: { after: 80 }, ...opts,
+    children: [new TextRun({ text, size: 21, font: FONT })]
+  });
+  const bullet = text => new Paragraph({
+    numbering: { reference: "cv-bullets", level: 0 }, spacing: { after: 60 },
+    children: [new TextRun({ text, size: 21, font: FONT })]
+  });
+  const labelValue = (label, value) => new Paragraph({
+    spacing: { after: 60 },
+    children: [
+      new TextRun({ text: label + ": ", bold: true, size: 21, font: FONT }),
+      new TextRun({ text: value, size: 21, font: FONT })
+    ]
+  });
+
+  const children = [];
+  children.push(new Paragraph({
+    spacing: { after: 60 },
+    children: [new TextRun({ text: p.full_name, bold: true, size: 40, color: TEAL, font: FONT })]
+  }));
+  const place = p.district && p.district !== "Outside Tripura" ? p.district + ", Tripura" : null;
+  const contact = [p.phone ? "+91 " + p.phone : null, p.email, place].filter(Boolean).join("   |   ");
+  children.push(new Paragraph({
+    spacing: { after: 120 },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: TEAL, space: 6 } },
+    children: [new TextRun({ text: contact, size: 20, color: GREY, font: FONT })]
+  }));
+
+  if (objective && objective.trim()) { children.push(heading("Career objective")); children.push(body(objective.trim())); }
+
+  const edu = lines(p.education);
+  if (edu.length || p.highest_qualification) {
+    children.push(heading("Education"));
+    if (p.highest_qualification) children.push(labelValue("Highest qualification", p.highest_qualification));
+    edu.forEach(e => children.push(bullet(e)));
+  }
+
+  const exp = lines(p.experience);
+  if (exp.length) { children.push(heading("Work experience")); exp.forEach(e => children.push(bullet(e))); }
+
+  const certs = p.certificates || [];
+  if (certs.length) {
+    children.push(heading("Certifications"));
+    certs.forEach(c => {
+      const when = new Date(c.issued_at).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+      children.push(bullet(`${c.cert_title}, Tripura Job Pulse, ${when} (score ${c.score_percent}%, certificate ID ${c.code})`));
+    });
+  }
+
+  const skills = list(p.skills);
+  if (skills.length) { children.push(heading("Skills")); children.push(body(skills.join("  •  "))); }
+
+  const langs = list(p.languages);
+  if (langs.length) { children.push(heading("Languages")); children.push(body(langs.join(", "))); }
+
+  const personal = [];
+  if (p.date_of_birth) {
+    const [y, m, d] = p.date_of_birth.split("-");
+    personal.push(["Date of birth", `${d}-${m}-${y}`]);
+  }
+  if (p.district) personal.push(["District", p.district]);
+  if (personal.length) { children.push(heading("Personal details")); personal.forEach(([l, v]) => children.push(labelValue(l, v))); }
+
+  children.push(heading("Declaration"));
+  children.push(body("I hereby declare that the information given above is true and correct to the best of my knowledge."));
+  children.push(new Paragraph({ spacing: { before: 240, after: 40 }, children: [new TextRun({ text: "Place: " + (p.district && p.district !== "Outside Tripura" ? p.district : ""), size: 21, font: FONT })] }));
+  children.push(new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: "Date: ", size: 21, font: FONT })] }));
+  children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: p.full_name, bold: true, size: 21, font: FONT })] }));
+
+  return new Document({
+    creator: "Tripura Job Pulse",
+    title: "CV - " + p.full_name,
+    styles: { default: { document: { run: { font: FONT, size: 21 } } } },
+    numbering: { config: [{ reference: "cv-bullets", levels: [{ level: 0, format: LevelFormat.BULLET, text: "\u2022", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 360, hanging: 260 } } } }] }] },
+    sections: [{ properties: { page: { margin: { top: 1000, bottom: 1000, left: 1100, right: 1100 } } }, children }]
+  });
+}
+
+  $("cv-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = $("download-btn");
+    btn.disabled = true; btn.textContent = "Preparing your CV…";
+    try {
+      const doc = buildCv(docx, p, $("objective").value);
+      const blob = await docx.Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "CV_" + p.full_name.trim().replace(/\s+/g, "_") + ".docx";
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      const msg = $("form-msg");
+      msg.textContent = "Your CV has downloaded. Open it in Word or Google Docs to check it, and add today's date before sending.";
+      msg.className = "msg ok"; msg.hidden = false;
+    } catch (err) {
+      console.error(err);
+      const msg = $("form-msg");
+      msg.textContent = "Couldn't create the CV. Refresh the page and try again.";
+      msg.className = "msg error"; msg.hidden = false;
+    }
+    btn.disabled = false; btn.textContent = "Download CV (Word)";
+  });
+</script>
+</body>
+</html>

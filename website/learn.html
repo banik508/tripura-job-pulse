@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn skills | Tripura Job Pulse</title>
+<meta name="description" content="Short practical training in Excel, PowerPoint, Word, MIS reporting, dashboards, Power BI, computer basics and professional speaking. Tell us what you want to learn.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.learn { max-width: 820px; }
+  .intro { color: var(--muted); font-size: 17px; line-height: 1.7; margin-top: 8px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-top: 26px; }
+  .card h2 { font-size: 19px; margin: 0 0 4px; }
+  .card .hint { color: var(--muted); font-size: 15px; margin: 0 0 18px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+  .field input, .field textarea {
+    width: 100%; font: inherit; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink);
+  }
+  .field input:focus, .field textarea:focus { outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+  .field textarea { min-height: 90px; resize: vertical; }
+  .req { color: var(--muted); font-weight: 400; font-size: 13px; }
+
+  .picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 4px; }
+  .pick { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 15px; background: #fff; }
+  .pick:hover { border-color: var(--teal); }
+  .pick input { width: 17px; height: 17px; accent-color: var(--teal); flex: none; }
+  .pick.sel { background: var(--teal-soft); border-color: var(--teal); }
+
+  .group-title { font-weight: 600; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; }
+  .group-title:first-of-type { margin-top: 4px; }
+
+  .msg { margin: 14px 0 0; padding: 11px 14px; border-radius: 8px; font-size: 15px; }
+  .msg.ok { background: var(--teal-soft); color: var(--teal-deep); }
+  .msg.bad { background: #FBE9E7; color: #8A2B20; }
+  .foot-note { color: var(--muted); font-size: 14px; margin-top: 16px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>
+    <a id="account-link" class="header-link" href="login.html">Sign in</a>
+  </div>
+</header>
+
+<main class="page learn">
+  <h1>Learn skills</h1>
+  <p class="intro">
+    Most clerical and office jobs ask for the same handful of skills — a clean spreadsheet, a readable report,
+    a presentation that holds a room. We run short, practical training on exactly those.
+    Tell us what you want to learn and we'll come back to you with batch timing and fees.
+  </p>
+
+  <section class="card">
+    <h2>Tell us what you want to learn</h2>
+    <p class="hint">Pick as many as you like. We'll get in touch on the phone number or email you give below.</p>
+
+    <form id="learn-form" novalidate>
+      <div class="group-title">Office and computer</div>
+      <div class="picks" id="g1"></div>
+
+      <div class="group-title">Data and reporting</div>
+      <div class="picks" id="g2"></div>
+
+      <div class="group-title">Communication</div>
+      <div class="picks" id="g3"></div>
+
+      <div class="field" style="margin-top:22px;">
+        <label for="l-name">Your name</label>
+        <input id="l-name" type="text" autocomplete="name" placeholder="Full name">
+      </div>
+
+      <div class="field">
+        <label for="l-phone">Phone number</label>
+        <input id="l-phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile number">
+      </div>
+
+      <div class="field">
+        <label for="l-email">Email <span class="req">(optional)</span></label>
+        <input id="l-email" type="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+
+      <div class="field">
+        <label for="l-message">Anything else? <span class="req">(optional)</span></label>
+        <textarea id="l-message" placeholder="For example: I work mornings, so evening batches suit me better."></textarea>
+      </div>
+
+      <p id="l-msg" class="msg" hidden></p>
+      <button id="l-send" class="btn" type="submit">Send my request</button>
+    </form>
+
+    <p class="foot-note">
+      We use your phone number and email only to contact you about the training you asked for.
+    </p>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+
+  const COURSES = {
+    g1: [
+      "Microsoft Excel — basic to advanced",
+      "Microsoft Word",
+      "Microsoft PowerPoint",
+      "Basic computer skills",
+      "Typing speed and accuracy",
+      "Google Sheets and Google Docs"
+    ],
+    g2: [
+      "MIS reporting",
+      "Dashboards in Excel",
+      "Power BI",
+      "Data analysis basics",
+      "AI tools for office work (ChatGPT, Claude)"
+    ],
+    g3: [
+      "Professional speaking",
+      "Public speaking and presentations",
+      "Spoken English for the workplace",
+      "Email and report writing",
+      "Interview preparation"
+    ]
+  };
+
+  for (const [box, list] of Object.entries(COURSES)) {
+    const wrap = $(box);
+    for (const name of list) {
+      const label = document.createElement("label");
+      label.className = "pick";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = name;
+      cb.addEventListener("change", () => label.classList.toggle("sel", cb.checked));
+      label.append(cb, document.createTextNode(name));
+      wrap.append(label);
+    }
+  }
+
+  function say(text, kind) {
+    const p = $("l-msg");
+    p.hidden = !text;
+    p.textContent = text;
+    p.className = "msg" + (kind ? " " + kind : "");
+  }
+
+  $("learn-form").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const name = $("l-name").value.trim();
+    const phone = $("l-phone").value.trim();
+    const email = $("l-email").value.trim();
+    const note = $("l-message").value.trim();
+    const picked = [...document.querySelectorAll(".pick input:checked")].map(c => c.value);
+
+    if (!name) return say("Please tell us your name.", "bad");
+    if (!phone && !email) return say("Please give us a phone number or an email so we can reply.", "bad");
+    if (phone && phone.replace(/\D/g, "").length < 10) return say("That phone number looks short. Please check it.", "bad");
+    if (!picked.length) return say("Please tick at least one thing you'd like to learn.", "bad");
+
+    const message =
+      "COURSE ENQUIRY\n\nInterested in:\n- " + picked.join("\n- ") +
+      (note ? "\n\nNote from the person:\n" + note : "");
+
+    say("");
+    $("l-send").disabled = true;
+    $("l-send").textContent = "Sending…";
+
+    const { error } = await supabase.from("contact_messages").insert({
+      name,
+      phone: phone || null,
+      email: email || null,
+      reason: "general",
+      message
+    });
+
+    $("l-send").disabled = false;
+    $("l-send").textContent = "Send my request";
+
+    if (error) {
+      console.error(error);
+      return say("Couldn't send that just now. Please check your connection and try again.", "bad");
+    }
+
+    $("learn-form").reset();
+    document.querySelectorAll(".pick.sel").forEach(l => l.classList.remove("sel"));
+    say("Thank you. We have your request and will contact you about batch timing and fees.", "ok");
+  });
+
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      $("account-link").textContent = "My profile";
+      $("account-link").href = "profile.html";
+    }
+  });
+</script>
+</body>
+</html>

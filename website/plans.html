@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job plans | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.plans { max-width: 960px; }
+  .balance { margin-top: 24px; background: var(--teal-deep); color: #F2F7F6; border-radius: 12px; padding: 20px 24px; display: flex; gap: 32px; flex-wrap: wrap; align-items: center; }
+  .balance .num { font-family: Sora, sans-serif; font-size: 34px; font-weight: 700; line-height: 1; color: #fff; }
+  .balance .lbl { font-size: 14px; color: #BFE3DC; margin-top: 4px; }
+  .balance .note { font-size: 15px; color: #DDEFEB; flex: 1; min-width: 220px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 28px; }
+  .plan { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px 22px; display: flex; flex-direction: column; gap: 6px; }
+  .plan.best { border: 2px solid var(--teal); }
+  .tag { position: absolute; top: -12px; left: 20px; background: var(--marigold); color: #3B2A06; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+  .plan h2 { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); }
+  .plan .price { font-family: Sora, sans-serif; font-size: 34px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+  .plan .what { font-weight: 600; }
+  .plan .small { font-size: 14px; color: var(--muted); }
+  .plan .btn { margin-top: auto; }
+  .plan .spacer { flex: 1; min-height: 12px; }
+  .history { margin-top: 36px; }
+  .history h2 { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+  .history ul { list-style: none; margin-top: 8px; }
+  .history li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .st { font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+  .st.pending { background: #FFF3DA; color: #7A5413; }
+  .st.approved { background: #E4F2E8; color: var(--ok); }
+  .st.rejected { background: #F8E7E6; color: var(--error); }
+  .free-note { margin-top: 20px; font-size: 15px; color: var(--muted); }
+
+  dialog { border: 0; border-radius: 14px; padding: 0; width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+  dialog::backdrop { background: rgba(14, 40, 38, .55); }
+  .dlg { padding: 24px; position: relative; }
+  .dlg h2 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); padding-right: 30px; }
+  .close { position: absolute; top: 12px; right: 12px; font: inherit; font-size: 22px; line-height: 1; background: none; border: 0; cursor: pointer; color: var(--muted); padding: 6px 10px; border-radius: 6px; }
+  .close:hover { background: var(--teal-soft); }
+  .pay { margin-top: 16px; display: grid; grid-template-columns: 190px 1fr; gap: 22px; }
+  .qr { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px; width: 190px; }
+  .qr svg { width: 100%; height: auto; display: block; }
+  .pay h3 { font-family: Sora, sans-serif; font-size: 15px; color: var(--teal); margin-bottom: 6px; }
+  .pay ol { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .upi-id { font-weight: 600; font-family: ui-monospace, Consolas, monospace; background: var(--teal-soft); padding: 1px 6px; border-radius: 4px; }
+  .pay form { margin-top: 10px; gap: 10px; }
+  @media (max-width: 600px) { .pay { grid-template-columns: 1fr; } .balance { gap: 20px; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+    <a class="header-link" href="profile.html">My profile</a>
+  </div>
+</header>
+
+<main class="page plans">
+  <h1>Job plans</h1>
+  <p class="lead">Government jobs are always free. Plans are for full details of private and remote jobs.</p>
+
+  <div id="balance" class="balance" hidden></div>
+  <div id="grid" class="grid"></div>
+  <p class="free-note">Every account gets 5 free private or remote job views. Opening the same job again never uses another view.</p>
+
+  <section id="history" class="history" hidden>
+    <h2>Your plan payments</h2>
+    <ul id="history-list"></ul>
+  </section>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg">
+    <button class="close" id="dlg-close" aria-label="Close">×</button>
+    <div id="dlg-content"></div>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
+
+  const { SUPABASE_URL, SUPABASE_KEY, UPI_ID, UPI_NAME } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+  const PLANS = [
+    { code: "basic20",   name: "Basic",     price: 49, what: "20 more job views", small: "No expiry. Use them whenever you like." },
+    { code: "std50",     name: "Standard",  price: 79, what: "50 more job views", small: "No expiry. Best value per job.", best: true },
+    { code: "unlimited", name: "Unlimited", price: 99, what: "Unlimited job views", small: "Valid for 30 days from approval. Renew any time." }
+  ];
+  const planName = code => (PLANS.find(p => p.code === code) || { name: code }).name;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=plans.html"; throw new Error("Not signed in"); }
+  const backJob = new URLSearchParams(location.search).get("back");
+
+  async function load() {
+    const [{ data: summary }, { data: pays }] = await Promise.all([
+      supabase.rpc("job_access_summary"),
+      supabase.from("payments").select("plan_code, amount, status, created_at")
+        .eq("item_type", "job_plan").order("created_at", { ascending: false }).limit(10)
+    ]);
+    renderBalance(summary);
+    renderPlans();
+    renderHistory(pays || []);
+  }
+
+  function renderBalance(s) {
+    const box = $("balance");
+    box.innerHTML = "";
+    if (!s) { box.hidden = true; return; }
+    box.hidden = false;
+    const stat = (num, lbl) => { const d = el("div"); d.append(el("div", "num", String(num)), el("div", "lbl", lbl)); return d; };
+    if (s.unlimited_until) {
+      const until = new Date(s.unlimited_until).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+      box.append(stat("Unlimited", "Active until " + until));
+      box.append(stat(s.left, "Saved views for later"));
+    } else {
+      box.append(stat(s.left, s.left === 1 ? "Job view left" : "Job views left"));
+      box.append(stat(s.used, "Used so far"));
+      if (backJob) {
+        const note = el("p", "note");
+        note.textContent = "Once your plan is approved, go back to the job you were looking at. ";
+        const a = el("a", "", "Back to that job"); a.href = "job.html?id=" + encodeURIComponent(backJob); a.style.color = "#fff";
+        note.append(a);
+        box.append(note);
+      }
+    }
+  }
+
+  function renderPlans() {
+    const grid = $("grid");
+    grid.innerHTML = "";
+    for (const p of PLANS) {
+      const card = el("article", "plan" + (p.best ? " best" : ""));
+      if (p.best) card.append(el("span", "tag", "Most popular"));
+      card.append(el("h2", "", p.name), el("p", "price", "₹" + p.price), el("p", "what", p.what), el("p", "small", p.small), el("div", "spacer"));
+      const b = el("button", "btn", "Buy " + p.name); b.type = "button";
+      b.onclick = () => openPay(p);
+      card.append(b);
+      grid.append(card);
+    }
+  }
+
+  function renderHistory(pays) {
+    if (!pays.length) { $("history").hidden = true; return; }
+    $("history").hidden = false;
+    const ul = $("history-list");
+    ul.innerHTML = "";
+    const label = { pending: "Under review", approved: "Approved", rejected: "Not verified" };
+    for (const p of pays) {
+      const li = el("li");
+      const when = new Date(p.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+      li.append(el("span", "", `${planName(p.plan_code)} plan, ₹${p.amount} · ${when}`), el("span", "st " + p.status, label[p.status] || p.status));
+      ul.append(li);
+    }
+  }
+
+  function openPay(plan) {
+    const box = $("dlg-content");
+    box.innerHTML = "";
+    const h = el("h2", "", `${plan.name} plan: ₹${plan.price}`); h.id = "dlg-title";
+    box.append(h, el("p", "small", plan.what + ". " + plan.small));
+
+    const upiLink = "upi://pay?pa=" + encodeURIComponent(UPI_ID) + "&pn=" + encodeURIComponent(UPI_NAME) +
+      "&am=" + plan.price + ".00&cu=INR&tn=" + encodeURIComponent("TJP " + plan.name + " plan");
+
+    const pay = el("div", "pay");
+    const qrBox = el("div", "qr");
+    try { const qr = qrcode(0, "M"); qr.addData(upiLink); qr.make(); qrBox.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+    catch (e) { qrBox.textContent = "QR code unavailable. Pay using the UPI ID instead."; }
+
+    const right = el("div");
+    right.append(el("h3", "", "1. Pay ₹" + plan.price + " by UPI"));
+    const steps = el("ol");
+    steps.append(el("li", "", "Scan the QR code with any UPI app."));
+    const li2 = el("li", "", "Or pay to ");
+    li2.append(el("span", "upi-id", UPI_ID), document.createTextNode(" for exactly ₹" + plan.price + "."));
+    const li3 = el("li"); const link = el("a", "", "Open your UPI app"); link.href = upiLink;
+    li3.append(link, document.createTextNode(" (on your phone)."));
+    steps.append(li2, li3);
+    right.append(steps);
+
+    const h3 = el("h3", "", "2. Enter your UPI reference number"); h3.style.marginTop = "16px";
+    right.append(h3);
+    const form = el("form"); form.noValidate = true;
+    const field = el("div", "field");
+    const label = el("label", "", "12-digit UPI reference (UTR)"); label.htmlFor = "utr";
+    const input = el("input"); input.id = "utr"; input.inputMode = "numeric"; input.maxLength = 12; input.placeholder = "412345678901";
+    field.append(label, input, el("p", "hint", "In your UPI app, open this payment's details. It may be called UPI Ref No., UTR or Transaction ID."));
+    const msg = el("p", "msg error"); msg.hidden = true;
+    const submit = el("button", "btn", "Submit payment"); submit.type = "submit";
+    form.append(field, msg, submit);
+    right.append(form);
+    pay.append(qrBox, right);
+    box.append(pay);
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const utr = input.value.replace(/\s/g, "");
+      if (!/^\d{12}$/.test(utr)) { msg.textContent = "The UPI reference number is 12 digits, numbers only."; msg.hidden = false; return; }
+      msg.hidden = true; submit.disabled = true; submit.textContent = "Submitting…";
+      const { error } = await supabase.from("payments").insert({ item_type: "job_plan", plan_code: plan.code, amount: plan.price, utr });
+      submit.disabled = false; submit.textContent = "Submit payment";
+      if (error) {
+        console.error(error);
+        msg.textContent = (error.code === "23505") ? "This UPI reference number has already been used. Check you've entered the right one."
+          : "Couldn't submit. Check your connection and try again.";
+        msg.hidden = false; return;
+      }
+      box.innerHTML = "";
+      const done = el("h2", "", "Payment submitted"); done.id = "dlg-title";
+      box.append(done, el("p", "msg ok", `We'll check your ₹${plan.price} payment and activate your ${plan.name} plan, usually within a few hours.`));
+      box.lastChild.style.marginTop = "14px";
+      const ok = el("button", "btn", "Done"); ok.type = "button"; ok.style.marginTop = "18px";
+      ok.onclick = () => $("dlg").close();
+      box.append(ok);
+      load();
+    };
+
+    $("dlg").showModal();
+    setTimeout(() => input.focus(), 50);
+  }
+  $("dlg-close").onclick = () => $("dlg").close();
+  $("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
+
+  load();
+</script>
+</body>
+</html>

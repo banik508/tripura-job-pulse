@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your profile | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page">
+  <h1 id="title">Your profile</h1>
+  <p class="lead" id="lead">These details are used to build your CV. You can change them any time.</p>
+
+  <form id="profile-form" novalidate hidden>
+    <fieldset>
+      <legend>Personal details</legend>
+      <div class="field">
+        <label for="full_name">Full name</label>
+        <input id="full_name" autocomplete="name" required>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" readonly>
+        </div>
+        <div class="field">
+          <label for="phone">Mobile number</label>
+          <input id="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="10-digit number" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="district">District</label>
+          <select id="district" required>
+            <option value="">Choose your district</option>
+            <option>Dhalai</option>
+            <option>Gomati</option>
+            <option>Khowai</option>
+            <option>North Tripura</option>
+            <option>Sepahijala</option>
+            <option>South Tripura</option>
+            <option>Unakoti</option>
+            <option>West Tripura</option>
+            <option>Outside Tripura</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="date_of_birth">Date of birth <span class="optional">(optional)</span></label>
+          <input id="date_of_birth" type="date">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Education</legend>
+      <div class="field">
+        <label for="highest_qualification">Highest qualification</label>
+        <select id="highest_qualification" required>
+          <option value="">Choose one</option>
+          <option>10th pass</option>
+          <option>12th pass</option>
+          <option>ITI / Diploma</option>
+          <option>Graduate</option>
+          <option>Post graduate</option>
+          <option>PhD</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="education">Education details</label>
+        <p class="hint">One per line: course, college or board, and year.</p>
+        <textarea id="education" placeholder="B.A. Political Science, MBB College, 2022&#10;Class 12, TBSE, 2019"></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Work and skills</legend>
+      <div class="field">
+        <label for="experience">Work experience <span class="optional">(optional)</span></label>
+        <p class="hint">One job per line: role, organisation, and years. Leave blank if you're a fresher.</p>
+        <textarea id="experience" placeholder="Data entry operator, ABC Pvt Ltd, 2022–2024"></textarea>
+      </div>
+      <div class="field">
+        <label for="skills">Skills</label>
+        <p class="hint">Separate with commas.</p>
+        <input id="skills" placeholder="MS Excel, Typing, Customer service">
+      </div>
+      <div class="field">
+        <label for="languages">Languages you know</label>
+        <input id="languages" placeholder="Bengali, English, Hindi, Kokborok">
+      </div>
+    </fieldset>
+
+    <p id="form-msg" class="msg" hidden></p>
+    <div style="display:flex; gap:12px; flex-wrap:wrap">
+      <button id="save-btn" class="btn" type="submit">Save profile</button>
+      <a class="btn" href="cv.html" style="background:#fff; color:var(--teal); border:1px solid var(--teal); text-decoration:none">Build my CV</a>
+    </div>
+  </form>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const $ = id => document.getElementById(id);
+  const FIELDS = ["full_name", "phone", "district", "date_of_birth", "highest_qualification",
+                  "education", "experience", "skills", "languages"];
+
+  // Not signed in? Send to the login page.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html"; throw new Error("Not signed in"); }
+  const user = session.user;
+  $("email").value = user.email;
+
+  function showMsg(text, type) {
+    const el = $("form-msg");
+    el.textContent = text;
+    el.className = "msg " + (type || "error");
+    el.hidden = !text;
+  }
+
+  // Load the existing profile, if any
+  const { data: profile, error: loadError } = await supabase
+    .from("profiles").select("*").eq("id", user.id).maybeSingle();
+
+  if (loadError) {
+    console.error(loadError);
+    showMsg("Couldn't load your profile. Refresh the page to try again.");
+  }
+  if (profile) {
+    FIELDS.forEach(f => { if (profile[f]) $(f).value = profile[f]; });
+  } else {
+    $("title").textContent = "Welcome! Let's set up your profile";
+    $("lead").textContent = "Fill in your basic details. We'll use them to build your CV, and you can change them any time.";
+  }
+  $("profile-form").hidden = false;
+
+  $("profile-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const values = {};
+    FIELDS.forEach(f => { values[f] = $(f).value.trim() || null; });
+
+    if (!values.full_name) { showMsg("Enter your full name."); $("full_name").focus(); return; }
+    if (!/^[6-9]\d{9}$/.test(values.phone || "")) { showMsg("Enter a valid 10-digit mobile number."); $("phone").focus(); return; }
+    if (!values.district) { showMsg("Choose your district."); $("district").focus(); return; }
+    if (!values.highest_qualification) { showMsg("Choose your highest qualification."); $("highest_qualification").focus(); return; }
+
+    $("save-btn").disabled = true;
+    $("save-btn").textContent = "Saving…";
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id,
+      ...values,
+      updated_at: new Date().toISOString()
+    });
+    $("save-btn").disabled = false;
+    $("save-btn").textContent = "Save profile";
+
+    if (error) { console.error(error); showMsg("Couldn't save your profile. Check your connection and try again."); return; }
+    $("title").textContent = "Your profile";
+    showMsg("Profile saved.", "ok");
+  });
+
+  $("logout").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "login.html";
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs within India | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.jobs { max-width: 1120px; }
+  .layout { display: grid; grid-template-columns: 250px 1fr; gap: 28px; margin-top: 24px; align-items: start; }
+
+  .filters { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; position: sticky; top: 76px; }
+  .filters h2 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); display: flex; justify-content: space-between; align-items: center; }
+  .clear { font: inherit; font-size: 13px; font-weight: 600; background: none; border: 0; color: var(--teal); cursor: pointer; text-decoration: underline; padding: 0; }
+  .fgroup { margin-top: 16px; }
+  .fgroup label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .fgroup select { padding: 9px 10px; font-size: 15px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--teal-deep); border-color: var(--teal-deep); color: #fff; font-weight: 600; }
+  .filter-toggle { display: none; }
+
+  .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .toolbar input[type="search"] { flex: 1; min-width: 200px; }
+  .count { font-size: 15px; color: var(--muted); margin-top: 14px; }
+  .count b { color: var(--ink); }
+
+  .job { display: block; padding: 18px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit; }
+  .job:hover h3 { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
+  .job h3 { font-family: "Hind Siliguri", sans-serif; font-size: 19px; font-weight: 600; line-height: 1.4; }
+  .job .org { margin-top: 2px; }
+  .job .meta { color: var(--muted); font-size: 15px; margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .job .meta span.tagx { background: var(--teal-soft); color: var(--teal-deep); padding: 2px 9px; border-radius: 6px; font-size: 13px; font-weight: 500; }
+  .type { font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 99px; background: #E3EFEC; color: #0E4F4C; }
+  .type.private { background: #F6EAD3; color: #7A5413; }
+  .type.remote { background: #E6E9F4; color: #36426E; }
+  .soon { color: var(--error); font-weight: 600; }
+  .state { padding: 40px 0; color: var(--muted); }
+  .state strong { display: block; color: var(--ink); font-size: 18px; margin-bottom: 4px; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .filters { position: static; display: none; }
+    .filters.open { display: block; }
+    .filter-toggle { display: inline-block; font: inherit; font-weight: 600; font-size: 15px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--teal); background: #fff; color: var(--teal); cursor: pointer; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>
+    <a id="account-link" class="header-link" href="login.html">Sign in</a>
+  </div>
+</header>
+
+<main class="page jobs">
+  <h1>Jobs within India</h1>
+  <p class="lead">Government and private vacancies in other states, newest first. Sign in to see full details and how to apply.</p>
+
+  <div class="toolbar" style="margin-top:20px">
+    <input id="search" type="search" placeholder="Search by job title or organisation" aria-label="Search jobs">
+    <button class="filter-toggle" id="filter-toggle" type="button">Filters</button>
+  </div>
+
+  <div class="layout">
+    <aside class="filters" id="filters">
+      <h2>Filters <button class="clear" id="clear" type="button">Clear all</button></h2>
+
+      <div class="fgroup" id="type-group">
+        <label>Job type</label>
+        <div class="chips" id="type-chips">
+          <button class="chip" type="button" data-type="all" aria-pressed="true">All</button>
+          <button class="chip" type="button" data-type="government" aria-pressed="false">Government</button>
+          <button class="chip" type="button" data-type="private" aria-pressed="false">Private</button>
+          <button class="chip" type="button" data-type="remote" aria-pressed="false">Remote</button>
+        </div>
+      </div>
+
+      <div class="fgroup" id="city-group">
+        <label for="f-city">City</label>
+        <select id="f-city"><option value="">All cities</option></select>
+      </div>
+
+      <div class="fgroup" id="state-group" hidden>
+        <label for="f-state">State</label>
+        <select id="f-state"><option value="">All states</option></select>
+      </div>
+
+      <div class="fgroup">
+        <label for="f-exp">Experience</label>
+        <select id="f-exp"><option value="">Any experience</option></select>
+      </div>
+
+      <div class="fgroup">
+        <label for="f-ind">Industry</label>
+        <select id="f-ind"><option value="">All industries</option></select>
+      </div>
+    </aside>
+
+    <section>
+      <p class="count" id="count"></p>
+      <div id="list" aria-live="polite"><p class="state">Loading jobs…</p></div>
+    </section>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script src="job-filters.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const F = window.TJP_JOB_FILTERS || { EXPERIENCE: [], INDUSTRY: [] };
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+  const REGION = "india";
+  const SHOW_STATE = true;
+  const SHOW_CITY = true;
+  const SHOW_TYPE = true;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
+
+  let all = [], type = "all";
+  if (!SHOW_TYPE) document.getElementById("type-group").hidden = true;
+  if (!SHOW_CITY) document.getElementById("city-group").hidden = true;
+
+  const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const prettyDate = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const daysLeft = iso => Math.round((new Date(iso + "T00:00:00") - new Date(todayISO() + "T00:00:00")) / 86400000);
+  function showState(title, text) {
+    $("list").innerHTML = "";
+    const d = el("div", "state");
+    d.append(el("strong", "", title), document.createTextNode(text));
+    $("list").append(d);
+  }
+
+  function fillSelect(sel, values, keepFirst) {
+    const current = sel.value;
+    sel.innerHTML = "";
+    sel.append(keepFirst);
+    values.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; sel.append(o); });
+    if (values.includes(current)) sel.value = current;
+  }
+
+  function setupFilters() {
+    const first = t => { const o = document.createElement("option"); o.value = ""; o.textContent = t; return o; };
+    if (SHOW_CITY) {
+      const cities = [...new Set(all.map(j => (j.city || "").trim()).filter(Boolean))].sort();
+      fillSelect($("f-city"), cities, first("All cities"));
+    }
+    if (SHOW_STATE) {
+      $("state-group").hidden = false;
+      const states = [...new Set(all.map(j => (j.state || "").trim()).filter(Boolean))].sort();
+      fillSelect($("f-state"), states, first("All states"));
+    }
+    fillSelect($("f-exp"), F.EXPERIENCE.filter(x => all.some(j => j.experience === x)), first("Any experience"));
+    const inds = [...new Set(all.map(j => (j.industry || "").trim()).filter(Boolean))].sort();
+    fillSelect($("f-ind"), inds, first("All industries"));
+  }
+
+  function render() {
+    const q = $("search").value.trim().toLowerCase();
+    const city = SHOW_CITY ? $("f-city").value : "", st = SHOW_STATE ? $("f-state").value : "", exp = $("f-exp").value, ind = $("f-ind").value;
+    const jobs = all.filter(j =>
+      (type === "all" || j.job_type === type) &&
+      (!city || (j.city || "").trim() === city) &&
+      (!st || (j.state || "").trim() === st) &&
+      (!exp || j.experience === exp) &&
+      (!ind || j.industry === ind) &&
+      (!q || (j.title + " " + (j.organisation || "")).toLowerCase().includes(q))
+    );
+
+    const filtered = jobs.length !== all.length;
+    $("count").innerHTML = "";
+    $("count").append(el("b", "", String(jobs.length)), document.createTextNode(jobs.length === 1 ? " job" : " jobs") );
+    if (filtered) $("count").append(document.createTextNode(` of ${all.length}`));
+    $("count").append(document.createTextNode(" · newest first"));
+
+    if (!jobs.length) {
+      showState(all.length ? "No jobs match these filters." : "No jobs listed here yet.",
+                all.length ? "Try clearing a filter or searching for something else." : "New vacancies are added regularly. Check back soon.");
+      return;
+    }
+    $("list").innerHTML = "";
+    for (const j of jobs) {
+      const a = el("a", "job");
+      a.href = "job.html?id=" + encodeURIComponent(j.id);
+      a.append(el("h3", "", j.title));
+      if (j.organisation) a.append(el("p", "org", j.organisation));
+
+      const meta = el("p", "meta");
+      const t = el("span", "type " + j.job_type, j.job_type.charAt(0).toUpperCase() + j.job_type.slice(1));
+      meta.append(t);
+      const place = [j.city, SHOW_STATE ? j.state : null].filter(Boolean).join(", ") || j.location;
+      if (place && place.trim().toLowerCase() !== j.job_type) meta.append(el("span", "tagx", place));
+      if (j.experience) meta.append(el("span", "tagx", j.experience));
+      if (j.industry) meta.append(el("span", "tagx", j.industry));
+      if (j.last_date) {
+        const left = daysLeft(j.last_date);
+        const s = el("span", "", "Last date " + prettyDate(j.last_date));
+        if (left <= 3) { s.className = "soon"; s.textContent += left === 0 ? " (today)" : ` (${left} day${left > 1 ? "s" : ""} left)`; }
+        meta.append(s);
+      }
+      a.append(meta);
+      $("list").append(a);
+    }
+  }
+
+  async function load() {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("id, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at")
+      .eq("region", REGION)
+      .or(`last_date.gte.${todayISO()},last_date.is.null`)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) { console.error(error); showState("Couldn't load jobs.", "Check your internet connection and refresh the page."); return; }
+    all = data;
+    setupFilters();
+    render();
+  }
+
+  document.querySelectorAll("#type-chips .chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll("#type-chips .chip").forEach(x => x.setAttribute("aria-pressed", "false"));
+    c.setAttribute("aria-pressed", "true");
+    type = c.dataset.type;
+    render();
+  }));
+  ["f-city", "f-state", "f-exp", "f-ind"].forEach(id => $(id).addEventListener("change", render));
+  $("search").addEventListener("input", render);
+  $("clear").addEventListener("click", () => {
+    type = "all";
+    document.querySelectorAll("#type-chips .chip").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.type === "all")));
+    ["f-city", "f-state", "f-exp", "f-ind"].forEach(id => $(id).value = "");
+    $("search").value = "";
+    render();
+  });
+  $("filter-toggle").addEventListener("click", () => $("filters").classList.toggle("open"));
+
+  load();
+</script>
+</body>
+</html>

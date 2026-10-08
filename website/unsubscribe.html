@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Unsubscribe | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.narrow { max-width: 560px; }
+  .box { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px; margin-top: 24px; text-align: center; }
+  .box h1 { font-size: 24px; margin: 0 0 10px; }
+  .box p { color: var(--muted); margin: 0 0 18px; }
+  .mark { font-size: 34px; line-height: 1; margin-bottom: 10px; }
+  .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<main class="page narrow">
+  <div class="box" id="box">
+    <p id="msg">Please wait…</p>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const box = document.getElementById("box");
+  const token = new URLSearchParams(location.search).get("token");
+
+  function show(mark, title, text, showHome) {
+    box.innerHTML = "";
+    if (mark) { const m = document.createElement("div"); m.className = "mark"; m.textContent = mark; box.append(m); }
+    const h = document.createElement("h1"); h.textContent = title; box.append(h);
+    const p = document.createElement("p"); p.textContent = text; box.append(p);
+    if (showHome) {
+      const a = document.createElement("a");
+      a.className = "btn ghost";
+      a.href = "index.html";
+      a.textContent = "Back to Tripura Job Pulse";
+      const row = document.createElement("div");
+      row.className = "actions";
+      row.append(a);
+      box.append(row);
+    }
+  }
+
+  if (!token) {
+    show("", "Link not complete", "This unsubscribe link is missing its code. Please open the link from your email exactly as it appears there.", true);
+  } else {
+    const { data, error } = await supabase.rpc("unsubscribe", { p_token: token });
+    if (error) {
+      console.error(error);
+      show("", "Something went wrong", "We couldn't update your subscription just now. Please try the link again in a few minutes.", true);
+    } else if (data === false) {
+      show("", "Link not recognised", "This code doesn't match any subscription. You may already have unsubscribed.", true);
+    } else {
+      show("✓", "You're unsubscribed", "You won't receive job alert emails from us any more. You can always subscribe again from the homepage.", true);
+    }
+  }
+</script>
+</body>
+</html>

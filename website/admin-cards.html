@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin: job cards | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1120px; }
+  .admin-nav { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .bar { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 26px; }
+  .bar .field { margin: 0; min-width: 170px; }
+  .bar .field label { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .count-line { margin-top: 14px; font-size: 15px; color: var(--muted); }
+  .layout { display: grid; grid-template-columns: 1fr 360px; gap: 26px; margin-top: 18px; align-items: start; }
+  .list { background: #fff; border: 1px solid var(--line); border-radius: 12px; max-height: 70vh; overflow-y: auto; }
+  .jrow { display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); cursor: pointer; align-items: flex-start; }
+  .jrow:last-child { border-bottom: 0; }
+  .jrow:hover { background: var(--teal-soft); }
+  .jrow input { width: 18px; height: 18px; margin-top: 3px; flex: none; }
+  .jrow h3 { font-size: 16px; font-weight: 600; line-height: 1.35; }
+  .jrow p { font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .side { position: sticky; top: 20px; }
+  .preview-box { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .preview-box canvas { width: 100%; height: auto; border-radius: 8px; display: block; }
+  .preview-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .sbtn { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 12px; border-radius: 7px; cursor: pointer; border: 1px solid var(--teal); background: #fff; color: var(--teal); }
+  .sbtn:disabled { opacity: .45; cursor: default; }
+  .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .caption { margin-top: 16px; }
+  .caption textarea { min-height: 190px; font-size: 14px; line-height: 1.5; }
+  .hint-small { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .editor { margin-top: 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .editor label { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 4px; }
+  .editor input, .editor textarea { font-size: 14px; padding: 8px 10px; }
+  .editor textarea { min-height: 120px; font-family: ui-monospace, Consolas, monospace; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .side { position: static; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Job cards for social media</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-cards.html">Job cards</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+    <a href="admin-messages.html">Messages</a>
+  </nav>
+
+  <div id="area" hidden>
+    <p class="lead">Pick the jobs you want to post, then download the images and copy the caption. Works for Facebook, Instagram and WhatsApp.</p>
+
+    <div class="bar">
+      <div class="field">
+        <label for="f-section">Section</label>
+        <select id="f-section">
+          <option value="">All sections</option>
+          <option value="tripura">Tripura jobs</option>
+          <option value="india">Within India</option>
+          <option value="remote">Remote jobs</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-size">Image size</label>
+        <select id="f-size">
+          <option value="square">Square 1080 x 1080 (feed post)</option>
+          <option value="portrait">Portrait 1080 x 1350 (more reach)</option>
+          <option value="story">Story 1080 x 1920 (status and reels)</option>
+        </select>
+      </div>
+      <div class="field" style="flex:1; min-width:220px">
+        <label for="f-search">Search</label>
+        <input id="f-search" type="search" placeholder="Job title or organisation">
+      </div>
+      <button class="sbtn" id="select-all" type="button">Select all shown</button>
+      <button class="sbtn" id="clear-sel" type="button">Clear</button>
+    </div>
+    <p class="count-line" id="count"></p>
+
+    <div class="layout">
+      <section class="list" id="list"></section>
+
+      <aside class="side">
+        <div class="preview-box">
+          <canvas id="canvas" width="1080" height="1080"></canvas>
+          <div class="preview-nav">
+            <button class="sbtn" id="prev" type="button">Previous</button>
+            <span id="pos">No job selected</span>
+            <button class="sbtn" id="next" type="button">Next</button>
+          </div>
+        </div>
+
+        <div class="editor field" id="editor" hidden>
+          <label for="e-card-title">Title on the card</label>
+          <input id="e-card-title">
+          <label for="e-card-org" style="margin-top:10px">Organisation</label>
+          <input id="e-card-org">
+          <label for="e-card-rows" style="margin-top:10px">Details, one per line as Label: value</label>
+          <textarea id="e-card-rows" spellcheck="false"></textarea>
+          <label for="e-card-date" style="margin-top:10px">Last date line</label>
+          <input id="e-card-date">
+          <label for="e-card-cta" style="margin-top:10px">Text under the QR code</label>
+          <input id="e-card-cta">
+          <button class="sbtn" id="reset-card" type="button" style="margin-top:10px">Reset to job details</button>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="dl-one" type="button">Download this image</button>
+          <button class="sbtn" id="dl-all" type="button">Download all selected</button>
+          <button class="sbtn" id="dl-video" type="button">Download 10-second video</button>
+          <p class="hint-small">The video has no sound. Add music in Instagram, WhatsApp or CapCut when you post, so the track is properly licensed.</p>
+        </div>
+
+        <div class="caption field">
+          <label for="cap">Caption to paste</label>
+          <textarea id="cap" readonly></textarea>
+          <button class="sbtn" id="copy-cap" type="button" style="margin-top:8px">Copy caption</button>
+          <p class="hint-small">Facebook shows link posts to fewer people. Post the image, and put the link in the first comment.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const SITE = location.origin.includes("localhost") || location.protocol === "file:"
+    ? "https://tripurajobpulse.com" : location.origin;
+
+  // ---------- access ----------
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-cards.html"; throw new Error("Not signed in"); }
+  const { data: adminRow } = await supabase.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("Not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false; $("area").hidden = false;
+
+  const SIZES = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920] };
+  const TEAL = "#0E4F4C", TEAL2 = "#15706B", GOLD = "#D9A13B", PAPER = "#F4F8F6", MUTED = "#B7CFCB";
+
+  let jobs = [], selected = new Set(), current = 0;
+
+  const prettyDate = iso => iso ? new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : null;
+
+  async function load() {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase.from("jobs")
+      .select("id, title, organisation, job_type, city, state, region, experience, industry, last_date, created_at")
+      .eq("is_active", true)
+      .or(`last_date.gte.${today},last_date.is.null`)
+      .order("created_at", { ascending: false }).limit(300);
+    if (error) { console.error(error); $("list").textContent = "Couldn't load jobs: " + error.message; return; }
+    jobs = data;
+    render();
+  }
+
+  function visible() {
+    const sec = $("f-section").value, q = $("f-search").value.trim().toLowerCase();
+    return jobs.filter(j => (!sec || j.region === sec) &&
+      (!q || (j.title + " " + (j.organisation || "")).toLowerCase().includes(q)));
+  }
+
+  function render() {
+    const list = $("list"); list.innerHTML = "";
+    const rows = visible();
+    $("count").textContent = `${rows.length} jobs shown · ${selected.size} selected`;
+    for (const j of rows) {
+      const row = document.createElement("label"); row.className = "jrow";
+      const box = document.createElement("input"); box.type = "checkbox"; box.checked = selected.has(j.id);
+      box.onchange = () => { box.checked ? selected.add(j.id) : selected.delete(j.id); refreshPreview(); render(); };
+      const txt = document.createElement("div");
+      const h = document.createElement("h3"); h.textContent = j.title;
+      const p = document.createElement("p");
+      p.textContent = [j.organisation, [j.city, j.state].filter(Boolean).join(", "), j.last_date ? "Last date " + prettyDate(j.last_date) : null]
+        .filter(Boolean).join(" · ");
+      txt.append(h, p);
+      row.append(box, txt);
+      list.append(row);
+    }
+  }
+
+  const chosen = () => jobs.filter(j => selected.has(j.id));
+
+  // ---------- drawing ----------
+  function wrap(ctx, text, maxWidth, maxLines) {
+    const words = String(text).split(/\s+/);
+    const lines = []; let line = "";
+    for (const w of words) {
+      const test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = w; }
+      else line = test;
+      if (lines.length === maxLines) break;
+    }
+    if (lines.length < maxLines && line) lines.push(line);
+    if (lines.length === maxLines && words.join(" ") !== lines.join(" ")) {
+      let last = lines[maxLines - 1];
+      while (ctx.measureText(last + "…").width > maxWidth && last.length > 4) last = last.slice(0, -1);
+      lines[maxLines - 1] = last.trim() + "…";
+    }
+    return lines;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function logo(ctx, x, y, s) {
+    // briefcase with a pulse line, drawn to scale s
+    ctx.save();
+    ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = PAPER;
+    roundRect(ctx, 0, 14, 64, 40, 7); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(22, 14); ctx.lineTo(22, 7); ctx.quadraticCurveTo(22, 3, 26, 3);
+    ctx.lineTo(38, 3); ctx.quadraticCurveTo(42, 3, 42, 7); ctx.lineTo(42, 14);
+    ctx.lineWidth = 6; ctx.strokeStyle = PAPER; ctx.lineCap = "round"; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(2, 34); ctx.lineTo(16, 34); ctx.lineTo(23, 22); ctx.lineTo(32, 48); ctx.lineTo(40, 29); ctx.lineTo(62, 29);
+    ctx.lineWidth = 7; ctx.strokeStyle = GOLD; ctx.lineJoin = "round"; ctx.stroke();
+    ctx.restore();
+  }
+
+  function cardFromJob(job) {
+    const rows = [
+      ["Location", [job.city, job.state].filter(Boolean).join(", ")],
+      ["Experience", job.experience],
+      ["Qualification", job.qualification],
+      ["Vacancies", job.vacancies],
+      ["Salary", job.salary]
+    ].filter(([, v]) => v && !/^not specified$/i.test(String(v)));
+    const pills = [];
+    const type = (job.job_type || "").charAt(0).toUpperCase() + (job.job_type || "").slice(1);
+    if (type) pills.push(type + " job");
+    if (job.region === "remote") pills.push("Work from home");
+    else if (job.region === "india") pills.push("Within India");
+    return {
+      id: job.id,
+      title: job.title || "",
+      org: job.organisation || "",
+      pills,
+      rows,
+      dateLine: job.last_date ? prettyDate(job.last_date) : "",
+      cta: "Scan to apply"
+    };
+  }
+
+  function drawQR(ctx, text, x, y, size) {
+    try {
+      const qr = qrcode(0, "M");
+      qr.addData(text);
+      qr.make();
+      const n = qr.getModuleCount();
+      const pad = 14;
+      const cell = (size - pad * 2) / n;
+      ctx.fillStyle = "#FFFFFF";
+      roundRect(ctx, x, y, size, size, 16); ctx.fill();
+      ctx.fillStyle = "#0E4F4C";
+      for (let r = 0; r < n; r++)
+        for (let c = 0; c < n; c++)
+          if (qr.isDark(r, c)) ctx.fillRect(x + pad + c * cell, y + pad + r * cell, Math.ceil(cell), Math.ceil(cell));
+      return true;
+    } catch (e) { console.error(e); return false; }
+  }
+
+  function personFigure(ctx, x, y, scale, alpha) {
+    // simple job-ready figure: head, shoulders and a briefcase
+    ctx.save();
+    ctx.translate(x, y); ctx.scale(scale, scale);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath(); ctx.arc(0, -96, 34, 0, Math.PI * 2); ctx.fill();          // head
+    ctx.beginPath();                                                          // shoulders and body
+    ctx.moveTo(-62, 0); ctx.quadraticCurveTo(-58, -56, 0, -56);
+    ctx.quadraticCurveTo(58, -56, 62, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = GOLD;
+    roundRect(ctx, 40, -24, 54, 40, 7); ctx.fill();                           // briefcase
+    ctx.strokeStyle = GOLD; ctx.lineWidth = 6; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(56, -24); ctx.lineTo(56, -34);
+    ctx.lineTo(78, -34); ctx.lineTo(78, -24); ctx.stroke();                   // handle
+    ctx.restore();
+  }
+
+  function draw(card, t) {
+    const prog = t === undefined ? 1 : t;                 // 0 to 1, used when recording a video
+    const [W, H] = SIZES[$("f-size").value];
+    const c = $("canvas"); c.width = W; c.height = H;
+    const ctx = c.getContext("2d");
+    const M = 80, CX = W / 2;
+    const ease = p => Math.min(1, Math.max(0, p));
+    const step = (from, to) => ease((prog - from) / (to - from));
+
+    // background
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#0B3A38"); g.addColorStop(.55, TEAL); g.addColorStop(1, "#14615C");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const ring = 1 + prog * 0.08;
+    ctx.strokeStyle = "rgba(255,255,255,.06)"; ctx.lineWidth = 64;
+    ctx.beginPath(); ctx.arc(W + 80, H * .16, 280 * ring, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-110, H * .86, 240 * ring, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = GOLD; ctx.fillRect(0, 0, 18, H);
+
+    // the figure sits low on the right, behind the content
+    personFigure(ctx, W - 190, H - 150, H > 1200 ? 1.25 : 1.05, 0.10 + 0.04 * step(0, .3));
+
+    ctx.textAlign = "center";
+
+    // header, centred
+    const headY = M + 10;
+    logo(ctx, CX - 150, headY - 10, 1.0);
+    ctx.fillStyle = "#FFFFFF"; ctx.font = "700 34px Sora, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("TRIPURA", CX - 62, headY + 18);
+    ctx.fillStyle = GOLD; ctx.fillText("JOB PULSE", CX - 62, headY + 56);
+    ctx.textAlign = "center";
+    ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(M, headY + 96); ctx.lineTo(W - M, headY + 96); ctx.stroke();
+
+    // pills, centred as a row
+    let y = headY + 156;
+    ctx.font = "600 27px 'Hind Siliguri', sans-serif";
+    const widths = card.pills.map(p => ctx.measureText(p).width + 44);
+    const totalW = widths.reduce((a, b) => a + b, 0) + 14 * Math.max(0, card.pills.length - 1);
+    let px = CX - totalW / 2;
+    const pillAlpha = step(0, .25);
+    card.pills.forEach((text, i) => {
+      ctx.globalAlpha = pillAlpha;
+      ctx.fillStyle = i === 0 ? GOLD : "rgba(255,255,255,.16)";
+      roundRect(ctx, px, y, widths[i], 50, 25); ctx.fill();
+      ctx.fillStyle = i === 0 ? "#3A2A06" : "#FFFFFF";
+      ctx.textAlign = "center";
+      ctx.fillText(text, px + widths[i] / 2, y + 34);
+      px += widths[i] + 14;
+    });
+    ctx.globalAlpha = 1;
+
+    // title
+    y += 122;
+    ctx.globalAlpha = step(.1, .4);
+    ctx.fillStyle = "#FFFFFF";
+    const titleSize = H > 1200 ? 74 : 64;
+    ctx.font = `700 ${titleSize}px Sora, sans-serif`;
+    for (const line of wrap(ctx, card.title, W - M * 2, 3)) { ctx.fillText(line, CX, y); y += titleSize * 1.2; }
+
+    // organisation
+    if (card.org) {
+      y += 6;
+      ctx.globalAlpha = step(.2, .45);
+      ctx.fillStyle = MUTED; ctx.font = "500 40px 'Hind Siliguri', sans-serif";
+      for (const line of wrap(ctx, card.org, W - M * 2, 2)) { ctx.fillText(line, CX, y); y += 52; }
+    }
+    ctx.globalAlpha = 1;
+
+    // bottom blocks
+    const qrSize = 210;
+    const qrY = H - M - qrSize - 52;
+    const bandH = 100;
+    const bandY = qrY - bandH - 96;
+
+    // details, centred
+    y += 50;
+    ctx.globalAlpha = step(.3, .6);
+    for (const [label, value] of card.rows) {
+      if (y > bandY - 70) break;
+      if (label) {
+        ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.font = "600 25px 'Hind Siliguri', sans-serif";
+        ctx.fillText(label.toUpperCase(), CX, y);
+      }
+      ctx.fillStyle = "#FFFFFF"; ctx.font = "500 37px 'Hind Siliguri', sans-serif";
+      ctx.fillText(wrap(ctx, value, W - M * 2, 1)[0], CX, y + (label ? 46 : 10));
+      y += label ? 92 : 54;
+    }
+    ctx.globalAlpha = 1;
+
+    // last date band, centred
+    if (card.dateLine) {
+      ctx.globalAlpha = step(.45, .7);
+      const bandW = Math.min(W - M * 2, 680);
+      ctx.fillStyle = "rgba(217,161,59,.18)";
+      roundRect(ctx, CX - bandW / 2, bandY, bandW, bandH, 16); ctx.fill();
+      ctx.fillStyle = GOLD; ctx.font = "600 26px 'Hind Siliguri', sans-serif";
+      ctx.fillText("LAST DATE TO APPLY", CX, bandY + 38);
+      ctx.fillStyle = "#FFFFFF"; ctx.font = "700 40px Sora, sans-serif";
+      ctx.fillText(wrap(ctx, card.dateLine, bandW - 60, 1)[0], CX, bandY + 82);
+      ctx.globalAlpha = 1;
+    }
+
+    // QR, centred, with the website line beside it
+    const link = SITE + "/job.html?id=" + card.id;
+    ctx.globalAlpha = step(.6, .85);
+    if (drawQR(ctx, link, CX - qrSize / 2, qrY, qrSize)) {
+      ctx.fillStyle = GOLD; ctx.font = "600 26px 'Hind Siliguri', sans-serif";
+      ctx.fillText(card.cta || "Scan to apply", CX, qrY + qrSize + 38);
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.font = "500 30px 'Hind Siliguri', sans-serif";
+    ctx.fillText("Full details and how to apply at", CX, qrY - 34);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#FFFFFF"; ctx.font = "700 36px Sora, sans-serif";
+    ctx.fillText("tripurajobpulse.com", CX, H - 34);
+    ctx.textAlign = "left";
+  }
+
+  function caption(job) {
+    const place = [job.city, job.state].filter(Boolean).join(", ");
+    const lines = [];
+    lines.push(`${job.title}${job.organisation ? " — " + job.organisation : ""}`);
+    lines.push("");
+    if (place) lines.push("Location: " + place);
+    if (job.vacancies) lines.push("Vacancies: " + job.vacancies);
+    if (job.qualification) lines.push("Qualification: " + job.qualification);
+    if (job.experience) lines.push("Experience: " + job.experience);
+    if (job.salary && !/^not specified$/i.test(job.salary)) lines.push("Salary: " + job.salary);
+    if (job.last_date) lines.push("Last date: " + prettyDate(job.last_date));
+    lines.push("");
+    lines.push("Full details and the official apply link are on our website:");
+    lines.push(`${SITE}/job.html?id=${job.id}`);
+    lines.push("");
+    lines.push("Government jobs are free to view for everyone. New vacancies added every day.");
+    lines.push("");
+    const tags = ["#TripuraJobs", "#JobsInTripura", "#Tripura", "#Agartala", "#TripuraJobPulse", "#SarkariNaukri"];
+    if (job.job_type === "government") tags.push("#GovtJobs", "#TPSC");
+    if (job.region === "remote") tags.push("#WorkFromHome", "#RemoteJobs");
+    if (job.region === "india") tags.push("#JobsInIndia");
+    lines.push(tags.join(" "));
+    return lines.join("\n");
+  }
+
+  const detailCache = new Map();
+  async function withDetails(job) {
+    if (detailCache.has(job.id)) return detailCache.get(job.id);
+    const { data: res } = await supabase.rpc("get_job_details", { p_job_id: job.id });
+    const full = res && res.job ? { ...job, ...res.job } : job;
+    detailCache.set(job.id, full);
+    return full;
+  }
+
+  let card = null;
+
+  function fillEditor(c) {
+    $("e-card-title").value = c.title;
+    $("e-card-org").value = c.org;
+    $("e-card-rows").value = c.rows.map(([l, v]) => (l ? l + ": " : "") + v).join("\n");
+    $("e-card-date").value = c.dateLine;
+    $("e-card-cta").value = c.cta;
+  }
+
+  function readEditor() {
+    card.title = $("e-card-title").value;
+    card.org = $("e-card-org").value;
+    card.rows = $("e-card-rows").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
+      const i = l.indexOf(":");
+      return i === -1 ? ["", l] : [l.slice(0, i).trim(), l.slice(i + 1).trim()];
+    });
+    card.dateLine = $("e-card-date").value;
+    card.cta = $("e-card-cta").value;
+    draw(card);
+  }
+
+  async function refreshPreview() {
+    const list = chosen();
+    if (!list.length) {
+      $("pos").textContent = "No job selected";
+      $("cap").value = ""; $("editor").hidden = true; card = null;
+      const ctx = $("canvas").getContext("2d");
+      ctx.clearRect(0, 0, $("canvas").width, $("canvas").height);
+      return;
+    }
+    if (current >= list.length) current = 0;
+    const job = await withDetails(list[current]);
+    card = cardFromJob(job);
+    fillEditor(card);
+    $("editor").hidden = false;
+    draw(card);
+    $("cap").value = caption(job);
+    $("pos").textContent = (current + 1) + " of " + list.length;
+  }
+
+  function fileName(job) {
+    return "TJP_" + ((card && card.title) || job.title || "job").replace(/[^\w ]+/g, "").trim().replace(/\s+/g, "_").slice(0, 50) + ".png";
+  }
+
+  function downloadCanvas(job) {
+    return new Promise(resolve => {
+      $("canvas").toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = fileName(job);
+        document.body.append(a); a.click(); a.remove();
+        setTimeout(() => { URL.revokeObjectURL(url); resolve(); }, 400);
+      }, "image/png");
+    });
+  }
+
+  // ---------- events ----------
+  $("f-section").addEventListener("change", () => { render(); refreshPreview(); });
+  $("f-size").addEventListener("change", () => { if (card) draw(card); });
+  $("f-search").addEventListener("input", render);
+  $("select-all").onclick = () => { visible().forEach(j => selected.add(j.id)); render(); refreshPreview(); };
+  $("clear-sel").onclick = () => { selected.clear(); current = 0; render(); refreshPreview(); };
+  $("prev").onclick = () => { const n = chosen().length; if (n) { current = (current - 1 + n) % n; refreshPreview(); } };
+  $("next").onclick = () => { const n = chosen().length; if (n) { current = (current + 1) % n; refreshPreview(); } };
+  $("dl-one").onclick = async () => {
+    const list = chosen();
+    if (list.length) await downloadCanvas(list[current]);
+  };
+  $("dl-all").onclick = async () => {
+    const list = chosen();
+    if (!list.length) return;
+    $("dl-all").disabled = true;
+    for (let i = 0; i < list.length; i++) {
+      current = i;
+      await refreshPreview();
+      await downloadCanvas(list[i]);
+    }
+    $("dl-all").disabled = false;
+  };
+  ["e-card-title", "e-card-org", "e-card-rows", "e-card-date", "e-card-cta"]
+    .forEach(id => $(id).addEventListener("input", () => { if (card) readEditor(); }));
+  $("reset-card").onclick = async () => {
+    const list = chosen();
+    if (!list.length) return;
+    const job = await withDetails(list[current]);
+    card = cardFromJob(job);
+    fillEditor(card); draw(card);
+  };
+
+  // ---------- short video of the card ----------
+  $("dl-video").onclick = async () => {
+    if (!card) return;
+    const btn = $("dl-video");
+    const cv = $("canvas");
+    if (!cv.captureStream || typeof MediaRecorder === "undefined") {
+      alert("This browser can't record video. Try Chrome or Edge on a computer.");
+      return;
+    }
+    btn.disabled = true; btn.textContent = "Recording…";
+    const stream = cv.captureStream(30);
+    const types = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+    const mime = types.find(t => MediaRecorder.isTypeSupported(t)) || "";
+    const rec = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 6000000 } : undefined);
+    const chunks = [];
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+
+    const done = new Promise(res => { rec.onstop = res; });
+    rec.start();
+
+    const start = performance.now();
+    const DURATION = 10000;
+    await new Promise(resolve => {
+      function frame(now) {
+        const elapsed = now - start;
+        // first 3 seconds build the card up, then it holds steady
+        draw(card, Math.min(1, elapsed / 3000));
+        if (elapsed < DURATION) requestAnimationFrame(frame);
+        else resolve();
+      }
+      requestAnimationFrame(frame);
+    });
+
+    rec.stop();
+    await done;
+    const blob = new Blob(chunks, { type: "video/webm" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName({ title: card.title }).replace(/\.png$/, ".webm");
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    draw(card);
+    btn.disabled = false; btn.textContent = "Download 10-second video";
+  };
+
+  $("copy-cap").onclick = async () => {
+    if (!$("cap").value) return;
+    try { await navigator.clipboard.writeText($("cap").value); $("copy-cap").textContent = "Copied"; setTimeout(() => $("copy-cap").textContent = "Copy caption", 1500); }
+    catch (e) { $("cap").select(); }
+  };
+
+  $("logout").addEventListener("click", async () => { await supabase.auth.signOut(); window.location.href = "login.html"; });
+
+  await document.fonts.ready;
+  await load();
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin: study material | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1000px; }
+  .panel { margin-top: 36px; }
+  .panel h2 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+  .panel form { max-width: 640px; }
+  input[type="file"] { background: #fff; }
+  .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  .pill { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--teal-soft); color: var(--teal-deep); }
+  .pill.off { background: #EDEDED; color: #666; }
+  .small-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; background: #fff; border: 1px solid var(--teal); color: var(--teal); margin: 0 6px 4px 0; }
+  .small-btn.danger { border-color: var(--error); color: var(--error); }
+  .admin-nav { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Study material</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-payments.html">Payments</a>
+  </nav>
+
+  <div id="admin-area" hidden>
+    <section class="panel">
+      <h2>Add a new module</h2>
+      <form id="add-form" novalidate>
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" placeholder="Module 1: Indian Constitution – Basics">
+        </div>
+        <div class="field">
+          <label for="description">Description <span class="optional">(optional)</span></label>
+          <textarea id="description" placeholder="What the module covers, number of pages, which exams it helps with"></textarea>
+        </div>
+        <div class="field">
+          <label for="subject">Subject</label>
+          <p class="hint">Sets the cover colour and icon on the study material page.</p>
+          <select id="subject" style="max-width:320px"></select>
+        </div>
+        <div class="field">
+          <label for="price">Price in ₹</label>
+          <p class="hint">Enter 0 to make it a free download.</p>
+          <input id="price" type="number" min="0" step="1" inputmode="numeric" style="max-width:180px">
+        </div>
+        <div class="field">
+          <label for="file">PDF file</label>
+          <p class="hint">PDF only, up to 50 MB.</p>
+          <input id="file" type="file" accept="application/pdf,.pdf">
+        </div>
+        <p id="add-msg" class="msg" hidden></p>
+        <button id="add-btn" class="btn" type="submit">Upload module</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Your modules</h2>
+      <p class="lead">Change a subject or price, then click Save. Hidden modules disappear from the site, and buyers can't download them until you show them again.</p>
+      <p id="list-msg" class="msg" hidden></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Subject</th><th>Price (₹)</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="list-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script src="subjects.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const BUCKET = "study-materials";
+  const SUBJECT_NAMES = Object.keys(window.TJP_SUBJECTS || { "Other": {} });
+  function subjectSelect(value) {
+    const sel = document.createElement("select");
+    for (const name of SUBJECT_NAMES) { const o = document.createElement("option"); o.value = o.textContent = name; sel.append(o); }
+    sel.value = SUBJECT_NAMES.includes(value) ? value : "Other";
+    return sel;
+  }
+  const formSel = subjectSelect("Indian polity");
+  document.getElementById("subject").replaceWith(Object.assign(formSel, { id: "subject" }));
+  formSel.style.maxWidth = "320px";
+
+  function showMsg(node, text, type) { node.textContent = text; node.className = "msg " + (type || "error"); node.hidden = !text; }
+  const cell = text => { const td = document.createElement("td"); td.textContent = text; return td; };
+
+  // Access check
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-study.html"; throw new Error("Not signed in"); }
+  const { data: adminRow } = await supabase.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("Not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false;
+  $("admin-area").hidden = false;
+
+  // Upload
+  $("add-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = $("title").value.trim();
+    const description = $("description").value.trim() || null;
+    const priceText = $("price").value.trim();
+    const file = $("file").files[0];
+
+    if (!title) return showMsg($("add-msg"), "Enter a title.");
+    if (!/^\d+$/.test(priceText)) return showMsg($("add-msg"), "Enter the price as a whole number, like 49. Use 0 for free.");
+    if (!file) return showMsg($("add-msg"), "Choose the PDF file.");
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) return showMsg($("add-msg"), "The file must be a PDF.");
+    if (file.size > 50 * 1024 * 1024) return showMsg($("add-msg"), "The file is larger than 50 MB. Compress the PDF and try again.");
+
+    showMsg($("add-msg"), "");
+    $("add-btn").disabled = true; $("add-btn").textContent = "Uploading…";
+
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "module";
+    const path = Date.now() + "-" + slug + ".pdf";
+
+    const up = await supabase.storage.from(BUCKET).upload(path, file, { contentType: "application/pdf" });
+    if (up.error) {
+      console.error(up.error);
+      $("add-btn").disabled = false; $("add-btn").textContent = "Upload module";
+      return showMsg($("add-msg"), "Couldn't upload the file: " + up.error.message);
+    }
+    const { error } = await supabase.from("study_materials").insert({ title, description, subject: $("subject").value, price: parseInt(priceText, 10), file_path: path });
+    $("add-btn").disabled = false; $("add-btn").textContent = "Upload module";
+    if (error) {
+      console.error(error);
+      await supabase.storage.from(BUCKET).remove([path]);
+      return showMsg($("add-msg"), "Couldn't save the module: " + error.message);
+    }
+    $("add-form").reset();
+    $("subject").value = "Indian polity";
+    showMsg($("add-msg"), "Module uploaded and live on the site.", "ok");
+    loadList();
+  });
+
+  // List
+  async function loadList() {
+    const { data, error } = await supabase.from("study_materials")
+      .select("id, title, subject, price, file_path, is_active").order("created_at", { ascending: true });
+    const body = $("list-body");
+    body.innerHTML = "";
+    if (error) return showMsg($("list-msg"), "Couldn't load modules. Refresh the page.");
+    if (!data.length) {
+      const tr = document.createElement("tr"); const td = cell("No modules yet. Add one above."); td.colSpan = 5; tr.append(td); body.append(tr); return;
+    }
+    for (const m of data) {
+      const tr = document.createElement("tr");
+      const status = document.createElement("td");
+      const pill = document.createElement("span");
+      pill.className = "pill" + (m.is_active ? "" : " off");
+      pill.textContent = m.is_active ? "Live" : "Hidden";
+      status.append(pill);
+
+      const subjTd = document.createElement("td");
+      const subjSel = subjectSelect(m.subject);
+      subjSel.style.minWidth = "170px"; subjSel.style.padding = "6px 8px";
+      subjTd.append(subjSel);
+
+      const priceTd = document.createElement("td");
+      const priceIn = document.createElement("input");
+      priceIn.type = "number"; priceIn.min = "0"; priceIn.step = "1"; priceIn.value = m.price;
+      priceIn.style.width = "90px"; priceIn.style.padding = "6px 8px";
+      priceTd.append(priceIn);
+
+      const actions = document.createElement("td");
+      const save = document.createElement("button");
+      save.className = "small-btn"; save.textContent = "Save";
+      save.onclick = async () => {
+        if (!/^\d+$/.test(priceIn.value.trim())) return showMsg($("list-msg"), "Price must be a whole number, like 19. Use 0 for free.");
+        save.disabled = true;
+        const { error } = await supabase.from("study_materials")
+          .update({ subject: subjSel.value, price: parseInt(priceIn.value, 10) }).eq("id", m.id);
+        save.disabled = false;
+        if (error) return showMsg($("list-msg"), "Couldn't save: " + error.message);
+        showMsg($("list-msg"), "Saved.", "ok");
+        loadList();
+      };
+      const view = document.createElement("button");
+      view.className = "small-btn"; view.textContent = "Open PDF";
+      view.onclick = async () => {
+        const { data: s, error } = await supabase.storage.from(BUCKET).createSignedUrl(m.file_path, 120);
+        if (error) return showMsg($("list-msg"), "Couldn't open: " + error.message);
+        window.open(s.signedUrl, "_blank", "noopener");
+      };
+      const toggle = document.createElement("button");
+      toggle.className = "small-btn"; toggle.textContent = m.is_active ? "Hide" : "Show";
+      toggle.onclick = async () => {
+        const { error } = await supabase.from("study_materials").update({ is_active: !m.is_active }).eq("id", m.id);
+        if (error) showMsg($("list-msg"), "Couldn't update: " + error.message); else loadList();
+      };
+      const del = document.createElement("button");
+      del.className = "small-btn danger"; del.textContent = "Delete";
+      del.onclick = async () => {
+        if (!confirm(`Delete "${m.title}" permanently? People who bought it will lose access. Hiding is usually safer.`)) return;
+        const { error } = await supabase.from("study_materials").delete().eq("id", m.id);
+        if (error) return showMsg($("list-msg"), "Couldn't delete: " + error.message);
+        await supabase.storage.from(BUCKET).remove([m.file_path]);
+        loadList();
+      };
+      actions.append(save, view, toggle, del);
+      tr.append(cell(m.title), subjTd, priceTd, status, actions);
+      body.append(tr);
+    }
+  }
+  loadList();
+
+  $("logout").addEventListener("click", async () => { await supabase.auth.signOut(); window.location.href = "login.html"; });
+</script>
+</body>
+</html>

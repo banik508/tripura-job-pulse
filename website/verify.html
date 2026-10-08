@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a certificate | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .result { margin-top: 26px; border-radius: 12px; padding: 22px 24px; }
+  .result.valid { background: #fff; border: 2px solid var(--ok); }
+  .result.invalid { background: #fff; border: 2px solid var(--error); }
+  .result .head { font-family: Sora, sans-serif; font-size: 18px; font-weight: 700; }
+  .result.valid .head { color: var(--ok); }
+  .result.invalid .head { color: var(--error); }
+  .result dl { margin-top: 14px; display: grid; grid-template-columns: 150px 1fr; gap: 8px 16px; }
+  .result dt { color: var(--muted); font-weight: 600; }
+  .result p { margin-top: 8px; color: var(--muted); }
+  .code-in { font-family: ui-monospace, Consolas, monospace; text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
+  </div>
+</header>
+
+<main class="page narrow">
+  <h1>Verify a certificate</h1>
+  <p class="lead">Enter the Certificate ID printed on a Tripura Job Pulse certificate to check that it's genuine.</p>
+  <form id="f" novalidate>
+    <div class="field">
+      <label for="code">Certificate ID</label>
+      <input id="code" class="code-in" placeholder="TJP-7K3M9QX2" autocomplete="off">
+    </div>
+    <p id="m" class="msg error" hidden></p>
+    <button id="b" class="btn" type="submit">Verify</button>
+  </form>
+  <div id="out" aria-live="polite"></div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+  async function check(code) {
+    $("out").innerHTML = "";
+    if (!/^TJP-[A-Z0-9]{8}$/.test(code)) { $("m").textContent = "A Certificate ID looks like TJP- followed by 8 letters and numbers."; $("m").hidden = false; return; }
+    $("m").hidden = true; $("b").disabled = true; $("b").textContent = "Checking…";
+    const { data, error } = await supabase.rpc("verify_certificate", { p_code: code });
+    $("b").disabled = false; $("b").textContent = "Verify";
+    if (error) { $("m").textContent = "Couldn't check right now. Try again in a moment."; $("m").hidden = false; return; }
+    const box = el("section", "result " + (data ? "valid" : "invalid"));
+    if (data) {
+      box.append(el("p", "head", "✓ Genuine certificate"));
+      const dl = el("dl");
+      const date = new Date(data.issued_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+      for (const [k, v] of [["Name", data.full_name], ["Certification", data.cert_title], ["Score", data.score_percent + "%"], ["Issued on", date], ["Certificate ID", data.code]]) {
+        dl.append(el("dt", "", k), el("dd", "", v));
+      }
+      box.append(dl);
+      box.append(el("p", "", "Issued by Tripura Job Pulse. The name should match the certificate you were shown."));
+    } else {
+      box.append(el("p", "head", "No certificate found"));
+      box.append(el("p", "", "There's no issued certificate with this ID. Check it was typed correctly. If it still doesn't match, the certificate may not be genuine."));
+    }
+    $("out").append(box);
+  }
+
+  $("f").addEventListener("submit", e => { e.preventDefault(); check($("code").value.trim().toUpperCase()); });
+  const pre = new URLSearchParams(location.search).get("id");
+  if (pre) { $("code").value = pre.toUpperCase(); check(pre.trim().toUpperCase()); }
+</script>
+</body>
+</html>

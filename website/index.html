@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tripura Job Pulse — Jobs, study material and skills for Tripura</title>
+<meta name="description" content="Every Tripura government, private and remote job in one place, with study material, free mock tests, skill certificates and a CV builder.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ---------- Layout ---------- */
+  body { overflow-x: hidden; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  section { scroll-margin-top: 80px; }
+
+  /* ---------- Top navigation ---------- */
+  .nav { position: sticky; top: 0; z-index: 40; background: rgba(14,79,76,.97); backdrop-filter: blur(8px); }
+  .nav .inner { display: flex; align-items: center; gap: 10px; padding: 10px 18px; max-width: 1180px; margin: 0 auto; }
+  .nav a.brand { font-family: Sora, sans-serif; font-weight: 700; font-size: 20px; color: #F2F7F6; text-decoration: none; white-space: nowrap; }
+  .nav a.brand span { color: var(--marigold); }
+  .menu { display: flex; gap: 0; margin-left: auto; align-items: center; flex-wrap: nowrap; }
+  .menu a { color: #D8EAE6; text-decoration: none; font-size: 14px; font-weight: 500; padding: 7px 9px; border-radius: 7px; white-space: nowrap; }
+  .menu a:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .menu a.cta { background: var(--marigold); color: #3A2A06; font-weight: 600; }
+  .menu a.cta:hover { background: #E8B45B; }
+  .nav-social { display: flex; gap: 2px; margin: 0 4px; }
+  .soc-ico { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; color: #D8EAE6; }
+  .soc-ico:hover { background: rgba(255,255,255,.12); color: #fff; }
+  .soc-ico .icon { width: 19px; height: 19px; }
+  .burger { display: none; margin-left: auto; background: none; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; color: #fff; font-size: 22px; line-height: 1; padding: 6px 12px; cursor: pointer; }
+
+  /* ---------- Hero ---------- */
+  .hero { background: linear-gradient(160deg, #0B3A38 0%, #0E4F4C 55%, #14615C 100%); color: #EAF4F1; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; inset: auto 0 -1px 0; height: 60px; background: var(--paper); clip-path: polygon(0 100%, 100% 0, 100% 100%); }
+  .hero .inner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 30px; align-items: center; padding: 52px 20px 70px; max-width: 1120px; margin: 0 auto; }
+  .tagline { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--marigold); border: 1px solid rgba(217,161,59,.5); padding: 6px 14px; border-radius: 99px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--marigold); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.8); } }
+  .hero h1 { font-family: Sora, sans-serif; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.12; margin-top: 18px; color: #fff; }
+  .hero h1 em { font-style: normal; color: var(--marigold); }
+  .hero p.sub { font-size: 17px; color: #C9E2DC; margin-top: 14px; max-width: 46ch; }
+  .hero .buttons { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+  .big-btn { font: inherit; font-size: 17px; font-weight: 600; padding: 14px 26px; border-radius: 10px; text-decoration: none; display: inline-block; border: 1px solid transparent; cursor: pointer; }
+  .big-btn.primary { background: var(--marigold); color: #382706; }
+  .big-btn.primary:hover { background: #E8B45B; transform: translateY(-2px); }
+  .big-btn.ghost { border-color: rgba(255,255,255,.45); color: #fff; }
+  .big-btn.ghost:hover { background: rgba(255,255,255,.12); }
+  .big-btn { transition: transform .15s ease, background .15s ease; }
+  .trust { margin-top: 22px; font-size: 15px; color: #A9CFC8; }
+
+  /* ---------- Hero animation ---------- */
+  .art { position: relative; height: 290px; max-width: 420px; margin-left: auto; }
+  .art svg { width: 100%; height: 100%; overflow: visible; }
+  .float-1 { animation: floaty 6s ease-in-out infinite; }
+  .float-2 { animation: floaty 7.5s ease-in-out infinite .6s; }
+  .float-3 { animation: floaty 5.5s ease-in-out infinite 1.2s; }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  .plane { offset-path: path("M -20 300 C 90 250, 130 120, 250 120 S 420 180, 470 60"); animation: fly 9s linear infinite; }
+  @keyframes fly { 0% { offset-distance: 0%; opacity: 0; } 8% { opacity: 1; } 88% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+  .trail { stroke-dasharray: 6 10; animation: dash 3s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -32; } }
+  .tick { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw 3s ease-in-out infinite; }
+  @keyframes draw { 0%,15% { stroke-dashoffset: 40; } 45%,80% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 40; } }
+  .bar-grow { transform-origin: bottom; animation: grow 3.5s ease-in-out infinite; }
+  @keyframes grow { 0%,100% { transform: scaleY(.55); } 50% { transform: scaleY(1); } }
+
+  /* ---------- Stats ---------- */
+  /* ---------- Sections ---------- */
+  .band { padding: 72px 0; }
+  .band.alt { background: #fff; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--teal); }
+  h2.big { font-family: Sora, sans-serif; font-size: clamp(26px, 3.2vw, 34px); line-height: 1.2; color: var(--teal-deep); margin-top: 10px; }
+  .band p.intro { font-size: 17px; color: var(--muted); margin-top: 12px; max-width: 62ch; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  .feature { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; text-decoration: none; color: inherit; display: block; }
+  .band.alt .feature { background: var(--paper); }
+  .feature:hover { transform: translateY(-3px); border-color: var(--teal); box-shadow: 0 8px 20px rgba(14,79,76,.08); }
+  .feature .head { display: flex; align-items: center; gap: 12px; }
+  .feature .ico { flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--teal-soft); display: flex; align-items: center; justify-content: center; color: var(--teal-deep); }
+  .icon { width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
+  .feature h3 { font-family: Sora, sans-serif; font-size: 17px; color: var(--ink); }
+  .feature p { font-size: 14px; line-height: 1.5; color: var(--muted); margin-top: 10px; }
+  .feature .go { display: inline-block; margin-top: 10px; font-weight: 600; color: var(--teal); font-size: 14px; }
+  .feature:hover .go { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---------- Steps ---------- */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px; counter-reset: step; }
+  .step { position: relative; padding-top: 34px; }
+  .step::before { counter-increment: step; content: counter(step); position: absolute; top: 0; left: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--teal-deep); color: #fff; font-family: Sora, sans-serif; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .step::after { content: ""; position: absolute; top: 17px; left: 42px; right: -12px; height: 2px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px); }
+  .step:last-child::after { display: none; }
+  .step h3 { font-family: Sora, sans-serif; font-size: 17px; color: var(--ink); }
+  .step p { font-size: 15px; color: var(--muted); margin-top: 6px; }
+
+  /* ---------- AI band ---------- */
+  .ai { background: linear-gradient(150deg, #0B3A38, #0E4F4C); color: #E7F2EF; }
+  .ai h2.big { color: #fff; }
+  .ai .eyebrow { color: var(--marigold); }
+  .ai p.intro { color: #BCD8D2; }
+  .ai-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 34px; }
+  .ai-item { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 22px; display: flex; gap: 16px; }
+  .ai-item .ico { flex: none; width: 42px; height: 42px; border-radius: 11px; background: rgba(217,161,59,.18); color: var(--marigold); display: flex; align-items: center; justify-content: center; }
+  .ai-item h3 { font-family: Sora, sans-serif; font-size: 17px; color: #fff; }
+  .ai-item p { font-size: 15px; color: #BCD8D2; margin-top: 6px; }
+
+  /* ---------- Pricing strip ---------- */
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 34px; }
+  .price { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+  .price h3 { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); }
+  .price .amt { font-family: Sora, sans-serif; font-size: 30px; font-weight: 700; margin-top: 6px; }
+  .price ul { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: var(--muted); }
+  .price li::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+
+  /* ---------- Social ---------- */
+  .social-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; }
+  .social { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px; color: #fff; transition: transform .15s ease; }
+  .social:hover { transform: translateY(-2px); }
+  .social.wa { background: #1FA855; }
+  .social.fb { background: #1877F2; }
+  .social.yt { background: #E0322B; }
+  .social.li { background: #0A66C2; }
+  .social .icon { width: 20px; height: 20px; }
+
+  /* ---------- Contact ---------- */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 34px; align-items: start; }
+  .contact-grid form { margin-top: 0; }
+  .why-list { list-style: none; display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+  .why-list li { display: flex; gap: 12px; font-size: 16px; }
+  .why-list .ico { flex: none; width: 34px; height: 34px; border-radius: 9px; background: var(--teal-soft); color: var(--teal-deep); display: flex; align-items: center; justify-content: center; }
+  .why-list .icon { width: 18px; height: 18px; }
+
+  /* ---------- Declaration ---------- */
+  .band-thin { padding: 26px 0 34px; background: #fff; border-top: 1px solid var(--line); }
+  .declare { border: 1px solid var(--line); border-left: 4px solid var(--marigold); border-radius: 10px; background: var(--paper); }
+  .declare summary { cursor: pointer; padding: 14px 18px; font-weight: 600; font-size: 15px; color: var(--teal-deep); list-style: none; display: flex; align-items: center; gap: 8px; }
+  .declare summary::-webkit-details-marker { display: none; }
+  .declare summary::before { content: "▸"; color: var(--marigold); font-size: 14px; transition: transform .15s ease; }
+  .declare[open] summary::before { transform: rotate(90deg); }
+  .declare summary:hover { color: var(--teal); }
+  .declare ul { list-style: none; padding: 0 18px 18px 30px; display: flex; flex-direction: column; gap: 9px; font-size: 14px; line-height: 1.55; color: var(--muted); }
+  .declare li::before { content: "•  "; color: var(--teal); font-weight: 700; }
+
+  /* ---------- Footer ---------- */
+  footer.site { background: #0B2B2C; color: #B7CFCB; padding: 48px 0 28px; }
+  footer.site .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 30px; }
+  footer.site h4 { font-family: Sora, sans-serif; font-size: 15px; color: #fff; margin-bottom: 12px; }
+  footer.site a { color: #B7CFCB; text-decoration: none; display: block; padding: 4px 0; font-size: 15px; }
+  footer.site a:hover { color: #fff; }
+  footer.site .brandline { font-family: Sora, sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
+  footer.site .brandline span { color: var(--marigold); }
+  footer.site .tag { font-size: 15px; margin-top: 10px; max-width: 34ch; }
+  footer.site .bottom { border-top: 1px solid rgba(255,255,255,.12); margin-top: 32px; padding-top: 18px; font-size: 14px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  /* ---------- Floating WhatsApp ---------- */
+  .wa-float { position: fixed; right: 18px; bottom: 18px; z-index: 45; background: #1FA855; color: #fff; border-radius: 99px; padding: 13px 20px; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; box-shadow: 0 8px 22px rgba(0,0,0,.22); }
+  .wa-float:hover { background: #1a9049; }
+  .wa-float .icon { width: 22px; height: 22px; }
+
+  /* ---------- Subscribe popup ---------- */
+  dialog { border: 0; border-radius: 16px; padding: 0; width: min(460px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgba(11,43,44,.6); }
+  .pop { padding: 28px; position: relative; }
+  .pop .top-art { height: 70px; margin: -28px -28px 18px; background: linear-gradient(135deg, #0E4F4C, #15706B); display: flex; align-items: center; justify-content: center; border-radius: 16px 16px 0 0; }
+  .pop .top-art .icon { width: 34px; height: 34px; color: var(--marigold); animation: floaty 4s ease-in-out infinite; }
+  .pop h2 { font-family: Sora, sans-serif; font-size: 21px; color: var(--teal-deep); }
+  .pop p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+  .pop form { margin-top: 18px; gap: 12px; }
+  .pop .later { display: block; margin: 12px auto 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; text-decoration: underline; }
+  .close { position: absolute; top: 10px; right: 10px; font: inherit; font-size: 24px; line-height: 1; background: rgba(255,255,255,.2); border: 0; color: #fff; cursor: pointer; padding: 2px 10px; border-radius: 8px; }
+
+  /* ---------- Floating shapes behind the hero ---------- */
+  .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .5; }
+  .hero-bg svg { width: 100%; height: 100%; display: block; }
+  .hero .inner { position: relative; z-index: 2; }
+  .drift-a { animation: drift 11s ease-in-out infinite; }
+  .drift-b { animation: drift 14s ease-in-out infinite 1.5s; }
+  .drift-c { animation: drift 9s ease-in-out infinite .8s; }
+  @keyframes drift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px,-18px); } }
+  .spin-slow { transform-box: fill-box; transform-origin: center; animation: spin 26s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ring-pulse { animation: ringPulse 4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes ringPulse { 0% { transform: scale(.7); opacity: .55; } 70% { transform: scale(1.5); opacity: 0; } 100% { opacity: 0; } }
+
+  /* ---------- Moving strip of what the site covers ---------- */
+  .ticker { background: #0B2B2C; border-top: 1px solid rgba(255,255,255,.08); border-bottom: 1px solid rgba(255,255,255,.08); overflow: hidden; padding: 14px 0; }
+  .ticker-track { display: flex; gap: 0; width: max-content; animation: slide 38s linear infinite; }
+  .ticker span { color: #BFE3DC; font-size: 15px; font-weight: 500; white-space: nowrap; padding: 0 22px; display: inline-flex; align-items: center; gap: 22px; }
+  .ticker span::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--marigold); display: inline-block; }
+  .ticker:hover .ticker-track { animation-play-state: paused; }
+  @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ---------- Small touches ---------- */
+  .feature .ico { transition: transform .25s ease, background .25s ease; }
+  .feature:hover .ico { transform: translateY(-2px) scale(1.06); background: var(--marigold); color: #3A2A06; }
+  .feature { position: relative; overflow: hidden; }
+  .feature::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--teal), var(--marigold)); transform: scaleX(0); transform-origin: left; transition: transform .3s ease; }
+  .feature:hover::after { transform: scaleX(1); }
+  .step::before { box-shadow: 0 0 0 0 rgba(217,161,59,.5); animation: stepGlow 4s ease-out infinite; }
+  .step:nth-child(2)::before { animation-delay: 1s; }
+  .step:nth-child(3)::before { animation-delay: 2s; }
+  .step:nth-child(4)::before { animation-delay: 3s; }
+  @keyframes stepGlow { 0% { box-shadow: 0 0 0 0 rgba(217,161,59,.55); } 60% { box-shadow: 0 0 0 14px rgba(217,161,59,0); } 100% { box-shadow: 0 0 0 0 rgba(217,161,59,0); } }
+  .ai-item .ico { animation: floaty 7s ease-in-out infinite; }
+  .ai-item:nth-child(2) .ico { animation-delay: 1.2s; }
+  .ai-item:nth-child(3) .ico { animation-delay: 2.4s; }
+  .ai-item:nth-child(4) .ico { animation-delay: 3.6s; }
+  .big-btn.primary { position: relative; }
+  .big-btn.primary::before { content: ""; position: absolute; inset: 0; border-radius: 10px; box-shadow: 0 0 0 0 rgba(217,161,59,.6); animation: btnPulse 3.2s ease-out infinite; }
+  @keyframes btnPulse { 0% { box-shadow: 0 0 0 0 rgba(217,161,59,.55); } 70% { box-shadow: 0 0 0 16px rgba(217,161,59,0); } 100% { box-shadow: 0 0 0 0 rgba(217,161,59,0); } }
+
+  /* ---------- Reveal on scroll ---------- */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.on { opacity: 1; transform: none; }
+
+  @media (max-width: 1180px) {
+    .menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #0E4F4C; flex-direction: column; align-items: stretch; padding: 10px; gap: 2px; border-top: 1px solid rgba(255,255,255,.12); }
+    .menu.open { display: flex; }
+    .menu a { padding: 12px; font-size: 15px; }
+    .nav-social { justify-content: center; padding: 6px 0; }
+    .soc-ico { width: 44px; height: 40px; }
+    .burger { display: block; }
+    .nav .inner { position: relative; }
+  }
+  @media (max-width: 900px) {
+    .hero .inner { grid-template-columns: 1fr; padding: 48px 20px 70px; }
+    .art { height: 220px; order: -1; margin: 0 auto; }
+    .cards, .steps, .ai-grid, .price-grid, .contact-grid { grid-template-columns: 1fr; }
+    .step::after { display: none; }
+    footer.site .cols { grid-template-columns: 1fr 1fr; }
+    .menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #0E4F4C; flex-direction: column; align-items: stretch; padding: 10px; gap: 2px; border-top: 1px solid rgba(255,255,255,.12); }
+    .menu.open { display: flex; }
+    .menu a { padding: 12px; }
+    .nav-social { justify-content: center; padding: 6px 0; }
+    .soc-ico { width: 44px; height: 40px; }
+    .burger { display: block; }
+    .nav .inner { position: relative; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .float-1, .float-2, .float-3, .plane, .trail, .tick, .bar-grow, .dot, .pop .top-art .icon,
+    .drift-a, .drift-b, .drift-c, .spin-slow, .ring-pulse, .ticker-track, .step::before,
+    .ai-item .ico, .big-btn.primary::before { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
+    <div class="menu" id="menu">
+      <a href="jobs.html">Tripura jobs</a>
+      <a href="jobs-india.html">Within India</a>
+      <a href="jobs-remote.html">Remote jobs</a>
+      <a href="study-material.html">Study material</a>
+      <a href="mock-tests.html">Mock tests</a>
+      <a href="certifications.html">Certifications</a>
+      <a href="current-affairs.html">Current affairs</a>
+      <a href="cv.html">CV builder</a>
+      <span class="nav-social">
+        <a id="lnk-fb" class="soc-ico" href="#" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook"><span class="icon" data-icon="brand-facebook"></span></a>
+        <a id="lnk-yt" class="soc-ico" href="#" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube"><span class="icon" data-icon="brand-youtube"></span></a>
+      </span>
+      <a class="cta" id="account-link" href="login.html">Sign in</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="hero-bg" aria-hidden="true">
+    <svg viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid slice">
+      <!-- briefcase -->
+      <g class="drift-a" transform="translate(96,120)">
+        <circle class="ring-pulse" cx="26" cy="22" r="30" fill="rgba(217,161,59,.35)"/>
+        <rect x="0" y="8" width="52" height="34" rx="6" fill="none" stroke="rgba(217,161,59,.65)" stroke-width="3"/>
+        <path d="M18 8 V2 a3 3 0 0 1 3 -3 h10 a3 3 0 0 1 3 3 v6" fill="none" stroke="rgba(217,161,59,.65)" stroke-width="3"/>
+      </g>
+      <!-- magnifier -->
+      <g class="drift-b" transform="translate(250,380)">
+        <g class="spin-slow">
+          <circle cx="0" cy="0" r="22" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4"/>
+          <line x1="16" y1="16" x2="32" y2="32" stroke="rgba(255,255,255,.3)" stroke-width="5" stroke-linecap="round"/>
+        </g>
+      </g>
+      <!-- location pin -->
+      <g class="drift-c" transform="translate(540,70)">
+        <path d="M0 0 C -11 0 -19 8 -19 19 C -19 32 0 49 0 49 C 0 49 19 32 19 19 C 19 8 11 0 0 0 Z" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="3"/>
+        <circle cx="0" cy="18" r="6" fill="rgba(217,161,59,.5)"/>
+      </g>
+      <!-- tick badge -->
+      <g class="drift-a" transform="translate(760,440)">
+        <circle cx="0" cy="0" r="20" fill="none" stroke="rgba(217,161,59,.5)" stroke-width="3"/>
+        <path d="M-9 0 L-3 7 L10 -9" fill="none" stroke="rgba(217,161,59,.6)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <!-- pulse line -->
+      <path class="trail" d="M-20 470 H180 l24 -34 l30 66 l26 -46 h220" fill="none" stroke="rgba(217,161,59,.3)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- document -->
+      <g class="drift-b" transform="translate(1030,400)">
+        <rect x="0" y="0" width="54" height="68" rx="7" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="3"/>
+        <line x1="12" y1="20" x2="42" y2="20" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="12" y1="34" x2="42" y2="34" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="12" y1="48" x2="30" y2="48" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <!-- drifting dots -->
+      <circle class="drift-c" cx="420" cy="240" r="4" fill="rgba(217,161,59,.45)"/>
+      <circle class="drift-a" cx="880" cy="140" r="3" fill="rgba(255,255,255,.3)"/>
+      <circle class="drift-b" cx="640" cy="470" r="3.5" fill="rgba(255,255,255,.26)"/>
+      <circle class="drift-c" cx="1140" cy="230" r="4" fill="rgba(217,161,59,.4)"/>
+    </svg>
+  </div>
+  <div class="inner">
+    <div>
+      <span class="tagline"><span class="dot"></span> Updated twice a day, every day</span>
+      <h1>Every Tripura job.<br>And the <em>preparation</em> to win it.</h1>
+      <p class="sub">Government, private and remote vacancies in one place, with study notes, free mock tests, skill certificates and a CV builder made for Tripura's job seekers.</p>
+      <div class="buttons">
+        <a class="big-btn primary" href="jobs.html">Browse jobs</a>
+        <a class="big-btn ghost" href="mock-tests.html">Take a free mock test</a>
+      </div>
+      <p class="trust">Government jobs are free for everyone. No charge, ever.</p>
+    </div>
+
+    <!-- Animated illustration: an application flying off, getting shortlisted -->
+    <div class="art" aria-hidden="true">
+      <svg viewBox="0 0 480 360" role="img">
+        <defs>
+          <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4EFEB"/>
+          </linearGradient>
+        </defs>
+
+        <!-- glow -->
+        <circle cx="250" cy="180" r="140" fill="rgba(255,255,255,.05)"/>
+
+        <!-- phone / job board -->
+        <g class="float-1">
+          <rect x="150" y="70" width="200" height="230" rx="18" fill="url(#paper)"/>
+          <rect x="150" y="70" width="200" height="44" rx="18" fill="#15706B"/>
+          <rect x="150" y="96" width="200" height="18" fill="#15706B"/>
+          <circle cx="172" cy="92" r="6" fill="#D9A13B"/>
+          <rect x="188" y="87" width="90" height="10" rx="5" fill="rgba(255,255,255,.75)"/>
+          <!-- job rows -->
+          <g>
+            <rect x="168" y="132" width="164" height="42" rx="9" fill="#F4F8F6" stroke="#D3E0DC"/>
+            <rect x="180" y="143" width="86" height="8" rx="4" fill="#15706B"/>
+            <rect x="180" y="157" width="120" height="7" rx="3.5" fill="#B9CBC6"/>
+            <rect x="168" y="184" width="164" height="42" rx="9" fill="#F4F8F6" stroke="#D3E0DC"/>
+            <rect x="180" y="195" width="102" height="8" rx="4" fill="#15706B"/>
+            <rect x="180" y="209" width="80" height="7" rx="3.5" fill="#B9CBC6"/>
+            <rect x="168" y="236" width="164" height="42" rx="9" fill="#F4F8F6" stroke="#D3E0DC"/>
+            <rect x="180" y="247" width="74" height="8" rx="4" fill="#15706B"/>
+            <rect x="180" y="261" width="112" height="7" rx="3.5" fill="#B9CBC6"/>
+          </g>
+        </g>
+
+        <!-- CV card -->
+        <g class="float-2">
+          <rect x="44" y="120" width="104" height="132" rx="12" fill="#FFFFFF" stroke="#CBDBD6"/>
+          <circle cx="70" cy="146" r="11" fill="#D9A13B"/>
+          <rect x="88" y="139" width="44" height="7" rx="3.5" fill="#15706B"/>
+          <rect x="88" y="151" width="32" height="6" rx="3" fill="#B9CBC6"/>
+          <rect x="60" y="172" width="72" height="6" rx="3" fill="#DDE8E4"/>
+          <rect x="60" y="186" width="60" height="6" rx="3" fill="#DDE8E4"/>
+          <rect x="60" y="200" width="68" height="6" rx="3" fill="#DDE8E4"/>
+          <rect x="60" y="214" width="46" height="6" rx="3" fill="#DDE8E4"/>
+          <rect x="60" y="228" width="56" height="6" rx="3" fill="#DDE8E4"/>
+        </g>
+
+        <!-- certificate + tick -->
+        <g class="float-3">
+          <rect x="336" y="212" width="116" height="84" rx="10" fill="#FFFFFF" stroke="#CBDBD6"/>
+          <rect x="336" y="212" width="116" height="10" rx="5" fill="#D9A13B"/>
+          <rect x="352" y="236" width="60" height="7" rx="3.5" fill="#15706B"/>
+          <rect x="352" y="250" width="84" height="6" rx="3" fill="#DDE8E4"/>
+          <circle cx="424" cy="272" r="16" fill="#E4F2E8" stroke="#1E6B3A"/>
+          <path class="tick" d="M416 272 l6 6 l11 -13" fill="none" stroke="#1E6B3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+
+        <!-- flight path + application flying to the employer -->
+        <path class="trail" d="M -20 300 C 90 250, 130 120, 250 120 S 420 180, 470 60" fill="none" stroke="rgba(217,161,59,.5)" stroke-width="2"/>
+        <g class="plane">
+          <g transform="translate(-14,-12)">
+            <path d="M0 12 L28 0 L20 24 L14 15 Z" fill="#D9A13B"/>
+            <path d="M14 15 L28 0 L11 19 Z" fill="#B9822B"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TICKER ============ -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="ticker-track"></div>
+</div>
+
+<!-- ============ FEATURES ============ -->
+<section class="band" id="features">
+  <div class="wrap">
+    <p class="eyebrow reveal">Everything in one place</p>
+    <h2 class="big reveal">From finding the vacancy to walking into the interview</h2>
+    <p class="intro reveal">Most job seekers in Tripura hunt across boards, websites and newspapers, then look elsewhere for preparation. Tripura Job Pulse puts the whole journey on one site.</p>
+
+    <div class="cards">
+      <a class="feature reveal" href="jobs.html">
+        <div class="head"><div class="ico"><span class="icon" data-icon="briefcase"></span></div><h3>Job listings</h3></div>
+        <p>Government, private and remote vacancies, checked before publishing. Expired posts drop off automatically.</p>
+        <span class="go">Browse jobs →</span>
+      </a>
+      <a class="feature reveal" href="study-material.html">
+        <div class="head"><div class="ico"><span class="icon" data-icon="book"></span></div><h3>Study material</h3></div>
+        <p>Focused modules for TPSC and state exams, written one topic at a time.</p>
+        <span class="go">See modules →</span>
+      </a>
+      <a class="feature reveal" href="mock-tests.html">
+        <div class="head"><div class="ico"><span class="icon" data-icon="clock"></span></div><h3>Free mock tests</h3></div>
+        <p>Timed practice with instant results and an explanation for every answer.</p>
+        <span class="go">Start a test →</span>
+      </a>
+      <a class="feature reveal" href="certifications.html">
+        <div class="head"><div class="ico"><span class="icon" data-icon="certificate"></span></div><h3>Skill certifications</h3></div>
+        <p>Prove your Excel, Word, PowerPoint, MIS, AI and computer skills. Free to attempt.</p>
+        <span class="go">View certifications →</span>
+      </a>
+      <a class="feature reveal" href="current-affairs.html">
+        <div class="head"><div class="ico"><span class="icon" data-icon="news"></span></div><h3>Daily current affairs</h3></div>
+        <p>Tripura, India and world updates, gathered twice a day and sorted by date.</p>
+        <span class="go">Read today's →</span>
+      </a>
+      <a class="feature reveal" href="cv.html">
+        <div class="head"><div class="ico"><span class="icon" data-icon="file-text"></span></div><h3>CV builder</h3></div>
+        <p>A clean Word CV built from your profile, tailored to the job you pick.</p>
+        <span class="go">Build your CV →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="band alt" id="how">
+  <div class="wrap">
+    <p class="eyebrow reveal">How it works</p>
+    <h2 class="big reveal">Four steps, start to finish</h2>
+    <div class="steps">
+      <div class="step reveal"><h3>Create your account</h3><p>Sign up with your email and a one-time code, then set a password. It takes a minute.</p></div>
+      <div class="step reveal"><h3>Fill your profile</h3><p>Your district, education, skills and experience, entered once and reused everywhere.</p></div>
+      <div class="step reveal"><h3>Prepare</h3><p>Study the modules, take mock tests, follow current affairs and earn skill certificates.</p></div>
+      <div class="step reveal"><h3>Apply with confidence</h3><p>Build a tailored CV for the vacancy and apply through the official link, before the last date.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AI BAND ============ -->
+<section class="band ai" id="smart">
+  <div class="wrap">
+    <p class="eyebrow reveal">Built smart</p>
+    <h2 class="big reveal">Automation does the chasing, so you can do the studying</h2>
+    <p class="intro reveal">A job seeker's biggest cost is time: checking sites, tracking notifications, making notes, formatting a CV. We automate that work and keep a human eye on quality.</p>
+    <div class="ai-grid">
+      <div class="ai-item reveal">
+        <div class="ico"><span class="icon" data-icon="refresh"></span></div>
+        <div>
+          <h3>News that gathers itself</h3>
+          <p>Our current affairs pipeline runs twice a day, filters out noise, removes duplicates and sorts stories into Tripura, India and International. Every item is reviewed before it goes live.</p>
+        </div>
+      </div>
+      <div class="ai-item reveal">
+        <div class="ico"><span class="icon" data-icon="file-text"></span></div>
+        <div>
+          <h3>A CV that rewrites itself for each job</h3>
+          <p>Pick a vacancy, and your career objective is rewritten for that exact role using your own qualifications and skills. You edit it, then download a Word file.</p>
+        </div>
+      </div>
+      <div class="ai-item reveal">
+        <div class="ico"><span class="icon" data-icon="check"></span></div>
+        <div>
+          <h3>Instant marking, with the reasoning</h3>
+          <p>Tests are marked the moment you submit, with negative marking applied and an explanation for every question, so a wrong answer teaches you something.</p>
+        </div>
+      </div>
+      <div class="ai-item reveal">
+        <div class="ico"><span class="icon" data-icon="shield"></span></div>
+        <div>
+          <h3>Certificates employers can trust</h3>
+          <p>Every certificate carries a unique ID that any employer can check on our verification page, so a genuine skill can't be faked.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section class="band" id="pricing">
+  <div class="wrap">
+    <p class="eyebrow reveal">Honest pricing</p>
+    <h2 class="big reveal">Free where it matters</h2>
+    <p class="intro reveal">Government job details, daily current affairs and every mock test are free. Small one-time payments keep the site running.</p>
+    <div class="price-grid">
+      <div class="price reveal">
+        <h3>Always free</h3>
+        <p class="amt">₹0</p>
+        <ul><li>All government job details</li><li>Daily current affairs</li><li>Every mock test</li><li>CV builder</li><li>5 private or remote job views</li></ul>
+      </div>
+      <div class="price reveal">
+        <h3>Private &amp; remote jobs</h3>
+        <p class="amt">₹49 – ₹99</p>
+        <ul><li>20 jobs for ₹49</li><li>50 jobs for ₹79</li><li>Unlimited for 30 days at ₹99</li><li>Pay by UPI, no subscription</li></ul>
+      </div>
+      <div class="price reveal">
+        <h3>Study &amp; certificates</h3>
+        <p class="amt">From ₹19</p>
+        <ul><li>Study modules from ₹19</li><li>Free exam attempts, always</li><li>Certificate on passing</li><li>Free online verification</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMMUNITY ============ -->
+<section class="band alt" id="community">
+  <div class="wrap">
+    <p class="eyebrow reveal">Stay updated</p>
+    <h2 class="big reveal">Get vacancies the day they open</h2>
+    <p class="intro reveal">Join our WhatsApp channel for instant alerts, or follow us wherever you already spend time. New vacancies, exam dates and current affairs, straight to your phone.</p>
+    <div class="social-row reveal">
+      <a class="social wa" id="lnk-wa" href="#" target="_blank" rel="noopener"><span class="icon" data-icon="brand-whatsapp"></span> Join our WhatsApp channel</a>
+      <button class="social" id="open-sub2" type="button" style="background:var(--teal-deep)"><span class="icon" data-icon="mail"></span> Get job alerts by email</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT & CAREERS ============ -->
+<section class="band" id="contact">
+  <div class="wrap">
+    <p class="eyebrow reveal">Contact &amp; careers</p>
+    <h2 class="big reveal">Send us a message</h2>
+    <div class="contact-grid">
+      <div class="reveal">
+        <p class="intro">Employers, colleges and coaching centres are welcome to list vacancies. Writers and content creators who want to work with us can write in too. Leave your number or email and we'll get back to you.</p>
+        <ul class="why-list">
+          <li><span class="ico"><span class="icon" data-icon="briefcase"></span></span><span><strong>Post a vacancy</strong><br><span style="color:var(--muted)">Share your requirement and we'll list it.</span></span></li>
+          <li><span class="ico"><span class="icon" data-icon="users"></span></span><span><strong>Work with us</strong><br><span style="color:var(--muted)">Content writers, question setters and campus volunteers.</span></span></li>
+          <li><span class="ico"><span class="icon" data-icon="message"></span></span><span><strong>Feedback</strong><br><span style="color:var(--muted)">Tell us what's missing. We read every message.</span></span></li>
+        </ul>
+      </div>
+
+      <form id="contact-form" class="reveal" novalidate>
+        <div class="field">
+          <label for="c-name">Your name</label>
+          <input id="c-name" autocomplete="name" placeholder="Full name">
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="c-phone">Mobile number</label>
+            <input id="c-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit number">
+          </div>
+          <div class="field">
+            <label for="c-email">Email <span class="optional">(optional)</span></label>
+            <input id="c-email" type="email" placeholder="you@example.com">
+          </div>
+        </div>
+        <div class="field">
+          <label for="c-reason">What's this about?</label>
+          <select id="c-reason">
+            <option value="general">General enquiry</option>
+            <option value="post_job">Post a vacancy</option>
+            <option value="careers">Work with us / careers</option>
+            <option value="feedback">Feedback or a problem</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="c-message">Message</label>
+          <textarea id="c-message" placeholder="Tell us briefly how we can help"></textarea>
+        </div>
+        <p id="c-msg" class="msg" hidden></p>
+        <button id="c-send" class="btn" type="submit">Send message</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="band-thin" id="declaration">
+  <div class="wrap">
+    <details class="declare">
+      <summary>Declaration and important notice — please read before applying</summary>
+      <ul>
+        <li>Tripura Job Pulse is a private information platform. It is not a government website and is not affiliated with TPSC, JRBT, TRBT, any government department or any employer.</li>
+        <li>We never charge any fee to apply for a job, and we never collect application fees on behalf of an employer. Always apply through the official link or notification.</li>
+        <li>Job details are compiled from public notifications and other sources. Before applying, always check the official notification, which is the final authority on eligibility, dates and fees.</li>
+        <li>Our certificates confirm skills assessed in our own online exams. They are not university degrees or government qualifications, and are not affiliated with or endorsed by Microsoft or any other software maker.</li>
+        <li>Study material and current affairs are for exam preparation. We work hard on accuracy, but errors are possible, so verify anything critical with official sources.</li>
+        <li>Payments are made directly by UPI and activated after we confirm them. We never ask for your UPI PIN, passwords or OTP. Nobody from Tripura Job Pulse will ever ask for these.</li>
+        <li>We do not sell your personal data. Your profile is used to run your account and to build your CV.</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <p class="brandline">Tripura <span>Job Pulse</span></p>
+        <p class="tag">Jobs, preparation and skills for Tripura's job seekers, in one place.</p>
+      </div>
+      <div>
+        <h4>Find work</h4>
+        <a href="jobs.html">Tripura jobs</a>
+        <a href="jobs-india.html">Jobs within India</a>
+        <a href="jobs-remote.html">Remote jobs</a>
+        <a href="plans.html">Job plans</a>
+        <a href="cv.html">CV builder</a>
+      </div>
+      <div>
+        <h4>Prepare</h4>
+        <a href="study-material.html">Study material</a>
+        <a href="mock-tests.html">Mock tests</a>
+        <a href="current-affairs.html">Current affairs</a>
+      </div>
+      <div>
+        <h4>Skills</h4>
+        <a href="certifications.html">Certifications</a>
+        <a href="verify.html">Verify a certificate</a>
+        <a href="#contact">Contact us</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <span id="copy">© Tripura Job Pulse</span>
+      <span><a href="#declaration" style="display:inline">Declaration</a></span>
+    </div>
+  </div>
+</footer>
+
+<a class="wa-float" id="wa-float" href="#" target="_blank" rel="noopener"><span class="icon" data-icon="brand-whatsapp"></span> Join WhatsApp</a>
+
+<!-- ============ SUBSCRIBE POPUP ============ -->
+<dialog id="sub-dialog" aria-labelledby="sub-title">
+  <div class="pop">
+    <div class="top-art">
+      <span class="icon" data-icon="mail"></span>
+      <button class="close" id="sub-close" aria-label="Close">×</button>
+    </div>
+    <h2 id="sub-title">Never miss a vacancy</h2>
+    <p>Get free email alerts when new Tripura government and private jobs are listed. No spam, and you can stop any time.</p>
+    <form id="sub-form" novalidate>
+      <div class="field">
+        <label for="sub-email">Email address</label>
+        <input id="sub-email" type="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="sub-district">District <span class="optional">(optional)</span></label>
+        <select id="sub-district">
+          <option value="">All of Tripura</option>
+          <option>Dhalai</option><option>Gomati</option><option>Khowai</option><option>North Tripura</option>
+          <option>Sepahijala</option><option>South Tripura</option><option>Unakoti</option><option>West Tripura</option>
+        </select>
+      </div>
+      <p id="sub-msg" class="msg" hidden></p>
+      <button id="sub-btn" class="btn" type="submit">Send me job alerts</button>
+    </form>
+    <button class="later" id="sub-later" type="button">Maybe later</button>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const CFG = window.TJP_CONFIG || {};
+  const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const ICON_BASE = "https://cdn.jsdelivr.net/npm/@tabler/icons@3.47.0/icons/outline/";
+
+  // ---------- Icons ----------
+  document.querySelectorAll("[data-icon]").forEach(s => {
+    s.style.setProperty("--icon", `url("${ICON_BASE}${s.dataset.icon}.svg")`);
+    s.setAttribute("aria-hidden", "true");
+  });
+
+  // ---------- Social links from config ----------
+  const L = CFG.LINKS || {};
+  const setLink = (id, url) => {
+    const a = $(id);
+    if (!a) return;
+    if (url) a.href = url; else a.remove();
+  };
+  setLink("lnk-wa", L.WHATSAPP); setLink("wa-float", L.WHATSAPP);
+  setLink("lnk-fb", L.FACEBOOK); setLink("lnk-yt", L.YOUTUBE); setLink("lnk-li", L.LINKEDIN);
+  $("copy").textContent = "© " + new Date().getFullYear() + " Tripura Job Pulse";
+
+  // ---------- Moving strip ----------
+  const TICKER = ["Government jobs", "TPSC", "JRBT", "Tripura Police", "TET", "Private jobs in Tripura",
+    "Remote work", "Jobs within India", "Daily current affairs", "Free mock tests", "Skill certificates",
+    "CV builder", "Study material", "Agartala", "Udaipur", "Dharmanagar", "Kailashahar", "Belonia"];
+  const track = $("ticker-track");
+  for (let pass = 0; pass < 2; pass++) {
+    for (const word of TICKER) {
+      const sp = document.createElement("span");
+      sp.textContent = word;
+      track.append(sp);
+    }
+  }
+
+  // ---------- Menu ----------
+  $("burger").addEventListener("click", () => {
+    const open = $("menu").classList.toggle("open");
+    $("burger").setAttribute("aria-expanded", String(open));
+  });
+  document.querySelectorAll(".menu a").forEach(a => a.addEventListener("click", () => $("menu").classList.remove("open")));
+
+  // ---------- Signed in? ----------
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
+
+  // ---------- Reveal on scroll ----------
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } });
+  }, { threshold: .15 });
+  document.querySelectorAll(".reveal").forEach((el, i) => { el.style.transitionDelay = (i % 3) * 70 + "ms"; io.observe(el); });
+
+  // ---------- Contact form ----------
+  function say(node, text, type) { node.textContent = text; node.className = "msg " + (type || "error"); node.hidden = !text; }
+  $("contact-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = $("c-name").value.trim();
+    const phone = $("c-phone").value.trim();
+    const email = $("c-email").value.trim().toLowerCase();
+    const message = $("c-message").value.trim();
+    if (name.length < 2) return say($("c-msg"), "Please enter your name.");
+    if (phone && !/^[6-9]\d{9}$/.test(phone)) return say($("c-msg"), "Enter a valid 10-digit mobile number, or leave it blank.");
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say($("c-msg"), "Enter a valid email address, or leave it blank.");
+    if (!phone && !email) return say($("c-msg"), "Leave either a mobile number or an email so we can reply.");
+    if (message.length < 10) return say($("c-msg"), "Please write a little more so we can help.");
+    say($("c-msg"), "");
+    $("c-send").disabled = true; $("c-send").textContent = "Sending…";
+    const { error } = await supabase.from("contact_messages").insert({
+      name, phone: phone || null, email: email || null, reason: $("c-reason").value, message
+    });
+    $("c-send").disabled = false; $("c-send").textContent = "Send message";
+    if (error) { console.error(error); return say($("c-msg"), "Couldn't send right now. Please check your connection and try again."); }
+    $("contact-form").reset();
+    say($("c-msg"), "Thank you. Your message has reached us, and we'll get back to you soon.", "ok");
+  });
+
+  // ---------- Subscribe popup ----------
+  const SEEN = "tjp-sub-seen";
+  const dlg = $("sub-dialog");
+  const openSub = () => { if (!dlg.open) dlg.showModal(); };
+  const closeSub = () => { try { localStorage.setItem(SEEN, "1"); } catch (e) {} dlg.close(); };
+  $("sub-close").onclick = closeSub;
+  $("sub-later").onclick = closeSub;
+  $("open-sub2").onclick = openSub;
+  dlg.addEventListener("click", e => { if (e.target === dlg) closeSub(); });
+
+  let seen = false;
+  try { seen = localStorage.getItem(SEEN) === "1"; } catch (e) {}
+  if (!seen) {
+    let fired = false;
+    const fire = () => { if (!fired) { fired = true; openSub(); } };
+    setTimeout(fire, 20000);
+    window.addEventListener("scroll", () => { if (window.scrollY > document.body.scrollHeight * 0.3) fire(); }, { passive: true });
+  }
+
+  $("sub-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = $("sub-email").value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say($("sub-msg"), "Enter a valid email address.");
+    say($("sub-msg"), "");
+    $("sub-btn").disabled = true; $("sub-btn").textContent = "Signing you up…";
+    const { error } = await supabase.from("subscribers").insert({ email, district: $("sub-district").value || null });
+    $("sub-btn").disabled = false; $("sub-btn").textContent = "Send me job alerts";
+    if (error) {
+      console.error(error);
+      if (error.code === "23505") { say($("sub-msg"), "You're already on the list. We'll keep you posted.", "ok"); try { localStorage.setItem(SEEN, "1"); } catch (e) {} return; }
+      return say($("sub-msg"), "Couldn't sign you up right now. Please try again in a moment.");
+    }
+    try { localStorage.setItem(SEEN, "1"); } catch (e) {}
+    say($("sub-msg"), "You're on the list. We'll email you when new jobs are posted.", "ok");
+    setTimeout(() => dlg.close(), 2200);
+  });
+</script>
+</body>
+</html>

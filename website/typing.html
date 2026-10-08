@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typing speed practice and test | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.typing { max-width: 920px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-top: 24px; }
+  .tab { font: inherit; font-weight: 600; font-size: 16px; padding: 12px 18px; border: 0; background: none; color: var(--muted); border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -1px; }
+  .tab:hover { color: var(--teal); }
+  .tab[aria-selected="true"] { color: var(--teal-deep); border-bottom-color: var(--marigold); }
+
+  .panel { margin-top: 24px; }
+  .setup { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .setup .field { margin: 0; min-width: 160px; }
+  .setup label { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; text-align: center; }
+  .stat .n { font-family: Sora, sans-serif; font-size: 26px; font-weight: 700; color: var(--teal-deep); line-height: 1.1; }
+  .stat .l { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .stat.time .n { color: #9A6B10; }
+  .stat.time.low .n { color: var(--error); }
+
+  .passage { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-top: 18px; font-size: 21px; line-height: 1.9; letter-spacing: .2px; user-select: none; }
+  .passage span.ok { color: var(--ok); }
+  .passage span.bad { color: var(--error); background: #F8E7E6; border-radius: 3px; }
+  .passage span.cur { background: var(--marigold); color: #3A2A06; border-radius: 3px; }
+  .passage span.todo { color: var(--muted); }
+
+  textarea.typing-box { margin-top: 14px; min-height: 110px; font-size: 19px; line-height: 1.6; }
+  .row-btns { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .sbtn { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 18px; border-radius: 8px; cursor: pointer; border: 1px solid var(--teal); background: #fff; color: var(--teal); }
+  .sbtn.solid { background: var(--teal); color: #fff; }
+  .sbtn:disabled { opacity: .5; cursor: default; }
+
+  .tips { background: var(--teal-soft); border-radius: 12px; padding: 18px 22px; margin-top: 22px; }
+  .tips h3 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); }
+  .tips ul { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: var(--ink); }
+  .tips li::before { content: "•  "; color: var(--teal); font-weight: 700; }
+  .guide { margin-top: 18px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--marigold); border-radius: 10px; padding: 16px 20px; }
+  .guide h3 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); }
+  .guide p { margin-top: 6px; font-size: 15px; color: var(--muted); }
+  .keys { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .keys span { font-family: ui-monospace, Consolas, monospace; font-weight: 700; background: #F8E7E6; color: var(--error); border-radius: 6px; padding: 4px 10px; font-size: 15px; }
+
+  .result { background: #fff; border: 2px solid var(--teal); border-radius: 14px; padding: 24px; margin-top: 22px; }
+  .result h2 { font-family: Sora, sans-serif; font-size: 22px; color: var(--teal-deep); }
+  .result .big { display: flex; gap: 28px; margin-top: 14px; flex-wrap: wrap; }
+  .result .big div { text-align: center; }
+  .result .big .n { font-family: Sora, sans-serif; font-size: 40px; font-weight: 700; color: var(--teal-deep); line-height: 1; }
+  .result .big .l { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .verdict { margin-top: 16px; font-size: 16px; }
+  .verdict.pass { color: var(--ok); font-weight: 600; }
+  .verdict.fail { color: var(--error); font-weight: 600; }
+
+  .cert-box { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin-top: 20px; }
+  .cert-box h3 { font-family: Sora, sans-serif; font-size: 17px; color: var(--teal-deep); }
+  .cert-box .code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
+  .pill { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+  .pill.review { background: #FFF3DA; color: #7A5413; }
+  .pill.rejected { background: #F8E7E6; color: var(--error); }
+
+  .history { margin-top: 26px; }
+  .history h3 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+  .history li { list-style: none; display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+
+  dialog { border: 0; border-radius: 14px; padding: 0; width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+  dialog::backdrop { background: rgba(14,79,76,.55); }
+  .dlg { padding: 24px; position: relative; }
+  .dlg h2 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); padding-right: 30px; }
+  .close { position: absolute; top: 12px; right: 12px; font: inherit; font-size: 22px; background: none; border: 0; cursor: pointer; color: var(--muted); padding: 4px 10px; border-radius: 6px; }
+  .pay { margin-top: 16px; display: grid; grid-template-columns: 190px 1fr; gap: 22px; }
+  .qr { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px; width: 190px; }
+  .qr svg { width: 100%; height: auto; display: block; }
+  .pay h3 { font-family: Sora, sans-serif; font-size: 15px; color: var(--teal); margin-bottom: 6px; }
+  .pay ol { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .upi-id { font-weight: 600; font-family: ui-monospace, Consolas, monospace; background: var(--teal-soft); padding: 1px 6px; border-radius: 4px; }
+
+  @media (max-width: 640px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .passage { font-size: 19px; }
+    .pay { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>
+    <a id="account-link" class="header-link" href="login.html?next=typing.html">Sign in</a>
+  </div>
+</header>
+
+<main class="page typing">
+  <h1>Typing speed</h1>
+  <p class="lead">Practise as much as you like, free. When you're ready, take the test and earn a certificate with your words per minute and accuracy, which employers can verify online.</p>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-view="practice" aria-selected="true">Practice</button>
+    <button class="tab" role="tab" data-view="test" aria-selected="false">Take the test</button>
+  </nav>
+
+  <!-- ================= PRACTICE ================= -->
+  <section class="panel" id="p-practice">
+    <div class="setup">
+      <div class="field">
+        <label for="p-mins">Length</label>
+        <select id="p-mins">
+          <option value="1">1 minute</option>
+          <option value="2" selected>2 minutes</option>
+          <option value="3">3 minutes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="p-level">Difficulty</label>
+        <select id="p-level">
+          <option value="easy">Easy, short words</option>
+          <option value="medium" selected>Medium, everyday English</option>
+          <option value="hard">Hard, official language</option>
+        </select>
+      </div>
+      <button class="sbtn solid" id="p-start" type="button">Start practice</button>
+      <button class="sbtn" id="p-reset" type="button">New passage</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n" id="p-wpm">0</div><div class="l">Words per minute</div></div>
+      <div class="stat"><div class="n" id="p-acc">100%</div><div class="l">Accuracy</div></div>
+      <div class="stat"><div class="n" id="p-chars">0</div><div class="l">Characters typed</div></div>
+      <div class="stat time"><div class="n" id="p-time">2:00</div><div class="l">Time left</div></div>
+    </div>
+
+    <div class="passage" id="p-text"></div>
+    <textarea class="typing-box" id="p-input" placeholder="Click Start practice, then type the passage here…" spellcheck="false" disabled></textarea>
+
+    <div id="p-result"></div>
+
+    <div class="tips">
+      <h3>How to get faster</h3>
+      <ul>
+        <li>Rest your left fingers on A S D F and your right on J K L semicolon. Both thumbs on the space bar.</li>
+        <li>Keep your eyes on the screen, not the keyboard. It feels slower for a week, then much faster.</li>
+        <li>Accuracy first, speed second. Fixing mistakes costs more time than typing carefully.</li>
+        <li>Practise 15 minutes a day rather than two hours once a week.</li>
+        <li>Sit straight, wrists level, screen at eye height. Sore wrists end practice early.</li>
+      </ul>
+    </div>
+    <div class="guide" id="p-guide" hidden></div>
+    <div class="history" id="p-history" hidden></div>
+  </section>
+
+  <!-- ================= TEST ================= -->
+  <section class="panel" id="p-test" hidden>
+    <div class="guide">
+      <h3>How the test works</h3>
+      <p>Two minutes, one passage, no restarts once the timer begins. To qualify for a certificate you need at least <strong>20 words per minute</strong> with <strong>85 per cent accuracy</strong>. The test itself is free, and you only pay if you want the certificate.</p>
+    </div>
+
+    <div class="setup" style="margin-top:18px">
+      <button class="sbtn solid" id="t-start" type="button">Start the test</button>
+      <span id="t-note" style="color:var(--muted); font-size:15px">Sign in to take the test.</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n" id="t-wpm">0</div><div class="l">Words per minute</div></div>
+      <div class="stat"><div class="n" id="t-acc">100%</div><div class="l">Accuracy</div></div>
+      <div class="stat"><div class="n" id="t-chars">0</div><div class="l">Characters typed</div></div>
+      <div class="stat time"><div class="n" id="t-time">2:00</div><div class="l">Time left</div></div>
+    </div>
+
+    <div class="passage" id="t-text"></div>
+    <textarea class="typing-box" id="t-input" placeholder="The passage appears when you start the test…" spellcheck="false" disabled></textarea>
+
+    <div id="t-result"></div>
+    <div id="t-cert"></div>
+  </section>
+</main>
+
+<dialog id="pay-dlg" aria-labelledby="pay-title">
+  <div class="dlg">
+    <button class="close" id="pay-close" aria-label="Close">×</button>
+    <div id="pay-content"></div>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
+
+  const { SUPABASE_URL, SUPABASE_KEY, UPI_ID, UPI_NAME, SITE_URL } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const MIN_WPM = 20, MIN_ACC = 85;
+
+  const PASSAGES = {
+    easy: [
+      "The sun rises in the east and sets in the west. Every day we wake up early and get ready for work. A good habit helps us to do more in less time. If you read a little each day you will learn a lot in a year.",
+      "Water is life for plants and people. We must not waste it at home or in the field. Turn off the tap while brushing. Fix a leaking pipe as soon as you can. Small steps by many people save a great deal of water."
+    ],
+    medium: [
+      "Tripura shares most of its border with Bangladesh, and the rest with Assam and Mizoram. Agartala, the capital, lies close to the border and is one of the busiest cities in the north east. The state is known for its green hills, bamboo crafts and the Ujjayanta Palace, which now houses the state museum.",
+      "A good office worker types quickly and carefully. Speed matters, but a letter full of mistakes has to be typed again, which wastes more time than it saves. Learning to type without looking at the keyboard takes patience in the first week, yet it pays back every working day after that.",
+      "Many government departments test candidates on their typing before giving them a clerical post. The test usually checks both words per minute and accuracy. Practising for a few minutes every day is far better than a long session once a week, because the fingers remember steady repetition."
+    ],
+    hard: [
+      "In accordance with the notification issued by the competent authority, candidates are hereby informed that the schedule for the document verification shall be published on the official website. Applicants are advised to retain a copy of the application form, the admit card and the proof of payment until the recruitment process is concluded.",
+      "The undersigned is directed to state that all heads of offices shall ensure strict compliance with the instructions contained in the circular referred to above. Any deviation, whether intentional or otherwise, shall be brought to the notice of the administrative department without delay, together with the reasons recorded in writing."
+    ]
+  };
+  const TEST_PASSAGE = PASSAGES.medium;
+
+  // ---------- session ----------
+  // Fetched in the background, so a slow or failed network call never stops the
+  // rest of the page from working.
+  let session = null;
+  supabase.auth.getSession().then(({ data }) => {
+    session = data && data.session;
+    if (!session) return;
+    $("account-link").textContent = "My profile";
+    $("account-link").href = "profile.html";
+    $("t-note").textContent = "Two minutes. Good luck.";
+    loadHistory();
+  }).catch(err => console.error(err));
+
+  // ---------- tabs ----------
+  document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", "false"));
+    tab.setAttribute("aria-selected", "true");
+    const view = tab.dataset.view;
+    $("p-practice").hidden = view !== "practice";
+    $("p-test").hidden = view !== "test";
+  }));
+
+  // ---------- shared typing engine ----------
+  function makeEngine(ids, opts) {
+    const state = { text: "", running: false, startedAt: 0, endsAt: 0, timer: null, finished: false };
+
+    function pick(level) {
+      const list = PASSAGES[level] || TEST_PASSAGE;
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function paint() {
+      const typed = $(ids.input).value;
+      const box = $(ids.text);
+      box.innerHTML = "";
+      for (let i = 0; i < state.text.length; i++) {
+        const ch = state.text[i];
+        let cls = "todo";
+        if (i < typed.length) cls = typed[i] === ch ? "ok" : "bad";
+        else if (i === typed.length && state.running) cls = "cur";
+        const sp = el("span", cls, ch);
+        box.append(sp);
+      }
+    }
+
+    function figures() {
+      const typed = $(ids.input).value;
+      let correct = 0;
+      const wrongKeys = {};
+      for (let i = 0; i < typed.length; i++) {
+        if (typed[i] === state.text[i]) correct++;
+        else if (state.text[i]) wrongKeys[state.text[i]] = (wrongKeys[state.text[i]] || 0) + 1;
+      }
+      const mins = Math.max((Date.now() - state.startedAt) / 60000, 1 / 60);
+      const wpm = Math.round((correct / 5) / mins);
+      const acc = typed.length ? Math.round((correct / typed.length) * 100) : 100;
+      return { typed: typed.length, correct, wpm, acc, wrongKeys };
+    }
+
+    function tick() {
+      const left = Math.max(0, Math.round((state.endsAt - Date.now()) / 1000));
+      const f = figures();
+      $(ids.wpm).textContent = f.wpm;
+      $(ids.acc).textContent = f.acc + "%";
+      $(ids.chars).textContent = f.typed;
+      $(ids.time).textContent = Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
+      $(ids.time).parentElement.classList.toggle("low", left <= 15);
+      if (left === 0) finish();
+    }
+
+    function start(level, minutes) {
+      state.text = pick(level);
+      state.running = true; state.finished = false;
+      state.startedAt = Date.now();
+      state.endsAt = state.startedAt + minutes * 60000;
+      $(ids.input).value = "";
+      $(ids.input).disabled = false;
+      $(ids.input).focus();
+      $(ids.result).innerHTML = "";
+      if (ids.guide) $(ids.guide).hidden = true;
+      paint(); tick();
+      clearInterval(state.timer);
+      state.timer = setInterval(tick, 250);
+    }
+
+    async function finish() {
+      if (state.finished) return;
+      state.finished = true; state.running = false;
+      clearInterval(state.timer);
+      $(ids.input).disabled = true;
+      const f = figures();
+      paint();
+      opts.onFinish(f, Math.round((Date.now() - state.startedAt) / 1000));
+    }
+
+    $(ids.input).addEventListener("input", () => {
+      if (!state.running) return;
+      paint();
+      if ($(ids.input).value.length >= state.text.length) finish();
+    });
+
+    return { start, finish, paint, figures, state, pick: l => { state.text = pick(l); paint(); } };
+  }
+
+  // ---------- practice ----------
+  const practice = makeEngine(
+    { input: "p-input", text: "p-text", wpm: "p-wpm", acc: "p-acc", chars: "p-chars", time: "p-time", result: "p-result", guide: "p-guide" },
+    { onFinish: async (f, secs) => {
+        const box = $("p-result"); box.innerHTML = "";
+        const r = el("div", "result");
+        r.append(el("h2", "", "Practice finished"));
+        const big = el("div", "big");
+        for (const [n, l] of [[f.wpm, "words per minute"], [f.acc + "%", "accuracy"], [f.correct, "correct characters"]]) {
+          const d = el("div"); d.append(el("div", "n", String(n)), el("div", "l", l)); big.append(d);
+        }
+        r.append(big);
+        let advice = "";
+        if (f.acc < 90) advice = "Slow down a little. Below 90 per cent accuracy, mistakes cost you more time than speed gains.";
+        else if (f.wpm < 20) advice = "Good accuracy. Now build speed by keeping your fingers on the home row and not looking down.";
+        else if (f.wpm < 35) advice = "Solid pace. You are already at the level most clerical posts ask for. Aim for 35 next.";
+        else advice = "Strong result. Keep accuracy above 95 per cent and you are in good shape for any typing test.";
+        r.append(el("p", "verdict", advice));
+        box.append(r);
+
+        const worst = Object.entries(f.wrongKeys).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        if (worst.length) {
+          const g = $("p-guide"); g.innerHTML = ""; g.hidden = false;
+          g.append(el("h3", "", "Letters to work on"));
+          g.append(el("p", "", "You missed these most often. Type each one slowly ten times before your next run."));
+          const keys = el("div", "keys");
+          worst.forEach(([ch, n]) => keys.append(el("span", "", (ch === " " ? "space" : ch) + " × " + n)));
+          g.append(keys);
+        }
+        if (session) {
+          await supabase.rpc("save_typing_attempt", { p_mode: "practice", p_wpm: f.wpm, p_accuracy: f.acc, p_seconds: secs, p_chars: f.typed });
+          loadHistory();
+        }
+      } });
+
+  $("p-start").onclick = () => practice.start($("p-level").value, Number($("p-mins").value));
+  $("p-reset").onclick = () => { practice.pick($("p-level").value); $("p-input").value = ""; $("p-input").disabled = true; };
+  $("p-mins").onchange = () => { $("p-time").textContent = $("p-mins").value + ":00"; };
+  $("p-level").onchange = () => practice.pick($("p-level").value);
+  practice.pick("medium");
+
+  async function loadHistory() {
+    if (!session) return;
+    const { data } = await supabase.from("typing_attempts").select("mode, wpm, accuracy, created_at")
+      .order("created_at", { ascending: false }).limit(8);
+    if (!data || !data.length) return;
+    const box = $("p-history"); box.hidden = false; box.innerHTML = "";
+    box.append(el("h3", "", "Your recent runs"));
+    const ul = el("ul");
+    for (const a of data) {
+      const li = el("li");
+      const when = new Date(a.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+      li.append(el("span", "", `${a.wpm} WPM · ${a.accuracy}% · ${a.mode === "test" ? "Test" : "Practice"}`), el("span", "", when));
+      ul.append(li);
+    }
+    box.append(ul);
+  }
+  loadHistory();
+
+  // ---------- test ----------
+  let lastAttemptId = null;
+
+  const test = makeEngine(
+    { input: "t-input", text: "t-text", wpm: "t-wpm", acc: "t-acc", chars: "t-chars", time: "t-time", result: "t-result" },
+    { onFinish: async (f, secs) => {
+        const box = $("t-result"); box.innerHTML = "";
+        const passed = f.wpm >= MIN_WPM && f.acc >= MIN_ACC;
+        const r = el("div", "result");
+        r.append(el("h2", "", "Test finished"));
+        const big = el("div", "big");
+        for (const [n, l] of [[f.wpm, "words per minute"], [f.acc + "%", "accuracy"], [f.correct, "correct characters"]]) {
+          const d = el("div"); d.append(el("div", "n", String(n)), el("div", "l", l)); big.append(d);
+        }
+        r.append(big);
+        r.append(el("p", "verdict " + (passed ? "pass" : "fail"),
+          passed ? "You qualify for a certificate." :
+          `Not qualified this time. You need at least ${MIN_WPM} WPM with ${MIN_ACC}% accuracy. Practise and take the test again, as often as you like.`));
+        box.append(r);
+
+        if (!session) return;
+        const { data: saved } = await supabase.rpc("save_typing_attempt",
+          { p_mode: "test", p_wpm: f.wpm, p_accuracy: f.acc, p_seconds: secs, p_chars: f.typed });
+        lastAttemptId = saved && saved.attempt_id;
+        loadHistory();
+        if (passed && lastAttemptId) {
+          const { data: c } = await supabase.rpc("claim_typing_certificate", { p_attempt_id: lastAttemptId });
+          showCertificate(c);
+        }
+      } });
+
+  $("t-start").onclick = () => {
+    if (!session) { window.location.href = "login.html?next=typing.html"; return; }
+    $("t-start").disabled = true;
+    test.start("test", 2);
+  };
+  if (session) { $("t-note").textContent = "Two minutes. Good luck."; }
+  test.pick("medium");
+
+  // ---------- certificate ----------
+  function certificateBox(c) {
+    const box = el("div", "cert-box");
+    box.append(el("h3", "", "Your typing certificate"));
+    const p = el("p", "", `${c.wpm} words per minute, ${c.accuracy}% accuracy · ID `);
+    p.append(el("span", "code", c.code));
+    box.append(p);
+    const row = el("div", "row-btns");
+    if (c.issued) {
+      const b = el("button", "sbtn solid", "Download certificate"); b.type = "button";
+      b.onclick = () => downloadCert(c);
+      row.append(b);
+    } else if (c.payment_status === "pending") {
+      box.append(el("p", "pill review", "Payment under review. Your certificate unlocks once we confirm it."));
+    } else {
+      if (c.payment_status === "rejected") box.append(el("p", "pill rejected", "We couldn't verify your last payment. Please submit the reference again."));
+      const b = el("button", "sbtn solid", "Get the certificate for ₹" + c.fee); b.type = "button";
+      b.onclick = () => openPay(c);
+      row.append(b);
+    }
+    if (row.children.length) box.append(row);
+    return box;
+  }
+
+  function showCertificate(c) {
+    const box = $("t-cert"); box.innerHTML = "";
+    if (!c) return;
+    if (c.status === "no_name") {
+      const d = el("div", "cert-box");
+      d.append(el("h3", "", "Add your name to claim the certificate"));
+      const p = el("p", "", "Your certificate needs your full name. Add it to your profile, then take the test again or reload this page. ");
+      const a = el("a", "", "Go to my profile"); a.href = "profile.html"; p.append(a);
+      d.append(p); box.append(d); return;
+    }
+    if (c.status && c.status !== "ok") return;
+    box.append(certificateBox(c));
+  }
+
+  async function refreshCertificate() {
+    if (!session) return;
+    const { data: c } = await supabase.rpc("my_typing_certificate");
+    if (c) showCertificate(c);
+  }
+  refreshCertificate();
+
+  function downloadCert(c) {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const W = 297, H = 210, cx = 24 + (W - 34) / 2;
+      const TEAL = [14, 79, 76], TEAL2 = [21, 112, 107], GOLD = [217, 161, 59], INK = [20, 38, 37], MUTED = [83, 101, 100];
+      doc.setFillColor(245, 248, 247); doc.rect(0, 0, W, H, "F");
+      doc.setFillColor(...TEAL); doc.rect(0, 0, 14, H, "F");
+      doc.setFillColor(...GOLD); doc.rect(14, 0, 2.5, H, "F");
+      doc.setDrawColor(...TEAL2); doc.setLineWidth(0.6); doc.rect(24, 10, W - 34, H - 20);
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.3); doc.rect(26.5, 12.5, W - 39, H - 25);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...TEAL);
+      doc.text("TRIPURA JOB PULSE", cx, 30, { align: "center" });
+      doc.setFont("times", "bold"); doc.setFontSize(32); doc.setTextColor(...INK);
+      doc.text("Typing Speed Certificate", cx, 50, { align: "center" });
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.8); doc.line(cx - 30, 56, cx + 30, 56);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(...MUTED);
+      doc.text("This is to certify that", cx, 70, { align: "center" });
+      doc.setFont("times", "bolditalic"); doc.setFontSize(30); doc.setTextColor(...TEAL);
+      doc.text(c.full_name, cx, 86, { align: "center" });
+      doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(...MUTED);
+      doc.text("has completed an online typing assessment with a measured speed of", cx, 100, { align: "center" });
+      doc.setFont("helvetica", "bold"); doc.setFontSize(26); doc.setTextColor(...INK);
+      doc.text(`${c.wpm} words per minute at ${c.accuracy}% accuracy`, cx, 115, { align: "center" });
+      const date = new Date(c.issued_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+      const y = 160;
+      doc.setDrawColor(...MUTED); doc.setLineWidth(0.3);
+      doc.line(50, y, 110, y); doc.line(W - 100, y, W - 40, y);
+      doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(...INK);
+      doc.text(date, 80, y - 3, { align: "center" });
+      doc.text(c.code, W - 70, y - 3, { align: "center" });
+      doc.setFont("helvetica", "normal"); doc.setTextColor(...MUTED);
+      doc.text("Date of issue", 80, y + 5, { align: "center" });
+      doc.text("Certificate ID", W - 70, y + 5, { align: "center" });
+      doc.setFontSize(9);
+      const site = (SITE_URL || "https://tripurajobpulse.com").replace(/\/$/, "");
+      doc.text(`Verify this certificate at ${site}/verify.html using the Certificate ID.`, cx, 182, { align: "center" });
+      doc.text("Issued by Tripura Job Pulse. This certifies typing performance in our online test, and is not a government qualification.", cx, 187, { align: "center" });
+      doc.save(`Typing_Certificate_${c.code}.pdf`);
+    } catch (e) { console.error(e); alert("Couldn't create the certificate. Refresh the page and try again."); }
+  }
+
+  // ---------- payment ----------
+  function openPay(c) {
+    const box = $("pay-content"); box.innerHTML = "";
+    const h = el("h2", "", `Typing certificate: ₹${c.fee}`); h.id = "pay-title";
+    box.append(h, el("p", "", `${c.wpm} WPM at ${c.accuracy}% accuracy · ID ${c.code}`));
+    const upiLink = "upi://pay?pa=" + encodeURIComponent(UPI_ID) + "&pn=" + encodeURIComponent(UPI_NAME) +
+      "&am=" + c.fee + ".00&cu=INR&tn=" + encodeURIComponent("TJP typing " + c.code);
+    const pay = el("div", "pay");
+    const qrBox = el("div", "qr");
+    try { const qr = qrcode(0, "M"); qr.addData(upiLink); qr.make(); qrBox.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+    catch (e) { qrBox.textContent = "QR unavailable. Pay using the UPI ID instead."; }
+    const right = el("div");
+    right.append(el("h3", "", "1. Pay ₹" + c.fee + " by UPI"));
+    const steps = el("ol");
+    steps.append(el("li", "", "Scan the QR code with any UPI app."));
+    const li2 = el("li", "", "Or pay to ");
+    li2.append(el("span", "upi-id", UPI_ID), document.createTextNode(" for exactly ₹" + c.fee + "."));
+    const li3 = el("li"); const a = el("a", "", "Open your UPI app"); a.href = upiLink;
+    li3.append(a, document.createTextNode(" (on your phone)."));
+    steps.append(li2, li3); right.append(steps);
+    const h3 = el("h3", "", "2. Enter your UPI reference number"); h3.style.marginTop = "16px"; right.append(h3);
+    const form = el("form"); form.noValidate = true;
+    const field = el("div", "field");
+    const label = el("label", "", "12-digit UPI reference (UTR)"); label.htmlFor = "utr";
+    const input = el("input"); input.id = "utr"; input.inputMode = "numeric"; input.maxLength = 12; input.placeholder = "412345678901";
+    field.append(label, input, el("p", "hint", "In your UPI app, open this payment's details. It may be called UPI Ref No., UTR or Transaction ID."));
+    const msg = el("p", "msg error"); msg.hidden = true;
+    const submit = el("button", "btn", "Submit payment"); submit.type = "submit";
+    form.append(field, msg, submit); right.append(form);
+    pay.append(qrBox, right); box.append(pay);
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const utr = input.value.replace(/\s/g, "");
+      if (!/^\d{12}$/.test(utr)) { msg.textContent = "The UPI reference number is 12 digits, numbers only."; msg.hidden = false; return; }
+      msg.hidden = true; submit.disabled = true; submit.textContent = "Submitting…";
+      const { error } = await supabase.from("payments").insert({ item_type: "typing_cert", item_id: c.id, amount: c.fee, utr });
+      submit.disabled = false; submit.textContent = "Submit payment";
+      if (error) {
+        console.error(error);
+        msg.textContent = (error.code === "23505")
+          ? "This UPI reference has already been used, or your payment is already under review."
+          : "Couldn't submit. Check your connection and try again.";
+        msg.hidden = false; return;
+      }
+      $("pay-dlg").close();
+      await refreshCertificate();
+    };
+    $("pay-dlg").showModal();
+    setTimeout(() => input.focus(), 50);
+  }
+  $("pay-close").onclick = () => $("pay-dlg").close();
+  $("pay-dlg").addEventListener("click", e => { if (e.target === $("pay-dlg")) $("pay-dlg").close(); });
+</script>
+</body>
+</html>

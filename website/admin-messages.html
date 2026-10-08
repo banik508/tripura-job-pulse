@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin: messages | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1060px; }
+  .admin-nav { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-top: 28px; }
+  .tab { font: inherit; font-weight: 600; font-size: 16px; padding: 10px 16px; border: 0; background: none; color: var(--muted); border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -1px; }
+  .tab[aria-selected="true"] { color: var(--teal-deep); border-bottom-color: var(--marigold); }
+  .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.msg-text { white-space: pre-line; max-width: 420px; }
+  .small-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; background: #fff; border: 1px solid var(--teal); color: var(--teal); margin: 0 6px 4px 0; }
+  .small-btn.danger { border-color: var(--error); color: var(--error); }
+  .pill { font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 99px; background: #FFF3DA; color: #7A5413; white-space: nowrap; }
+  .pill.done { background: #E4F2E8; color: var(--ok); }
+  .tools { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Messages &amp; subscribers</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+    <a href="admin-messages.html">Messages</a>
+  </nav>
+
+  <div id="area" hidden>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="new" aria-selected="true">New messages</button>
+      <button class="tab" role="tab" data-view="done" aria-selected="false">Handled</button>
+      <button class="tab" role="tab" data-view="subs" aria-selected="false">Email subscribers</button>
+    </nav>
+    <div class="tools" id="tools" hidden>
+      <button class="small-btn" id="copy-emails" type="button">Copy all emails</button>
+      <button class="small-btn" id="csv" type="button">Download CSV</button>
+    </div>
+    <p id="msg" class="msg" hidden style="margin-top:14px"></p>
+    <div class="table-wrap">
+      <table><thead id="head"></thead><tbody id="body"></tbody></table>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const cell = (t, cls) => { const td = document.createElement("td"); td.textContent = t; if (cls) td.className = cls; return td; };
+  function say(text, type) { const n = $("msg"); n.textContent = text; n.className = "msg " + (type || "error"); n.hidden = !text; }
+  const REASONS = { general: "General enquiry", post_job: "Post a vacancy", careers: "Careers", feedback: "Feedback" };
+  const when = iso => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-messages.html"; throw new Error("Not signed in"); }
+  const { data: adminRow } = await supabase.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("Not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false; $("area").hidden = false;
+
+  let view = "new", subs = [];
+
+  function setHead(cols) {
+    $("head").innerHTML = "";
+    const tr = document.createElement("tr");
+    for (const c of cols) { const th = document.createElement("th"); th.textContent = c; tr.append(th); }
+    $("head").append(tr);
+  }
+
+  async function load() {
+    say(""); $("body").innerHTML = "";
+    $("tools").hidden = view !== "subs";
+
+    if (view === "subs") {
+      setHead(["Email", "District", "Joined"]);
+      const { data, error } = await supabase.from("subscribers").select("*").order("created_at", { ascending: false });
+      if (error) return say("Couldn't load subscribers. Refresh the page.");
+      subs = data || [];
+      if (!subs.length) { const tr = document.createElement("tr"); const td = cell("No subscribers yet."); td.colSpan = 3; tr.append(td); $("body").append(tr); return; }
+      for (const s of subs) {
+        const tr = document.createElement("tr");
+        tr.append(cell(s.email), cell(s.district || "All of Tripura"), cell(when(s.created_at)));
+        $("body").append(tr);
+      }
+      return;
+    }
+
+    setHead(["Received", "From", "About", "Message", "Action"]);
+    const { data, error } = await supabase.from("contact_messages").select("*")
+      .eq("handled", view === "done").order("created_at", { ascending: false });
+    if (error) return say("Couldn't load messages. Refresh the page.");
+    if (!data.length) {
+      const tr = document.createElement("tr");
+      const td = cell(view === "new" ? "No new messages." : "Nothing handled yet.");
+      td.colSpan = 5; tr.append(td); $("body").append(tr); return;
+    }
+    for (const m of data) {
+      const tr = document.createElement("tr");
+      const from = cell([m.name, m.phone, m.email].filter(Boolean).join("\n"));
+      from.style.whiteSpace = "pre-line";
+      const actions = document.createElement("td");
+      const mark = document.createElement("button");
+      mark.className = "small-btn"; mark.textContent = view === "new" ? "Mark handled" : "Move back to new";
+      mark.onclick = async () => {
+        const { error } = await supabase.from("contact_messages").update({ handled: view === "new" }).eq("id", m.id);
+        if (error) say("Couldn't update: " + error.message); else load();
+      };
+      const del = document.createElement("button");
+      del.className = "small-btn danger"; del.textContent = "Delete";
+      del.onclick = async () => {
+        if (!confirm("Delete this message permanently?")) return;
+        const { error } = await supabase.from("contact_messages").delete().eq("id", m.id);
+        if (error) say("Couldn't delete: " + error.message); else load();
+      };
+      actions.append(mark, del);
+      tr.append(cell(when(m.created_at)), from, cell(REASONS[m.reason] || m.reason), cell(m.message, "msg-text"), actions);
+      $("body").append(tr);
+    }
+  }
+
+  $("copy-emails").onclick = async () => {
+    if (!subs.length) return;
+    try { await navigator.clipboard.writeText(subs.map(s => s.email).join(", ")); say("All emails copied. Paste them into the BCC box of your email.", "ok"); }
+    catch (e) { say("Couldn't copy. Use Download CSV instead."); }
+  };
+  $("csv").onclick = () => {
+    if (!subs.length) return;
+    const rows = [["Email", "District", "Joined"], ...subs.map(s => [s.email, s.district || "", s.created_at])];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = "subscribers.csv"; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", "false"));
+    t.setAttribute("aria-selected", "true");
+    view = t.dataset.view; load();
+  }));
+  load();
+
+  $("logout").addEventListener("click", async () => { await supabase.auth.signOut(); window.location.href = "login.html"; });
+</script>
+</body>
+</html>

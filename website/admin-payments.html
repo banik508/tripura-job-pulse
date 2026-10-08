@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin: payments | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1100px; }
+  .admin-nav { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-top: 28px; }
+  .tab { font: inherit; font-weight: 600; font-size: 16px; padding: 10px 16px; border: 0; background: none; color: var(--muted); border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -1px; }
+  .tab[aria-selected="true"] { color: var(--teal-deep); border-bottom-color: var(--marigold); }
+  .how { margin-top: 18px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; font-size: 16px; }
+  .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  .utr { font-family: ui-monospace, Consolas, monospace; font-weight: 600; }
+  .amount { font-weight: 700; white-space: nowrap; }
+  .small-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 5px 10px; border-radius: 6px; cursor: pointer; background: #fff; border: 1px solid var(--teal); color: var(--teal); margin: 0 6px 4px 0; }
+  .small-btn.approve { background: var(--teal); color: #fff; }
+  .small-btn.danger { border-color: var(--error); color: var(--error); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Payments</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-payments.html">Payments</a>
+  </nav>
+
+  <div id="admin-area" hidden>
+    <p class="how"><strong>Before approving:</strong> open your UPI app or bank statement and find a payment with the same <strong>UPI reference number</strong> and the <strong>same amount</strong>. Only approve if both match.</p>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-status="pending" aria-selected="true">Waiting for review</button>
+      <button class="tab" role="tab" data-status="approved" aria-selected="false">Approved</button>
+      <button class="tab" role="tab" data-status="rejected" aria-selected="false">Rejected</button>
+    </nav>
+    <p id="list-msg" class="msg" hidden style="margin-top:14px"></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Submitted</th><th>Buyer</th><th>Item</th><th>Amount</th><th>UPI reference</th><th id="action-head">Actions</th></tr></thead>
+        <tbody id="list-body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const cell = (text, cls) => { const td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; return td; };
+  function showMsg(text, type) { const n = $("list-msg"); n.textContent = text; n.className = "msg " + (type || "error"); n.hidden = !text; }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-payments.html"; throw new Error("Not signed in"); }
+  const { data: adminRow } = await supabase.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("Not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false;
+  $("admin-area").hidden = false;
+
+  let status = "pending";
+
+  async function load() {
+    showMsg("");
+    const body = $("list-body");
+    body.innerHTML = "";
+    $("action-head").textContent = status === "pending" ? "Actions" : "Reviewed";
+
+    const { data: pays, error } = await supabase.from("payments")
+      .select("*").eq("status", status).order("created_at", { ascending: status === "pending" });
+    if (error) { console.error(error); return showMsg("Couldn't load payments. Refresh the page."); }
+    if (!pays.length) {
+      const tr = document.createElement("tr");
+      const td = cell(status === "pending" ? "Nothing waiting for review." : "None yet.");
+      td.colSpan = 6; tr.append(td); body.append(tr); return;
+    }
+
+    const userIds = [...new Set(pays.map(p => p.user_id))];
+    const itemIds = [...new Set(pays.filter(p => p.item_id).map(p => p.item_id))];
+    const [{ data: people }, { data: mats }, { data: certRows }] = await Promise.all([
+      supabase.from("profiles").select("id, full_name, phone").in("id", userIds),
+      itemIds.length ? supabase.from("study_materials").select("id, title, price").in("id", itemIds) : Promise.resolve({ data: [] }),
+      itemIds.length ? supabase.from("certificates").select("id, cert_title, code").in("id", itemIds) : Promise.resolve({ data: [] })
+    ]);
+    const cert = Object.fromEntries((certRows || []).map(c => [c.id, c]));
+    const { data: typRows } = itemIds.length
+      ? await supabase.from("typing_certificates").select("id, code, wpm").in("id", itemIds)
+      : { data: [] };
+    const typ = Object.fromEntries((typRows || []).map(t => [t.id, t]));
+    const person = Object.fromEntries((people || []).map(p => [p.id, p]));
+    const mat = Object.fromEntries((mats || []).map(m => [m.id, m]));
+    const when = iso => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+
+    for (const p of pays) {
+      const tr = document.createElement("tr");
+      const who = person[p.user_id];
+      const buyer = who ? (who.full_name || "No name") + (who.phone ? "\n" + who.phone : "") : "Profile not filled";
+      const buyerTd = cell(buyer); buyerTd.style.whiteSpace = "pre-line";
+
+      const PLAN_NAMES = { basic20: "Basic job plan (20 views)", std50: "Standard job plan (50 views)", unlimited: "Unlimited job plan (30 days)" };
+      let item = p.plan_code ? (PLAN_NAMES[p.plan_code] || "Job plan: " + p.plan_code) : "Study material";
+      if (p.item_type === "study_material" && mat[p.item_id]) item = mat[p.item_id].title;
+      if (p.item_type === "certificate") item = cert[p.item_id] ? `Certificate: ${cert[p.item_id].cert_title} (${cert[p.item_id].code})` : "Certificate";
+      if (p.item_type === "typing_cert") item = typ[p.item_id] ? `Typing certificate: ${typ[p.item_id].wpm} WPM (${typ[p.item_id].code})` : "Typing certificate";
+
+      const actions = document.createElement("td");
+      if (status === "pending") {
+        const ok = document.createElement("button");
+        ok.className = "small-btn approve"; ok.textContent = "Approve";
+        ok.onclick = () => review(p, "approved", ok);
+        const no = document.createElement("button");
+        no.className = "small-btn danger"; no.textContent = "Reject";
+        no.onclick = () => { if (confirm("Reject this payment? The buyer will be asked to check their UPI reference and resubmit.")) review(p, "rejected", no); };
+        actions.append(ok, no);
+      } else {
+        actions.textContent = p.reviewed_at ? when(p.reviewed_at) : "–";
+      }
+
+      tr.append(cell(when(p.created_at)), buyerTd, cell(item), cell("₹" + p.amount, "amount"), cell(p.utr, "utr"), actions);
+      body.append(tr);
+    }
+  }
+
+  async function review(p, newStatus, btn) {
+    btn.disabled = true;
+    const { error } = await supabase.from("payments")
+      .update({ status: newStatus, reviewed_at: new Date().toISOString() }).eq("id", p.id);
+    if (error) { btn.disabled = false; return showMsg("Couldn't update: " + error.message); }
+    showMsg(newStatus === "approved" ? "Approved. The buyer can download now." : "Rejected.", "ok");
+    setTimeout(load, 900);
+  }
+
+  document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", "false"));
+    tab.setAttribute("aria-selected", "true");
+    status = tab.dataset.status;
+    load();
+  }));
+  load();
+
+  $("logout").addEventListener("click", async () => { await supabase.auth.signOut(); window.location.href = "login.html"; });
+</script>
+</body>
+</html>
