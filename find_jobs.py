@@ -81,6 +81,22 @@ SKIP_WORDS = re.compile(
     r"exam\s*date|postponed|cancell?ed|scam|fraud|protest|unemployment\s+rate|"
     r"job\s*loss|laid\s*off|retrench\w*)\b", re.I)
 
+# News *about* jobs reads very differently from a notice. A pay-gap story or a
+# court hearing mentions vacancies without being one, so those get dropped.
+COMMENTARY = re.compile(
+    r"\b(high\s+court|supreme\s+court|affidavit|petition|plea|hearing|verdict|"
+    r"listed\s+for|seeks?|slams?|alleges?|expose[sd]?|pay\s+gap|row\s+over|"
+    r"demands?|criticis\w*|questions?|debate|assembly|minister\s+said|"
+    r"opposition|survey|report\s+says|study|analysis|crisis|backlog)\b", re.I)
+
+# A real notice almost always says one of these.
+ANNOUNCEMENT = re.compile(
+    r"(\brecruitment\b|\bnotification\b|\bapply\s+online\b|\bapply\s+before\b|"
+    r"\bwalk[-\s]?in\b|\binvites?\s+application|\bapplications?\s+invited\b|"
+    r"\blast\s+date\b|\bvacanc\w*\s+(?:announced|out|notified)\b|"
+    r"\b\d{1,5}\+?\s+(?:post|posts|vacanc\w*)\b|"
+    r"\brecruitment\s+\d{4}\b|\bhiring\s+for\b)", re.I)
+
 # Either a Tripura place name, or a body that only exists in Tripura - a TPSC
 # headline often never says the word "Tripura".
 RELEVANT_PLACE = re.compile(
@@ -176,6 +192,10 @@ def collect():
             if not JOB_WORDS.search(blob):
                 continue
             if SKIP_WORDS.search(title):
+                continue
+            if COMMENTARY.search(title):
+                continue
+            if not ANNOUNCEMENT.search(blob):
                 continue
             if not RELEVANT_PLACE.search(blob):
                 continue
