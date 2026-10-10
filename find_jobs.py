@@ -1,13 +1,23 @@
 """
-Tripura Job Pulse - daily job finder
+Tripura Job Pulse - daily job finder and repository
 
-Searches news feeds for new Tripura recruitment notices, fills in what it can
-reliably work out, and emails you an Excel file in your upload format.
+Reads Tripura job boards and news searches, works out what it can about each
+vacancy, stores it, then emails you one Excel file containing the whole
+repository split into tabs:
 
-Be clear about what this does and doesn't do. Headlines and short snippets
-give a title, an organisation and a link. They do not give vacancy counts,
-pay scales or age limits - those sit inside PDF notifications. Those columns
-come back blank, shaded yellow, for you to complete from the official notice.
+    New today
+    Tripura - Government
+    Tripura - Private
+    Within India - Government
+    Within India - Private
+    Remote
+
+Every tab uses your 15-column upload format.
+
+Be clear about the limits. A feed gives a title, a link and a short summary.
+It does not give vacancy counts, pay scales or age limits - those sit inside
+PDF notifications. Those columns arrive blank, shaded yellow, for you to fill
+in from the official notice.
 
 Environment variables:
   SUPABASE_URL
@@ -15,8 +25,8 @@ Environment variables:
   GMAIL_USER
   GMAIL_APP_PASSWORD
   MAIL_TO              where to send it (defaults to GMAIL_USER)
-  LOOKBACK_HOURS       how far back to look (default 48)
-  DRY_RUN              "true" to print instead of emailing
+  LOOKBACK_HOURS       how far back to look for new items (default 48)
+  DRY_RUN              "true" to build but not email
 """
 
 import html
@@ -55,49 +65,50 @@ COLUMNS = ["Job title", "Organisation", "Job type", "City", "State",
            "Experience", "Industry", "Qualification", "Vacancies", "Salary",
            "Age limit", "Last date", "How to apply", "Apply link", "Description"]
 
-# Columns the script can usually fill. The rest are shaded for you to complete.
+# Columns a feed can usually fill. The rest are shaded for you to complete.
 AUTO = {"Job title", "Organisation", "Job type", "City", "State",
         "Apply link", "Description"}
 
-# Job board feeds carry actual vacancy posts; news feeds mostly carry stories
-# about jobs. Both are kept, but the job boards do the real work.
-# Each entry is (label, url). Dead feeds are reported and skipped.
+# Two kinds of source, treated differently.
+#   "board" - a job board. Every post is meant to be a vacancy, so it only has
+#             to pass the light checks. Being strict here loses real jobs.
+#   "news"  - a news search. Most items are stories about jobs rather than
+#             vacancies, so these face the full set of tests.
 FEEDS = [
-    # Tripura job boards - published RSS, meant to be read by other software
-    ("tripurajob.in", "https://www.tripurajob.in/feeds/posts/default?alt=rss"),
-    ("tripuracareer.in", "https://www.tripuracareer.in/feeds/posts/default?alt=rss"),
-    ("jobstripura.com", "https://www.jobstripura.com/feeds/posts/default?alt=rss"),
-    ("tripurastarnews.com", "https://www.tripurastarnews.com/category/job-employment/feed/"),
+    ("board", "tripurajob.in",
+     "https://www.tripurajob.in/feeds/posts/default?alt=rss"),
+    ("board", "tripuracareer.in",
+     "https://www.tripuracareer.in/feeds/posts/default?alt=rss"),
+    ("board", "jobstripura.com",
+     "https://www.jobstripura.com/feeds/posts/default?alt=rss"),
+    ("board", "tripurastarnews.com",
+     "https://www.tripurastarnews.com/category/job-employment/feed/"),
 
-    # News searches - thinner, but occasionally first with a big announcement
-    ("news: Tripura recruitment",
+    ("news", "news: Tripura recruitment",
      "https://news.google.com/rss/search?q=Tripura+recruitment&hl=en-IN&gl=IN&ceid=IN:en"),
-    ("news: Tripura apply online",
+    ("news", "news: Tripura apply online",
      "https://news.google.com/rss/search?q=Tripura+vacancy+apply+online&hl=en-IN&gl=IN&ceid=IN:en"),
-    ("news: TPSC",
+    ("news", "news: TPSC",
      "https://news.google.com/rss/search?q=TPSC+recruitment&hl=en-IN&gl=IN&ceid=IN:en"),
-    ("news: JRBT",
+    ("news", "news: JRBT",
      "https://news.google.com/rss/search?q=JRBT+recruitment+Tripura&hl=en-IN&gl=IN&ceid=IN:en"),
-    ("news: Agartala vacancy",
+    ("news", "news: Agartala vacancy",
      "https://news.google.com/rss/search?q=Agartala+job+vacancy&hl=en-IN&gl=IN&ceid=IN:en"),
-    ("news: walk-in",
+    ("news", "news: walk-in",
      "https://news.google.com/rss/search?q=Tripura+walk-in+interview&hl=en-IN&gl=IN&ceid=IN:en"),
 ]
 
-# A headline has to look like a job notice, not general news.
 JOB_WORDS = re.compile(
     r"\b(recruit\w*|vacanc\w*|vacancies|hiring|appointment|apply\s+online|"
     r"walk[-\s]?in|notification|post[s]?\b|job[s]?\b|engage\w*|"
     r"empanel\w*|advertis\w*)\b", re.I)
 
-# Things that mention jobs but aren't a vacancy to apply for.
 SKIP_WORDS = re.compile(
     r"\b(result|answer\s*key|admit\s*card|cut[-\s]?off|merit\s*list|"
     r"exam\s*date|postponed|cancell?ed|scam|fraud|protest|unemployment\s+rate|"
-    r"job\s*loss|laid\s*off|retrench\w*)\b", re.I)
+    r"job\s*loss|laid\s*off|retrench\w*|syllabus|previous\s+year|question\s+paper)\b", re.I)
 
-# News *about* jobs reads very differently from a notice. A pay-gap story or a
-# court hearing mentions vacancies without being one, so those get dropped.
+# News *about* jobs reads very differently from a notice.
 COMMENTARY = re.compile(
     r"\b(high\s+court|supreme\s+court|affidavit|petition|plea|hearing|verdict|"
     r"listed\s+for|seeks?|slams?|alleges?|expose[sd]?|pay\s+gap|row\s+over|"
@@ -112,11 +123,13 @@ ANNOUNCEMENT = re.compile(
     r"\b\d{1,5}\+?\s+(?:post|posts|vacanc\w*)\b|"
     r"\brecruitment\s+\d{4}\b|\bhiring\s+for\b)", re.I)
 
-# Either a Tripura place name, or a body that only exists in Tripura - a TPSC
-# headline often never says the word "Tripura".
 RELEVANT_PLACE = re.compile(
     r"\b(tripura|agartala|udaipur|dharmanagar|kailashahar|belonia|ambassa|"
     r"khowai|sabroom|tpsc|jrbt|trbt|ttaadc|tsecl|agmc|trtc)\b", re.I)
+
+REMOTE = re.compile(
+    r"\b(work\s+from\s+home|wfh|remote\s+(?:job|work|position|role)|"
+    r"fully\s+remote|home[-\s]based)\b", re.I)
 
 ORGS = [
     ("TPSC", "Tripura Public Service Commission (TPSC)"),
@@ -131,15 +144,27 @@ ORGS = [
     ("TIDC", "Tripura Industrial Development Corporation"),
     ("TRTC", "Tripura Road Transport Corporation"),
     ("Tripura High Court", "Tripura High Court"),
+    ("DLSA", "District Legal Services Authority"),
+    ("SoFED", "SoFED, Government of Tripura"),
 ]
 
 GOV_HINT = re.compile(
     r"\b(government|govt|department|ministry|commission|board|council|"
     r"corporation|directorate|municipal|nagar|panchayat|district|"
-    r"tpsc|jrbt|trbt|police|university|college|hospital|railway|"
-    r"bank|ssc|upsc|court)\b", re.I)
+    r"tpsc|jrbt|trbt|police|university|college|hospital|railway|rrb|"
+    r"bank|ssc|upsc|court|isro|drdo|ongc|aiims|icmr|nhm|bsf|crpf|army|navy|"
+    r"air\s+force|psu|limited\b)\b", re.I)
+
+TABS = [
+    ("Tripura - Government", lambda r: r["region"] == "tripura" and r["gov"]),
+    ("Tripura - Private", lambda r: r["region"] == "tripura" and not r["gov"]),
+    ("Within India - Government", lambda r: r["region"] == "india" and r["gov"]),
+    ("Within India - Private", lambda r: r["region"] == "india" and not r["gov"]),
+    ("Remote", lambda r: r["region"] == "remote"),
+]
 
 
+# ---------------------------------------------------------------- helpers
 def clean(text):
     text = html.unescape(text or "")
     text = re.sub(r"<[^>]+>", " ", text)
@@ -147,7 +172,6 @@ def clean(text):
 
 
 def strip_publisher(title):
-    """Google News appends ' - Publisher' to every headline."""
     return re.sub(r"\s+-\s+[^-]{2,40}$", "", title).strip()
 
 
@@ -173,12 +197,21 @@ def guess_city(text):
     return ""
 
 
-def guess_job_type(text):
-    return "Government" if GOV_HINT.search(text) else ""
+def classify(blob, is_tripura):
+    """Which section of the site this belongs in, and whether it's government."""
+    if REMOTE.search(blob):
+        region = "remote"
+    elif is_tripura:
+        region = "tripura"
+    else:
+        region = "india"
+    gov = bool(guess_organisation(blob)) or bool(GOV_HINT.search(blob))
+    return region, gov
 
 
+# ---------------------------------------------------------------- collecting
 def known_urls():
-    rows = sb.table("job_leads").select("source_url").limit(10000).execute().data or []
+    rows = sb.table("job_leads").select("source_url").limit(20000).execute().data or []
     return {r["source_url"] for r in rows}
 
 
@@ -189,11 +222,9 @@ def collect():
     found = []
     tally = []
 
-    for label, url in FEEDS:
+    for kind, label, url in FEEDS:
         kept_here = 0
-        # Why things were dropped, so a feed returning nothing can be explained
-        # rather than guessed at.
-        why = {"seen": 0, "duplicate": 0, "too old": 0, "not a job": 0,
+        why = {"already have": 0, "duplicate": 0, "too old": 0, "not a job": 0,
                "skipped word": 0, "commentary": 0, "no notice wording": 0,
                "not Tripura": 0}
         try:
@@ -210,7 +241,7 @@ def collect():
             if not link or not raw_title:
                 continue
             if link in seen_urls:
-                why["seen"] += 1
+                why["already have"] += 1
                 continue
 
             title = strip_publisher(raw_title)
@@ -228,26 +259,38 @@ def collect():
             if SKIP_WORDS.search(title):
                 why["skipped word"] += 1
                 continue
-            if COMMENTARY.search(title):
-                why["commentary"] += 1
-                continue
-            if not ANNOUNCEMENT.search(blob):
-                why["no notice wording"] += 1
-                continue
-            if not RELEVANT_PLACE.search(blob):
+            if kind == "news":
+                if COMMENTARY.search(title):
+                    why["commentary"] += 1
+                    continue
+                if not ANNOUNCEMENT.search(blob):
+                    why["no notice wording"] += 1
+                    continue
+
+            is_tripura = bool(RELEVANT_PLACE.search(blob))
+            # Job boards legitimately carry national vacancies, which feed the
+            # "Jobs within India" section. A Tripura news search returning
+            # another state is a misfire, so that still gets dropped.
+            if kind == "news" and not is_tripura:
                 why["not Tripura"] += 1
                 continue
             if entry_time(e) < cutoff:
                 why["too old"] += 1
                 continue
 
+            region, gov = classify(blob, is_tripura)
             src = e.get("source", {})
             found.append({
+                "source_url": link,
                 "title": title,
-                "snippet": snippet,
-                "link": link,
+                "organisation": guess_organisation(blob),
                 "source_name": (src.get("title") if isinstance(src, dict) else "") or label,
-                "when": entry_time(e),
+                "job_type": "Government" if gov else "Private",
+                "city": guess_city(blob),
+                "state": "Tripura" if is_tripura else "",
+                "region": region,
+                "apply_link": link,
+                "description": snippet,
             })
             seen_urls.add(link)
             seen_titles.add(key)
@@ -256,134 +299,149 @@ def collect():
         tally.append((label, "ok" if total_here else "empty",
                       total_here, kept_here, why))
 
-    found.sort(key=lambda x: x["when"], reverse=True)
     return found, tally
 
 
-def to_row(item):
-    blob = f"{item['title']} {item['snippet']}"
-    org = guess_organisation(blob)
-    # A recognised Tripura body is a government employer, whatever the wording.
-    job_type = "Government" if org else guess_job_type(blob)
+def store(items):
+    if items:
+        sb.table("job_leads").upsert(
+            items, on_conflict="source_url", ignore_duplicates=True
+        ).execute()
+
+
+def repository():
+    """Everything collected and not yet marked as uploaded."""
+    rows = (sb.table("job_leads")
+            .select("*")
+            .eq("uploaded", False)
+            .order("found_at", desc=True)
+            .limit(3000)
+            .execute().data) or []
+    for r in rows:
+        r["gov"] = (r.get("job_type") or "").lower() == "government"
+        r["region"] = r.get("region") or "india"
+    return rows
+
+
+# ---------------------------------------------------------------- the workbook
+def to_row(r):
     return {
-        "Job title": item["title"],
-        "Organisation": org or (item["source_name"] or ""),
-        "Job type": job_type,
-        "City": guess_city(blob),
-        "State": "Tripura" if RELEVANT_PLACE.search(blob) else "",
-        "Experience": "",
-        "Industry": "",
-        "Qualification": "",
-        "Vacancies": "",
-        "Salary": "",
-        "Age limit": "",
-        "Last date": "",
-        "How to apply": "",
-        "Apply link": item["link"],
-        "Description": item["snippet"],
+        "Job title": r.get("title") or "",
+        "Organisation": r.get("organisation") or r.get("source_name") or "",
+        "Job type": r.get("job_type") or "",
+        "City": r.get("city") or "",
+        "State": r.get("state") or "",
+        "Experience": "", "Industry": "", "Qualification": "", "Vacancies": "",
+        "Salary": "", "Age limit": "", "Last date": "", "How to apply": "",
+        "Apply link": r.get("apply_link") or r.get("source_url") or "",
+        "Description": r.get("description") or "",
     }
 
 
-def build_excel(rows, found_on):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "New jobs"
+HEAD_FILL = PatternFill("solid", fgColor="0E4F4C")
+TODO_FILL = PatternFill("solid", fgColor="FDF3D7")
+HEAD_FONT = Font(color="FFFFFF", bold=True, size=11)
+WIDTHS = {"Job title": 44, "Organisation": 30, "Job type": 13, "City": 14,
+          "State": 12, "Experience": 18, "Industry": 18, "Qualification": 26,
+          "Vacancies": 11, "Salary": 14, "Age limit": 16, "Last date": 13,
+          "How to apply": 24, "Apply link": 40, "Description": 60}
 
-    head_fill = PatternFill("solid", fgColor="0E4F4C")
-    todo_fill = PatternFill("solid", fgColor="FDF3D7")
-    head_font = Font(color="FFFFFF", bold=True, size=11)
 
+def write_sheet(ws, rows):
     ws.append(COLUMNS)
     for i, name in enumerate(COLUMNS, start=1):
         c = ws.cell(row=1, column=i)
-        c.fill = head_fill
-        c.font = head_font
+        c.fill = HEAD_FILL
+        c.font = HEAD_FONT
         c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     for r in rows:
         ws.append([r[c] for c in COLUMNS])
 
-    # Shade the columns you need to complete by hand
     for i, name in enumerate(COLUMNS, start=1):
+        ws.column_dimensions[get_column_letter(i)].width = WIDTHS.get(name, 18)
         if name in AUTO:
             continue
         for row in range(2, len(rows) + 2):
-            ws.cell(row=row, column=i).fill = todo_fill
-
-    widths = {"Job title": 44, "Organisation": 30, "Job type": 13, "City": 14,
-              "State": 12, "Experience": 18, "Industry": 18, "Qualification": 26,
-              "Vacancies": 11, "Salary": 14, "Age limit": 16, "Last date": 13,
-              "How to apply": 24, "Apply link": 40, "Description": 60}
-    for i, name in enumerate(COLUMNS, start=1):
-        ws.column_dimensions[get_column_letter(i)].width = widths.get(name, 18)
+            ws.cell(row=row, column=i).fill = TODO_FILL
 
     ws.freeze_panes = "A2"
     for row in ws.iter_rows(min_row=2):
         for cell in row:
             cell.alignment = Alignment(vertical="top", wrap_text=True)
 
+
+def build_excel(new_items, store_rows, found_on):
+    wb = Workbook()
+
+    ws = wb.active
+    ws.title = "New today"
+    write_sheet(ws, [to_row(r) for r in new_items])
+
+    counts = {}
+    for name, test in TABS:
+        picked = [r for r in store_rows if test(r)]
+        counts[name] = len(picked)
+        write_sheet(wb.create_sheet(name[:31]), [to_row(r) for r in picked])
+
     notes = wb.create_sheet("Read me")
     for line in [
-        ["Tripura Job Pulse - jobs found on " + found_on],
+        ["Tripura Job Pulse - job repository, built " + found_on],
         [],
-        ["White columns were filled automatically from the news item."],
-        ["Yellow columns could not be worked out from a headline."],
-        ["Open the Apply link, read the official notice, and fill those in."],
+        ["New today holds what arrived in the latest run."],
+        ["The other tabs hold everything collected so far, by section."],
         [],
-        ["Check every row against the official notification before you upload it."],
-        ["Job boards and news sites get details wrong, and some items are not"],
-        ["real vacancies."],
+        ["White columns were filled in automatically."],
+        ["Yellow columns could not be worked out from a feed - open the Apply"],
+        ["link, read the official notice, and fill them in."],
         [],
-        ["The Apply link points at wherever the notice was found, which is often"],
-        ["a job board rather than the official site. Replace it with the official"],
+        ["The Apply link points at wherever the notice was found, often a job"],
+        ["board rather than the official site. Replace it with the official"],
         ["application link before you upload."],
         [],
-        ["Delete any row that is not a genuine opening, then upload the file"],
-        ["through Admin - Jobs on tripurajobpulse.com."],
-    ]:
+        ["Check every row against the official notification. Job boards and"],
+        ["news sites get details wrong, and some items are not real vacancies."],
+        [],
+        ["Rows stay in the repository until they are marked as uploaded in the"],
+        ["job_leads table."],
+        [],
+        ["Counts:"],
+    ] + [[f"   {k}: {v}"] for k, v in counts.items()]:
         notes.append(line)
     notes.column_dimensions["A"].width = 95
 
     buf = BytesIO()
     wb.save(buf)
-    return buf.getvalue()
+    return buf.getvalue(), counts
 
 
-def remember(items):
-    rows = [{
-        "source_url": i["link"],
-        "title": i["title"],
-        "organisation": guess_organisation(f"{i['title']} {i['snippet']}"),
-        "source_name": i["source_name"],
-        "reported": True,
-    } for i in items]
-    if rows:
-        sb.table("job_leads").upsert(
-            rows, on_conflict="source_url", ignore_duplicates=True
-        ).execute()
-
-
-def send(xlsx, count, found_on):
-    subject = f"{count} possible Tripura job{'' if count == 1 else 's'} - {found_on}"
-    body = (
-        f"{count} new Tripura job notice{'' if count == 1 else 's'} turned up today.\n\n"
-        "The attached file is in your upload format. White columns are filled in; "
-        "yellow ones need you to open the link and read the official notice.\n\n"
-        "Check each row before uploading - news sites get details wrong, and the "
-        "occasional item is not a real vacancy.\n\n"
-        "Tripura Job Pulse"
-    )
+# ---------------------------------------------------------------- sending
+def send(xlsx, new_count, counts, found_on):
+    subject = (f"{new_count} new job{'' if new_count == 1 else 's'} - "
+               f"Tripura Job Pulse repository {found_on}")
+    lines = [
+        f"{new_count} new job notice{'' if new_count == 1 else 's'} today.",
+        "",
+        "The attached file is the whole repository, in your upload format:",
+        "",
+    ] + [f"  {k}: {v}" for k, v in counts.items()] + [
+        "",
+        "White columns are filled in; yellow ones need you to open the link and",
+        "read the official notice. Check each row before uploading.",
+        "",
+        "Tripura Job Pulse",
+    ]
 
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = formataddr(("Tripura Job Pulse", GMAIL_USER))
     msg["To"] = MAIL_TO
-    msg.set_content(body)
+    msg.set_content("\n".join(lines))
     msg.add_attachment(
         xlsx,
         maintype="application",
         subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename=f"tripura-jobs-{found_on}.xlsx",
+        filename=f"tripura-job-repository-{found_on}.xlsx",
     )
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context()) as s:
@@ -401,11 +459,9 @@ def summary(line):
 
 def main():
     found_on = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d")
-    items, tally = collect()
+    new_items, tally = collect()
 
     summary("## Result")
-
-    # Which sources are pulling their weight, and why the rest dropped out
     lines = ["| Source | In feed | Kept | Why the rest were dropped |",
              "| --- | ---: | ---: | --- |"]
     for label, state, total, kept, why in tally:
@@ -414,22 +470,31 @@ def main():
         lines.append(f"| {label} | {shown} | {kept} | {reasons} |")
     summary("\n".join(lines))
 
-    if not items:
-        summary("No new Tripura job notices found today. Nothing emailed.")
-        return
+    if not DRY_RUN:
+        store(new_items)
 
-    rows = [to_row(i) for i in items]
-    xlsx = build_excel(rows, found_on)
-    summary(f"Found **{len(rows)}** possible job{'' if len(rows) == 1 else 's'}:")
-    for r in rows[:25]:
-        summary(f"- {r['Job title']}")
+    rows = repository()
+    if DRY_RUN:
+        # The new ones aren't saved yet, so add them for an accurate preview
+        existing = {r.get("source_url") for r in rows}
+        for n in new_items:
+            if n["source_url"] not in existing:
+                r = dict(n)
+                r["gov"] = r["job_type"] == "Government"
+                rows.append(r)
+
+    xlsx, counts = build_excel(new_items, rows, found_on)
+
+    summary(f"**{len(new_items)} new**, {len(rows)} in the repository.")
+    summary("\n".join([f"- {k}: {v}" for k, v in counts.items()]))
+    for r in new_items[:25]:
+        summary(f"  - {r['title']}")
 
     if DRY_RUN:
-        summary("**Practice run - nothing emailed.**")
+        summary("**Practice run - nothing emailed, nothing saved.**")
         return
 
-    send(xlsx, len(rows), found_on)
-    remember(items)
+    send(xlsx, len(new_items), counts, found_on)
     summary(f"**Emailed to {MAIL_TO}.**")
 
 
