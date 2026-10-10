@@ -1,0 +1,42 @@
+name: Daily Tripura job finder
+
+on:
+  schedule:
+    # 02:20 UTC = 7:50 am IST, every day
+    - cron: "20 2 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "What to do"
+        type: choice
+        default: "Practice only - do not email"
+        options:
+          - "Practice only - do not email"
+          - "SEND the email"
+      lookback_hours:
+        description: "How far back to look, in hours"
+        default: "48"
+
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Find jobs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          # A scheduled run has no inputs, so it sends.
+          DRY_RUN: ${{ inputs.mode == 'SEND the email' && 'false' || (inputs.mode && 'true' || 'false') }}
+          LOOKBACK_HOURS: ${{ inputs.lookback_hours || '48' }}
+        run: python find_jobs.py
