@@ -59,14 +59,30 @@ COLUMNS = ["Job title", "Organisation", "Job type", "City", "State",
 AUTO = {"Job title", "Organisation", "Job type", "City", "State",
         "Apply link", "Description"}
 
+# Job board feeds carry actual vacancy posts; news feeds mostly carry stories
+# about jobs. Both are kept, but the job boards do the real work.
+# Each entry is (label, url). Dead feeds are reported and skipped.
 FEEDS = [
-    "https://news.google.com/rss/search?q=Tripura+recruitment&hl=en-IN&gl=IN&ceid=IN:en",
-    "https://news.google.com/rss/search?q=Tripura+vacancy+apply+online&hl=en-IN&gl=IN&ceid=IN:en",
-    "https://news.google.com/rss/search?q=TPSC+recruitment&hl=en-IN&gl=IN&ceid=IN:en",
-    "https://news.google.com/rss/search?q=JRBT+recruitment+Tripura&hl=en-IN&gl=IN&ceid=IN:en",
-    "https://news.google.com/rss/search?q=Agartala+job+vacancy&hl=en-IN&gl=IN&ceid=IN:en",
-    "https://news.google.com/rss/search?q=Tripura+walk-in+interview&hl=en-IN&gl=IN&ceid=IN:en",
-    "https://news.google.com/rss/search?q=%22Tripura%22+%22apply+before%22+job&hl=en-IN&gl=IN&ceid=IN:en",
+    # Tripura job boards - published RSS, meant to be read by other software
+    ("tripurajob.in", "https://www.tripurajob.in/feeds/posts/default?alt=rss"),
+    ("tripuracareer.in", "https://www.tripuracareer.in/feeds/posts/default?alt=rss"),
+    ("jobstripura.com", "https://www.jobstripura.com/feeds/posts/default?alt=rss"),
+    ("necareerhub.in", "https://necareerhub.in/feed/"),
+    ("tripurastarnews.com", "https://www.tripurastarnews.com/category/job-employment/feed/"),
+
+    # News searches - thinner, but occasionally first with a big announcement
+    ("news: Tripura recruitment",
+     "https://news.google.com/rss/search?q=Tripura+recruitment&hl=en-IN&gl=IN&ceid=IN:en"),
+    ("news: Tripura apply online",
+     "https://news.google.com/rss/search?q=Tripura+vacancy+apply+online&hl=en-IN&gl=IN&ceid=IN:en"),
+    ("news: TPSC",
+     "https://news.google.com/rss/search?q=TPSC+recruitment&hl=en-IN&gl=IN&ceid=IN:en"),
+    ("news: JRBT",
+     "https://news.google.com/rss/search?q=JRBT+recruitment+Tripura&hl=en-IN&gl=IN&ceid=IN:en"),
+    ("news: Agartala vacancy",
+     "https://news.google.com/rss/search?q=Agartala+job+vacancy&hl=en-IN&gl=IN&ceid=IN:en"),
+    ("news: walk-in",
+     "https://news.google.com/rss/search?q=Tripura+walk-in+interview&hl=en-IN&gl=IN&ceid=IN:en"),
 ]
 
 # A headline has to look like a job notice, not general news.
@@ -172,9 +188,18 @@ def collect():
     seen_urls = known_urls()
     seen_titles = set()
     found = []
+    tally = []
 
-    for url in FEEDS:
-        feed = feedparser.parse(url)
+    for label, url in FEEDS:
+        kept_here = 0
+        try:
+            feed = feedparser.parse(url)
+        except Exception as err:
+            tally.append((label, "could not be read", 0, 0))
+            print(f"  ! {label}: {err}")
+            continue
+
+        total_here = len(feed.entries)
         for e in feed.entries:
             link = e.get("link", "")
             raw_title = clean(e.get("title", ""))
@@ -207,14 +232,17 @@ def collect():
                 "title": title,
                 "snippet": snippet,
                 "link": link,
-                "source_name": src.get("title") if isinstance(src, dict) else "",
+                "source_name": (src.get("title") if isinstance(src, dict) else "") or label,
                 "when": entry_time(e),
             })
             seen_urls.add(link)
             seen_titles.add(key)
+            kept_here += 1
+
+        tally.append((label, "ok" if total_here else "empty", total_here, kept_here))
 
     found.sort(key=lambda x: x["when"], reverse=True)
-    return found
+    return found, tally
 
 
 def to_row(item):
@@ -288,7 +316,12 @@ def build_excel(rows, found_on):
         ["Open the Apply link, read the official notice, and fill those in."],
         [],
         ["Check every row against the official notification before you upload it."],
-        ["News sites get details wrong, and some items are not real vacancies."],
+        ["Job boards and news sites get details wrong, and some items are not"],
+        ["real vacancies."],
+        [],
+        ["The Apply link points at wherever the notice was found, which is often"],
+        ["a job board rather than the official site. Replace it with the official"],
+        ["application link before you upload."],
         [],
         ["Delete any row that is not a genuine opening, then upload the file"],
         ["through Admin - Jobs on tripurajobpulse.com."],
@@ -353,9 +386,17 @@ def summary(line):
 
 def main():
     found_on = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d")
-    items = collect()
+    items, tally = collect()
 
     summary("## Result")
+
+    # Which sources are actually pulling their weight
+    lines = ["| Source | Items in feed | Kept |", "| --- | ---: | ---: |"]
+    for label, state, total, kept in tally:
+        shown = total if state == "ok" else state
+        lines.append(f"| {label} | {shown} | {kept} |")
+    summary("\n".join(lines))
+
     if not items:
         summary("No new Tripura job notices found today. Nothing emailed.")
         return
