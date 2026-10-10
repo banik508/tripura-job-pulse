@@ -67,7 +67,6 @@ FEEDS = [
     ("tripurajob.in", "https://www.tripurajob.in/feeds/posts/default?alt=rss"),
     ("tripuracareer.in", "https://www.tripuracareer.in/feeds/posts/default?alt=rss"),
     ("jobstripura.com", "https://www.jobstripura.com/feeds/posts/default?alt=rss"),
-    ("necareerhub.in", "https://necareerhub.in/feed/"),
     ("tripurastarnews.com", "https://www.tripurastarnews.com/category/job-employment/feed/"),
 
     # News searches - thinner, but occasionally first with a big announcement
@@ -192,10 +191,15 @@ def collect():
 
     for label, url in FEEDS:
         kept_here = 0
+        # Why things were dropped, so a feed returning nothing can be explained
+        # rather than guessed at.
+        why = {"seen": 0, "duplicate": 0, "too old": 0, "not a job": 0,
+               "skipped word": 0, "commentary": 0, "no notice wording": 0,
+               "not Tripura": 0}
         try:
             feed = feedparser.parse(url)
         except Exception as err:
-            tally.append((label, "could not be read", 0, 0))
+            tally.append((label, "could not be read", 0, 0, why))
             print(f"  ! {label}: {err}")
             continue
 
@@ -203,28 +207,38 @@ def collect():
         for e in feed.entries:
             link = e.get("link", "")
             raw_title = clean(e.get("title", ""))
-            if not link or not raw_title or link in seen_urls:
+            if not link or not raw_title:
+                continue
+            if link in seen_urls:
+                why["seen"] += 1
                 continue
 
             title = strip_publisher(raw_title)
             key = re.sub(r"[^a-z0-9]", "", title.lower())
             if key in seen_titles:
+                why["duplicate"] += 1
                 continue
 
-            snippet = clean(e.get("summary", ""))[:800]
+            snippet = clean(e.get("summary") or e.get("description") or "")[:800]
             blob = f"{title} {snippet}"
 
             if not JOB_WORDS.search(blob):
+                why["not a job"] += 1
                 continue
             if SKIP_WORDS.search(title):
+                why["skipped word"] += 1
                 continue
             if COMMENTARY.search(title):
+                why["commentary"] += 1
                 continue
             if not ANNOUNCEMENT.search(blob):
+                why["no notice wording"] += 1
                 continue
             if not RELEVANT_PLACE.search(blob):
+                why["not Tripura"] += 1
                 continue
             if entry_time(e) < cutoff:
+                why["too old"] += 1
                 continue
 
             src = e.get("source", {})
@@ -239,7 +253,8 @@ def collect():
             seen_titles.add(key)
             kept_here += 1
 
-        tally.append((label, "ok" if total_here else "empty", total_here, kept_here))
+        tally.append((label, "ok" if total_here else "empty",
+                      total_here, kept_here, why))
 
     found.sort(key=lambda x: x["when"], reverse=True)
     return found, tally
@@ -390,11 +405,13 @@ def main():
 
     summary("## Result")
 
-    # Which sources are actually pulling their weight
-    lines = ["| Source | Items in feed | Kept |", "| --- | ---: | ---: |"]
-    for label, state, total, kept in tally:
+    # Which sources are pulling their weight, and why the rest dropped out
+    lines = ["| Source | In feed | Kept | Why the rest were dropped |",
+             "| --- | ---: | ---: | --- |"]
+    for label, state, total, kept, why in tally:
         shown = total if state == "ok" else state
-        lines.append(f"| {label} | {shown} | {kept} |")
+        reasons = ", ".join(f"{k} {v}" for k, v in why.items() if v) or "—"
+        lines.append(f"| {label} | {shown} | {kept} | {reasons} |")
     summary("\n".join(lines))
 
     if not items:
