@@ -101,13 +101,11 @@ FEEDS = [
     # on them is a remote vacancy, so they face only the lightest checks and
     # each one is capped so they cannot swamp the Tripura listings.
     ("remote", "weworkremotely.com", "https://weworkremotely.com/remote-jobs.rss"),
-    ("remote", "remoteok.com", "https://remoteok.com/remote-jobs.rss"),
     ("remote", "remotive.com", "https://remotive.com/remote-jobs/feed"),
     ("remote", "jobicy.com", "https://jobicy.com/?feed=job_feed"),
     ("remote", "himalayas.app", "https://himalayas.app/jobs/rss"),
-    ("remote", "workingnomads.com", "https://www.workingnomads.com/jobsfeed"),
-    ("remote", "flexiple.com", "https://flexiple.com/feed"),
-    ("remote", "crossover.com", "https://www.crossover.com/feed"),
+    # Checked and dropped: remoteok.com, workingnomads.com, flexiple.com and
+    # crossover.com publish no usable feed.
 ]
 
 # Most per remote feed, so they don't drown the Tripura jobs
