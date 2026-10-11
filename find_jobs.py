@@ -274,7 +274,11 @@ def collect():
             if kind == "news" and not is_tripura:
                 why["not Tripura"] += 1
                 continue
-            if entry_time(e) < cutoff:
+            # No age limit on job boards. Their feeds only hold the most recent
+            # couple of dozen posts, and the database already stops anything
+            # being reported twice, so an age cutoff just loses real vacancies.
+            # News searches return hundreds of items, so those keep a cutoff.
+            if kind == "news" and entry_time(e) < cutoff:
                 why["too old"] += 1
                 continue
 
