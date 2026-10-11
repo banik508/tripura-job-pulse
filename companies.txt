@@ -1,0 +1,95 @@
+# Company name | domain
+# IT services
+Tata Consultancy Services | tcs.com
+Infosys | infosys.com
+Wipro | wipro.com
+HCLTech | hcltech.com
+Accenture | accenture.com
+Capgemini | capgemini.com
+Cognizant | cognizant.com
+Tech Mahindra | techmahindra.com
+LTIMindtree | ltimindtree.com
+IBM | ibm.com
+DXC Technology | dxc.com
+NTT DATA | nttdata.com
+Mphasis | mphasis.com
+Persistent Systems | persistent.com
+Coforge | coforge.com
+Hexaware Technologies | hexaware.com
+Oracle | oracle.com
+Genpact | genpact.com
+Kyndryl | kyndryl.com
+# Pharma
+Sun Pharmaceutical Industries | sunpharma.com
+Dr Reddys Laboratories | drreddys.com
+Cipla | cipla.com
+Lupin | lupin.com
+Aurobindo Pharma | aurobindo.com
+Zydus Lifesciences | zyduslife.com
+Torrent Pharmaceuticals | torrentpharma.com
+Biocon | biocon.com
+Mankind Pharma | mankindpharma.com
+Alkem Laboratories | alkemlabs.com
+Glenmark Pharmaceuticals | glenmarkpharma.com
+Intas Pharmaceuticals | intaspharma.com
+Divis Laboratories | divislabs.com
+Ipca Laboratories | ipca.com
+Piramal Pharma | piramalpharma.com
+Serum Institute of India | seruminstitute.com
+Roche | roche.com
+Novartis | novartis.com
+AstraZeneca | astrazeneca.com
+Abbott | abbott.com
+# Research and analytics
+Evalueserve | evalueserve.com
+WNS | wns.com
+EXL | exlservice.com
+Firstsource Solutions | firstsource.com
+eClerx | eclerx.com
+Acuity Knowledge Partners | acuitykp.com
+TresVista | tresvista.com
+Aranca | aranca.com
+SG Analytics | sganalytics.com
+Mu Sigma | mu-sigma.com
+Fractal Analytics | fractal.ai
+Course5 Intelligence | course5i.com
+LatentView Analytics | latentview.com
+Axtria | axtria.com
+ZS | zs.com
+Axience | axience.com
+Knowcraft Analytics | knowcraftanalytics.com
+eMids | emids.com
+# Pharma intelligence
+CI Scientists | ciscientists.com
+AdametNext | adametnext.com
+IQVIA | iqvia.com
+Clarivate | clarivate.com
+GlobalData | globaldata.com
+Citeline | citeline.com
+Evaluate | evaluate.com
+Norstella | norstella.com
+PharmaACE | pharmaace.com
+Trinity Life Sciences | trinitylifesciences.com
+Lumanity | lumanity.com
+Indegene | indegene.com
+Inizio | inizio.com
+BioQuest Solutions | bioquestglobal.com
+Simon-Kucher | simon-kucher.com
+# Consulting
+Deloitte | deloitte.com
+EY | ey.com
+PwC India | pwc.in
+KPMG India | kpmg.com
+McKinsey and Company | mckinsey.com
+Boston Consulting Group | bcg.com
+Bain and Company | bain.com
+Oliver Wyman | oliverwyman.com
+LEK Consulting | lek.com
+Kearney | kearney.com
+Arthur D Little | adlittle.com
+Alvarez and Marsal | alvarezandmarsal.com
+Grant Thornton Bharat | grantthornton.in
+Protiviti | protiviti.com
+BDO India | bdo.in
+Redseer Strategy Consultants | redseer.com
+Praxis Global Alliance | praxisga.com
