@@ -1,0 +1,27 @@
+name: Check company hiring platforms
+
+# A one-off survey. Run it by hand when the company list changes.
+on:
+  workflow_dispatch:
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install packages
+        run: pip install requests
+
+      - name: Check each company
+        run: python detect_ats.py companies.txt
+
+      - name: Keep the results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ats-results
+          path: ats-results.csv
