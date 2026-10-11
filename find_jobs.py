@@ -96,7 +96,22 @@ FEEDS = [
      "https://news.google.com/rss/search?q=Agartala+job+vacancy&hl=en-IN&gl=IN&ceid=IN:en"),
     ("news", "news: walk-in",
      "https://news.google.com/rss/search?q=Tripura+walk-in+interview&hl=en-IN&gl=IN&ceid=IN:en"),
+
+    # Remote boards. These publish open feeds for other sites to use. Everything
+    # on them is a remote vacancy, so they face only the lightest checks and
+    # each one is capped so they cannot swamp the Tripura listings.
+    ("remote", "weworkremotely.com", "https://weworkremotely.com/remote-jobs.rss"),
+    ("remote", "remoteok.com", "https://remoteok.com/remote-jobs.rss"),
+    ("remote", "remotive.com", "https://remotive.com/remote-jobs/feed"),
+    ("remote", "jobicy.com", "https://jobicy.com/?feed=job_feed"),
+    ("remote", "himalayas.app", "https://himalayas.app/jobs/rss"),
+    ("remote", "workingnomads.com", "https://www.workingnomads.com/jobsfeed"),
+    ("remote", "flexiple.com", "https://flexiple.com/feed"),
+    ("remote", "crossover.com", "https://www.crossover.com/feed"),
 ]
+
+# Most per remote feed, so they don't drown the Tripura jobs
+REMOTE_CAP = 25
 
 JOB_WORDS = re.compile(
     r"\b(recruit\w*|vacanc\w*|vacancies|hiring|appointment|apply\s+online|"
@@ -197,9 +212,9 @@ def guess_city(text):
     return ""
 
 
-def classify(blob, is_tripura):
+def classify(blob, is_tripura, kind="board"):
     """Which section of the site this belongs in, and whether it's government."""
-    if REMOTE.search(blob):
+    if kind == "remote" or REMOTE.search(blob):
         region = "remote"
     elif is_tripura:
         region = "tripura"
@@ -250,10 +265,17 @@ def collect():
                 why["duplicate"] += 1
                 continue
 
+            if kind == "remote" and kept_here >= REMOTE_CAP:
+                why["over the cap"] = why.get("over the cap", 0) + 1
+                continue
+
             snippet = clean(e.get("summary") or e.get("description") or "")[:800]
             blob = f"{title} {snippet}"
 
-            if not JOB_WORDS.search(blob):
+            # A remote board's posts are all vacancies, and their titles are
+            # plain job names like "Senior Backend Engineer" with none of the
+            # notice wording, so they skip this test.
+            if kind != "remote" and not JOB_WORDS.search(blob):
                 why["not a job"] += 1
                 continue
             if SKIP_WORDS.search(title):
@@ -282,7 +304,7 @@ def collect():
                 why["too old"] += 1
                 continue
 
-            region, gov = classify(blob, is_tripura)
+            region, gov = classify(blob, is_tripura, kind)
             src = e.get("source", {})
             found.append({
                 "source_url": link,
