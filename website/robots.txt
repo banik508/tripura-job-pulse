@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Nothing useful behind these for a search engine
+Disallow: /admin
+Disallow: /admin-*.html
+Disallow: /profile.html
+Disallow: /verify.html
+Disallow: /result.html
+
+Sitemap: https://tripurajobpulse.com/sitemap.xml
