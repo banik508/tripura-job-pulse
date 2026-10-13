@@ -350,19 +350,56 @@
   });
 
   // ---------- Publish ----------
+  // The database refuses a second copy of the same job title at the same
+  // organisation. A clean file goes in with one request. If anything in it is
+  // already on the site, that request fails as a whole, so we fall back to one
+  // row at a time and report exactly what was skipped.
+  const isDuplicate = err =>
+    err && (err.code === "23505" || /duplicate key|jobs_no_duplicates/i.test(err.message || ""));
+
   $("publish-btn").addEventListener("click", async () => {
     if (!readyRows.length) return;
     $("publish-btn").disabled = true;
     $("publish-btn").textContent = "Publishing…";
+
+    let added = 0;
+    const skipped = [];
+    let failure = null;
+
     const { error } = await supabase.from("jobs").insert(readyRows);
+
+    if (!error) {
+      added = readyRows.length;
+    } else if (isDuplicate(error)) {
+      // Some are already here. Work through them individually.
+      for (let i = 0; i < readyRows.length; i++) {
+        $("publish-btn").textContent = `Publishing… ${i + 1} of ${readyRows.length}`;
+        const row = readyRows[i];
+        const { error: rowError } = await supabase.from("jobs").insert([row]);
+        if (!rowError) added++;
+        else if (isDuplicate(rowError)) skipped.push(row.title);
+        else { failure = rowError; break; }
+      }
+    } else {
+      failure = error;
+    }
+
     $("publish-btn").disabled = false;
-    if (error) {
-      console.error(error);
+
+    if (failure) {
+      console.error(failure);
       $("publish-btn").textContent = "Publish jobs";
-      showMsg($("upload-msg"), "Couldn't publish: " + error.message);
+      showMsg($("upload-msg"), "Couldn't publish: " + failure.message);
       return;
     }
-    showMsg($("upload-msg"), `${readyRows.length} job${readyRows.length > 1 ? "s" : ""} published.`, "ok");
+
+    let note = `${added} job${added === 1 ? "" : "s"} published.`;
+    if (skipped.length) {
+      note += ` ${skipped.length} skipped — already on the site: `
+            + skipped.slice(0, 5).join("; ")
+            + (skipped.length > 5 ? ` and ${skipped.length - 5} more.` : ".");
+    }
+    showMsg($("upload-msg"), note, added ? "ok" : "");
     readyRows = [];
     $("publish-btn").hidden = true;
     $("preview-wrap").hidden = true;
