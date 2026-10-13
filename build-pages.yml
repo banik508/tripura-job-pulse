@@ -1,0 +1,47 @@
+name: Build job pages and sitemap
+
+# Writes a real HTML page for every job, plus sitemap.xml and robots.txt,
+# then commits them. Netlify is linked to this repository, so the commit
+# is what puts the pages on the live site.
+
+on:
+  schedule:
+    # Every six hours. New jobs appear within a few hours of being uploaded.
+    - cron: "40 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install packages
+        run: pip install supabase
+
+      - name: Build the pages
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python build_pages.py
+
+      - name: Publish anything that changed
+        run: |
+          git config user.name "Tripura Job Pulse bot"
+          git config user.email "actions@github.com"
+          git add website/job website/sitemap.xml website/robots.txt
+          if git diff --staged --quiet; then
+            echo "Nothing changed since the last run." >> $GITHUB_STEP_SUMMARY
+          else
+            count=$(git diff --staged --name-only | wc -l)
+            git commit -m "Rebuild job pages and sitemap"
+            git push
+            echo "Published. $count file(s) changed; the live site updates in about a minute." >> $GITHUB_STEP_SUMMARY
+          fi
