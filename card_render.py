@@ -176,11 +176,24 @@ def pretty_date(value):
             return str(value)[:10]
 
 
+def is_remote(job):
+    return "remote" in {(job.get("region") or "").strip().lower(),
+                        (job.get("job_type") or "").strip().lower()}
+
+
+def place_for(job):
+    """Where the job is. A remote job just says Remote - stitching together
+    the city and state of the company's head office tells a reader nothing."""
+    if is_remote(job):
+        return "Remote"
+    return ", ".join(x for x in [job.get("city"), job.get("state")] if x)
+
+
 def card_from_job(job):
     def ok(v):
         return v and str(v).strip().lower() != "not specified"
 
-    place = ", ".join(x for x in [job.get("city"), job.get("state")] if x)
+    place = place_for(job)
     rows = [(l, v) for l, v in [
         ("Location", place),
         ("Experience", job.get("experience")),
@@ -251,31 +264,58 @@ def render_card(job, size="square"):
         d.text((px + widths[i] / 2, y + 34), text, font=pf, fill=fg, anchor="ms")
         px += widths[i] + 14
 
-    # title - shrinks a step when it needs all three lines, to leave room below
-    y += 122
-    tsize = 74 if H > 1200 else 64
-    tf = sora(tsize, 700)
-    title_lines = wrap(card["title"], tf, W - M * 2, 3)
-    if len(title_lines) >= 3:
-        tsize = int(tsize * 0.86)
-        tf = sora(tsize, 700)
-        title_lines = wrap(card["title"], tf, W - M * 2, 3)
-    for line in title_lines:
-        d.text((CX, y), line, font=tf, fill=WHITE + (255,), anchor="ms")
-        y += int(tsize * 1.2)
-
-    # organisation
-    if card["org"]:
-        y += 6
-        of = hind(40, 500)
-        for line in wrap(card["org"], of, W - M * 2, 2):
-            d.text((CX, y), line, font=of, fill=MUTED + (255,), anchor="ms")
-            y += 52
-
+    # Everything below is laid out against the date band, so fix its position
+    # first and treat it as a floor nothing may cross.
     qr_size = 210
     qr_y = H - M - qr_size - 52
     band_h = 100
     band_y = qr_y - band_h - 96
+    floor_y = band_y - 34
+
+    # Title and organisation, measured together before a pixel is drawn.
+    # Measuring the title alone was the old bug: a three-line title left no
+    # room, and the organisation was drawn straight over the date band.
+    y += 122
+    top_y = y
+    base_t = 74 if H > 1200 else 64
+
+    STEPS = (1.0, 0.92, 0.86, 0.78, 0.70, 0.62)
+
+    def fit(reserve):
+        """Largest title that leaves `reserve` pixels free above the band."""
+        for shrink in STEPS:
+            tsize = max(34, int(base_t * shrink))
+            osize = max(24, int(40 * shrink))
+            tf, of = sora(tsize, 700), hind(osize, 500)
+            tlines = wrap(card["title"], tf, W - M * 2, 3)
+            olines = wrap(card["org"], of, W - M * 2, 2) if card["org"] else []
+            height = len(tlines) * int(tsize * 1.2)
+            if olines:
+                height += 6 + len(olines) * int(osize * 1.3)
+            if top_y + height + reserve <= floor_y:
+                return tf, tlines, tsize, of, olines, osize, True
+        return tf, tlines, tsize, of, olines, osize, False
+
+    # First choice: room for the title, the organisation and a detail row.
+    # On a square card that often cannot be had, and shrinking the title to
+    # buy space for details is the wrong trade - the title is what people
+    # read. So fall back to the largest title that simply clears the band.
+    chosen = fit(92 if card["rows"] else 0)
+    if not chosen[-1]:
+        chosen = fit(0)
+    tf, title_lines, tsize, of, org_lines, osize = chosen[:6]
+
+    for line in title_lines:
+        d.text((CX, y), line, font=tf, fill=WHITE + (255,), anchor="ms")
+        y += int(tsize * 1.2)
+
+    if org_lines:
+        y += 6
+        for line in org_lines:
+            if y > floor_y:      # last guard: never draw onto the band
+                break
+            d.text((CX, y), line, font=of, fill=MUTED + (255,), anchor="ms")
+            y += int(osize * 1.3)
 
     # details - the block is squeezed to fit the space left above the date band,
     # and only trimmed when even the tightest spacing will not do
@@ -339,7 +379,7 @@ def caption_for(job):
     def ok(v):
         return v and str(v).strip().lower() != "not specified"
 
-    place = ", ".join(x for x in [job.get("city"), job.get("state")] if x)
+    place = place_for(job)
     lines = [job["title"] + (f" — {job['organisation']}" if job.get("organisation") else ""), ""]
     if place:
         lines.append("Location: " + place)

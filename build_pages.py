@@ -115,7 +115,16 @@ def pretty(d):
     return d.strftime("%-d %B %Y") if d else ""
 
 
+def is_remote(job):
+    return "remote" in {(job.get("region") or "").strip().lower(),
+                        (job.get("job_type") or "").strip().lower()}
+
+
 def where(job):
+    # A remote job just says Remote. The company's head-office city and state
+    # are not where the work happens, so printing them misleads the reader.
+    if is_remote(job):
+        return "Remote"
     parts = [job.get("city"), job.get("state")]
     place = ", ".join(p for p in parts if p)
     return place or job.get("location") or "Tripura"
@@ -239,6 +248,10 @@ def job_posting_jsonld(job, url):
         "directApply": False,
         "url": url,
     }
+    if is_remote(job):
+        # Google's own flag for work-from-home roles
+        data["jobLocationType"] = "TELECOMMUTE"
+        data["applicantLocationRequirements"] = {"@type": "Country", "name": "India"}
     if close:
         data["validThrough"] = close.isoformat() + "T23:59:59+05:30"
     if job.get("vacancies"):
@@ -309,11 +322,15 @@ def render(job, slug):
     if org:
         body.append(f'<p class="org">{esc(org)}</p>')
 
-    tags = [t for t in [
-        (job.get("job_type") or "").title() or None,
-        where(job),
-        f"Closes {pretty(close)}" if close else None,
-    ] if t]
+    # A remote job's type and its location are both the word "Remote",
+    # so show it once rather than three times across the page.
+    tags, seen = [], set()
+    for t in [(job.get("job_type") or "").title() or None,
+              where(job),
+              f"Closes {pretty(close)}" if close else None]:
+        if t and t.lower() not in seen:
+            seen.add(t.lower())
+            tags.append(t)
     body.append('<div class="tags">' + "".join(
         f'<span class="tag">{esc(t)}</span>' for t in tags) + '</div>')
 
@@ -326,7 +343,7 @@ def render(job, slug):
     if open_job:
         rows = [
             ("Job type", (job.get("job_type") or "").title()),
-            ("Location", where(job)),
+            (None if is_remote(job) else "Location", None if is_remote(job) else where(job)),
             ("Experience", job.get("experience")),
             ("Industry", job.get("industry")),
             ("Qualification", job.get("qualification")),
@@ -340,7 +357,7 @@ def render(job, slug):
     else:
         rows = [
             ("Job type", (job.get("job_type") or "").title()),
-            ("Location", where(job)),
+            (None if is_remote(job) else "Location", None if is_remote(job) else where(job)),
             ("Qualification", job.get("qualification")),
             ("Last date to apply", pretty(close)),
         ]
