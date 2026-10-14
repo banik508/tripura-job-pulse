@@ -50,6 +50,19 @@ PAPER = "#F4F8F6"
 sb = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
+def summary(line):
+    """Print it, and also put it at the top of the GitHub run page.
+
+    Without this the only record of a send is buried in the step log, and
+    'did it actually go out?' becomes a hunt every single week.
+    """
+    print(line)
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if path:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(line + "\n\n")
+
+
 def today_iso():
     return datetime.now(timezone.utc).date().isoformat()
 
@@ -107,10 +120,17 @@ def active_subscribers():
 
 
 def place(job):
-    bits = [job.get("city"), job.get("state")]
-    bits = [b for b in bits if b and b.strip() and b.strip().lower() != "not specified"]
-    if job.get("region") == "remote":
+    # A remote job says Remote, not the head office's city and state.
+    if "remote" in {(job.get("region") or "").strip().lower(),
+                    (job.get("job_type") or "").strip().lower()}:
         return "Remote"
+    bits, seen = [], set()
+    for b in [job.get("city"), job.get("state")]:
+        b = (b or "").strip()
+        if not b or b.lower() == "not specified" or b.lower() in seen:
+            continue
+        seen.add(b.lower())
+        bits.append(b)
     return ", ".join(bits)
 
 
@@ -129,13 +149,29 @@ def section_name(job):
     )
 
 
+def meta_bits(job):
+    """The small grey line under a job. Section, place and type often repeat
+    each other - a remote job is 'Remote' three times over - so show each
+    distinct word once, in order."""
+    bits = [b for b in [section_name(job), place(job),
+                        (job.get("job_type") or "").title()] if b]
+    # Drop anything already contained in another bit, so "Tripura" disappears
+    # next to "Agartala, Tripura" and only the fuller one is shown.
+    out = []
+    for i, bit in enumerate(bits):
+        swallowed = any(i != k and bit.lower() in other.lower()
+                        and (len(bit) < len(other) or k < i)
+                        for k, other in enumerate(bits))
+        if not swallowed:
+            out.append(bit)
+    return out
+
+
 def build_html(jobs, total, unsub_url):
     cards = []
     for j in jobs:
         link = f"{SITE}/job.html?id={j['id']}"
-        meta = " &nbsp;·&nbsp; ".join(
-            x for x in [section_name(j), place(j), (j.get("job_type") or "").title()] if x
-        )
+        meta = " &nbsp;·&nbsp; ".join(meta_bits(j))
         last = pretty_date(j.get("last_date"))
         last_line = (
             f'<div style="font-size:13px;color:#8A9A96;margin-top:6px;">Last date: {last}</div>'
@@ -222,9 +258,7 @@ def build_text(jobs, total, unsub_url):
         lines.append(f"* {j['title']}")
         if j.get("organisation"):
             lines.append(f"  {j['organisation']}")
-        meta = " | ".join(
-            x for x in [section_name(j), place(j), (j.get("job_type") or "").title()] if x
-        )
+        meta = " | ".join(meta_bits(j))
         if meta:
             lines.append(f"  {meta}")
         if j.get("last_date"):
@@ -245,20 +279,25 @@ def build_text(jobs, total, unsub_url):
 
 
 def main():
+    summary("## Result")
+    summary("**Mode: PRACTICE — no email will be sent.**" if DRY_RUN
+            else "**Mode: SENDING FOR REAL.**")
+
     since = last_send_time()
     print(f"Looking for jobs added since {since}")
 
     jobs = new_jobs(since)
     if not jobs:
-        print("No new jobs this week. Nothing sent, nothing recorded.")
+        summary(f"No new jobs since {since[:10]}. Nothing sent, nothing recorded.")
         return
 
     total = job_count_since(since)
     subs = active_subscribers()
-    print(f"{total} new jobs, showing {len(jobs)}. {len(subs)} active subscribers.")
+    summary(f"{total} new job(s) since {since[:10]}, listing {len(jobs)} in the email. "
+            f"{len(subs)} active subscriber(s).")
 
     if not subs:
-        print("No subscribers yet. Nothing sent.")
+        summary("**No subscribers, so nothing was sent.**")
         return
 
     subject = (
@@ -267,8 +306,10 @@ def main():
     )
 
     if DRY_RUN:
+        summary(f'Subject would be: *"{subject}"*')
+        summary(f"It would go to {len(subs)} subscriber(s). "
+                f"Nothing was sent — this was a practice run.")
         print("\n--- DRY RUN: nothing will be emailed ---")
-        print("Subject:", subject)
         print(build_text(jobs, total, f"{SITE}/unsubscribe.html?token=SAMPLE"))
         print("Would email:", ", ".join(s["email"] for s in subs))
         return
@@ -305,7 +346,11 @@ def main():
         }
     ).execute()
 
-    print(f"Done. Sent {sent}, failed {failed}.")
+    summary(f'Subject: *"{subject}"*')
+    if failed:
+        summary(f"**Sent to {sent} subscriber(s). {failed} failed** — see the log below.")
+    else:
+        summary(f"**Sent to {sent} subscriber(s).** None failed.")
 
 
 if __name__ == "__main__":
