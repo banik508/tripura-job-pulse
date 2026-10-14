@@ -33,6 +33,15 @@
   .pill { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--teal-soft); color: var(--teal-deep); }
   .pill.cert { background: #FFF3DA; color: #7A5413; }
   .refresh { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 14px; border-radius: 7px; border: 1px solid var(--teal); background: #fff; color: var(--teal); cursor: pointer; margin-left: 12px; }
+  .tile.clickable { cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .tile.clickable:hover { border-color: var(--teal); box-shadow: 0 2px 10px rgba(14,79,76,.09); }
+  .tile .hint { font-size: 12px; color: var(--teal); margin-top: 8px; font-weight: 600; }
+  .people-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .people-head input { font: inherit; font-size: 15px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 8px; min-width: 240px; flex: 1; }
+  .people-head .count { font-size: 14px; color: var(--muted); }
+  .closer { font: inherit; font-size: 14px; font-weight: 600; padding: 7px 14px; border-radius: 7px; border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer; }
+  td.blank { color: #9AA8A5; font-style: italic; }
+  td.email { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -62,6 +71,20 @@
 
     <h2 class="sec">People</h2>
     <div class="tiles" id="t-people"></div>
+
+    <section id="people-list" hidden>
+      <div class="people-head">
+        <input id="people-search" type="search" placeholder="Search by name, email, phone or district…" autocomplete="off">
+        <span class="count" id="people-count"></span>
+        <button class="closer" id="people-close" type="button">Close</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>District</th><th>Joined</th></tr></thead>
+          <tbody id="people-body"></tbody>
+        </table>
+      </div>
+    </section>
 
     <h2 class="sec">Visits, last 14 days</h2>
     <div class="chart">
@@ -111,12 +134,77 @@
 
   function tiles(box, items) {
     const b = $(box); b.innerHTML = "";
-    for (const [value, label, cls] of items) {
-      const t = el("div", "tile" + (cls ? " " + cls : ""));
+    for (const [value, label, cls, onClick] of items) {
+      const t = el("div", "tile" + (cls ? " " + cls : "") + (onClick ? " clickable" : ""));
       t.append(el("div", "n", value), el("div", "l", label));
+      if (onClick) {
+        t.append(el("div", "hint", "Click to see the list"));
+        t.addEventListener("click", onClick);
+      }
       b.append(t);
     }
   }
+
+  // ---------- who has registered ----------
+  // The numbers come from admin_stats; this list comes from admin_list_users,
+  // which joins auth.users (every account) to profiles (those who filled the
+  // form in). Loaded only when asked for, so the dashboard stays quick.
+  let people = null;
+  let peopleFilter = "all";
+
+  const prettyDate = iso => iso
+    ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : "";
+
+  function drawPeople() {
+    const term = $("people-search").value.trim().toLowerCase();
+    const list = (people || [])
+      .filter(p => peopleFilter === "all" || p.has_profile)
+      .filter(p => !term || [p.full_name, p.email, p.phone, p.district]
+        .some(v => (v || "").toLowerCase().includes(term)));
+
+    const body = $("people-body"); body.innerHTML = "";
+    if (!list.length) {
+      const tr = document.createElement("tr");
+      const td = el("td", "", term ? "Nobody matches that search." : "No accounts yet.");
+      td.colSpan = 5; tr.append(td); body.append(tr);
+    } else {
+      for (const p of list) {
+        const tr = document.createElement("tr");
+        const cell = (value, cls) => value
+          ? el("td", cls || "", value)
+          : el("td", "blank", "not filled in");
+        tr.append(cell(p.full_name), cell(p.email, "email"), cell(p.phone),
+                  cell(p.district), el("td", "", prettyDate(p.joined)));
+        body.append(tr);
+      }
+    }
+    $("people-count").textContent = list.length +
+      (peopleFilter === "all" ? " of " + (people || []).length + " accounts"
+                              : " with a profile filled in");
+  }
+
+  async function showPeople(filter) {
+    peopleFilter = filter;
+    $("people-list").hidden = false;
+    $("people-list").scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    if (!people) {
+      $("people-count").textContent = "Loading…";
+      const { data, error } = await supabase.rpc("admin_list_users");
+      if (error) {
+        console.error(error);
+        $("people-count").textContent =
+          "Couldn't load the list. The admin_list_users function may not be set up yet.";
+        return;
+      }
+      people = data || [];
+    }
+    drawPeople();
+  }
+
+  $("people-search").addEventListener("input", () => { if (people) drawPeople(); });
+  $("people-close").addEventListener("click", () => { $("people-list").hidden = true; });
 
   function rows(body, list, render, empty) {
     const b = $(body); b.innerHTML = "";
@@ -135,9 +223,9 @@
     if (error || !s) { console.error(error); $("gate-msg").textContent = "Couldn't load the numbers. Refresh the page."; return; }
 
     tiles("t-people", [
-      [num(s.users_total), "Registered accounts"],
+      [num(s.users_total), "Registered accounts", "", () => showPeople("all")],
       [num(s.users_7d), "New in the last 7 days"],
-      [num(s.profiles_total), "Profiles filled in"],
+      [num(s.profiles_total), "Profiles filled in", "", () => showPeople("profile")],
       [num(s.visitors_7d), "Visitors, last 7 days"],
       [num(s.views_today), "Page views today"],
       [num(s.subscribers), "Email subscribers"]
