@@ -2,8 +2,15 @@ name: Post jobs to Facebook and Instagram
 
 on:
   schedule:
-    # 04:10 UTC = 9:40 am IST, every day
-    - cron: "10 4 * * *"
+    # Five posts a day, one at a time, three hours apart.
+    # Posting all five at once buries four of them - a follower scrolling
+    # past sees the newest and the rest never surface. Times are IST,
+    # written here in UTC (IST is UTC+5:30).
+    - cron: "30 3 * * *"    #  9:00 am IST
+    - cron: "30 6 * * *"    # 12:00 noon IST
+    - cron: "30 9 * * *"    #  3:00 pm IST
+    - cron: "30 12 * * *"   #  6:00 pm IST
+    - cron: "30 15 * * *"   #  9:00 pm IST
   workflow_dispatch:
     inputs:
       mode:
@@ -52,5 +59,6 @@ jobs:
           FONT_DIR: fonts
           # A scheduled run has no inputs, so it posts for real.
           DRY_RUN: ${{ inputs.mode == 'POST FOR REAL to Facebook and Instagram' && 'false' || (inputs.mode && 'true' || 'false') }}
-          MAX_POSTS: ${{ inputs.max_posts || '2' }}
+          # One job per run; five runs a day makes five posts.
+          MAX_POSTS: ${{ inputs.max_posts || '1' }}
         run: python post_social.py
