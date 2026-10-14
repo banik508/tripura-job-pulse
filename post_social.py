@@ -53,8 +53,21 @@ def today_iso():
     return datetime.now(timezone.utc).date().isoformat()
 
 
+def is_tripura(job):
+    """Is this job in Tripura? Checked across every field that could say so,
+    because the region column is not filled in on older rows."""
+    blob = " ".join(str(job.get(k) or "") for k in
+                    ("region", "state", "city", "location", "organisation"))
+    return "tripura" in blob.lower() or "agartala" in blob.lower()
+
+
 def jobs_to_post():
-    """Newest open jobs that haven't been posted to either platform yet."""
+    """Which jobs go out today.
+
+    The audience is in Tripura, so Tripura jobs come first and fill the slots.
+    Only when there are not enough new Tripura vacancies does the rest of the
+    list get a look in - better an India-wide job than an empty page that day.
+    """
     posted = sb.table("social_posts").select("job_id").limit(5000).execute().data or []
     done = {r["job_id"] for r in posted}
 
@@ -66,7 +79,19 @@ def jobs_to_post():
     ).order("created_at", desc=True).limit(200).execute().data or []
 
     fresh = [j for j in rows if j["id"] not in done]
-    return fresh[:MAX_POSTS]
+
+    chosen = [j for j in fresh if is_tripura(j)][:MAX_POSTS]
+    local = len(chosen)
+    if local < MAX_POSTS:
+        picked = {j["id"] for j in chosen}
+        chosen += [j for j in fresh if j["id"] not in picked][:MAX_POSTS - local]
+
+    if chosen:
+        filler = len(chosen) - local
+        note = f"Picked {local} Tripura job(s)"
+        note += f" and {filler} from elsewhere to fill the day." if filler else "."
+        summary(note)
+    return chosen
 
 
 def upload_card(job, image):
