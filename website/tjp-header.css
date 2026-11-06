@@ -1,0 +1,119 @@
+/* =========================================================================
+   Tripura Job Pulse — shared header and footer
+   Used by every page. Change it here once, not on eighteen pages.
+   Pairs with tjp-header.js, which injects the markup.
+   ========================================================================= */
+
+/* Own tokens, falling back to the brand values, so the header renders
+   correctly even on a page that does not load style.css. */
+:root{
+  --tjp-gold: var(--marigold, #D9A13B);
+  --tjp-deep: var(--teal-deep, #0E4F4C);
+  --tjp-mint:#5FD0C4;
+}
+
+/* The icon primitive: the SVG is applied as a mask over the current text
+   colour, so an icon always matches whatever it sits in. */
+.icon{display:inline-block;width:20px;height:20px;flex:none;background:currentColor;
+      -webkit-mask:var(--icon) center / contain no-repeat;mask:var(--icon) center / contain no-repeat}
+
+/* ---------------- Header ---------------- */
+.nav{position:sticky;top:0;z-index:60;background:rgba(14,79,76,.94);backdrop-filter:blur(10px);
+     border-bottom:1px solid rgba(255,255,255,.09)}
+.nav .inner{display:flex;align-items:center;gap:8px;padding:9px 18px;max-width:1180px;margin:0 auto}
+.nav a.brand{font-family:Sora,sans-serif;font-weight:700;font-size:20px;color:#F2F7F6;text-decoration:none;white-space:nowrap}
+.nav a.brand span{color:var(--tjp-gold)}
+.menu{display:flex;gap:2px;margin-left:auto;align-items:center;flex-wrap:nowrap}
+.menu>a,.nav-btn{color:#D8EAE6;text-decoration:none;font-size:14px;font-weight:500;padding:8px 11px;
+  border-radius:8px;white-space:nowrap;background:none;border:0;font-family:inherit;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;position:relative}
+.menu>a:hover,.nav-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.menu a.cta{background:var(--tjp-gold);color:#3A2A06;font-weight:600;margin-left:4px}
+.menu a.cta:hover{background:#E8B45B}
+.chev{width:13px;height:13px;background:currentColor;-webkit-mask:var(--chev) center / contain no-repeat;
+      mask:var(--chev) center / contain no-repeat;transition:transform .2s ease;opacity:.75}
+.nav-item{position:relative}
+.nav-item.open .chev{transform:rotate(180deg)}
+.menu>a.here::after,.nav-item.here .nav-btn::after{content:"";position:absolute;left:11px;right:11px;bottom:2px;
+  height:2px;border-radius:2px;background:var(--tjp-gold)}
+
+/* ---------------- Drop-down ---------------- */
+.drop{position:absolute;top:calc(100% + 8px);left:0;min-width:440px;background:#0C4442;
+  border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:10px;display:none;
+  grid-template-columns:1fr 1fr;gap:4px;box-shadow:0 18px 44px rgba(0,0,0,.34)}
+.drop.one-col{grid-template-columns:1fr;min-width:290px}
+.nav-item:hover .drop,.nav-item:focus-within .drop,.nav-item.open .drop{display:grid}
+.drop a,.drop .soon-item{display:flex;gap:11px;align-items:flex-start;padding:10px;border-radius:10px;
+  text-decoration:none;opacity:0;transform:translateY(-5px);animation:tjpDropIn .26s ease forwards}
+.drop a:hover{background:rgba(255,255,255,.08)}
+.drop>:nth-child(1){animation-delay:.02s} .drop>:nth-child(2){animation-delay:.06s}
+.drop>:nth-child(3){animation-delay:.10s} .drop>:nth-child(4){animation-delay:.14s}
+.drop>:nth-child(5){animation-delay:.18s} .drop>:nth-child(6){animation-delay:.22s}
+@keyframes tjpDropIn{to{opacity:1;transform:none}}
+.drop .di{flex:none;width:32px;height:32px;border-radius:9px;background:rgba(217,161,59,.16);
+  color:var(--tjp-gold);display:flex;align-items:center;justify-content:center}
+.drop .di .icon{width:17px;height:17px}
+.drop b{display:block;font-family:Sora,sans-serif;font-size:14px;font-weight:600;color:#fff}
+.drop i{display:block;font-style:normal;font-size:12.5px;color:#A9CFC8;margin-top:2px;line-height:1.4}
+.drop .soon,.menu .soon{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--tjp-gold);
+  border:1px solid rgba(217,161,59,.45);border-radius:99px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+
+/* Not built yet: shown, labelled, and not clickable until it exists. */
+.soon-item{cursor:default;opacity:.72}
+.soon-item:hover{background:none !important}
+.menu>span.soon-link{color:#9FC6BF;font-size:14px;font-weight:500;padding:8px 11px;
+  display:inline-flex;align-items:center;gap:6px;cursor:default}
+
+.nav-social{display:flex;gap:2px;margin:0 2px 0 6px}
+.soc-ico{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:8px;color:#D8EAE6}
+.soc-ico:hover{background:rgba(255,255,255,.12);color:#fff}
+.soc-ico .icon{width:18px;height:18px}
+.burger{display:none;margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);
+  border-radius:8px;color:#fff;font-size:22px;line-height:1;padding:5px 12px;cursor:pointer}
+
+/* ---------------- Footer ---------------- */
+footer.site{background:#0A2B2C;color:#B7CFCB;padding:46px 0 26px;margin-top:56px}
+footer.site .fwrap{max-width:1120px;margin:0 auto;padding:0 20px}
+footer.site .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:26px}
+footer.site h4{font-family:Sora,sans-serif;font-size:14.5px;color:#fff;margin-bottom:11px}
+footer.site a{color:#B7CFCB;text-decoration:none;display:block;padding:4px 0;font-size:14.5px}
+footer.site a:hover{color:#fff}
+footer.site .brandline{font-family:Sora,sans-serif;font-size:20px;font-weight:700;color:#fff}
+footer.site .brandline span{color:var(--tjp-gold)}
+footer.site .tag{font-size:14.5px;margin-top:9px;max-width:32ch}
+.foot-social{display:flex;gap:7px;margin-top:15px}
+.foot-social a{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.07);
+  display:flex;align-items:center;justify-content:center;padding:0}
+.foot-social a:hover{background:rgba(255,255,255,.16)}
+.foot-social .icon{width:18px;height:18px}
+footer.site .bottom{border-top:1px solid rgba(255,255,255,.12);margin-top:30px;padding-top:17px;
+  font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer.site .bottom a{display:inline}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width:1080px){
+  .menu{display:none;position:absolute;top:100%;left:0;right:0;background:#0C4442;flex-direction:column;
+    align-items:stretch;padding:10px;gap:2px;border-top:1px solid rgba(255,255,255,.12);
+    max-height:calc(100vh - 56px);overflow-y:auto}
+  .menu.open{display:flex}
+  .menu>a,.nav-btn{padding:12px;font-size:15px;justify-content:space-between;width:100%}
+  .nav-item{width:100%}
+  .drop{position:static;display:none;min-width:0;grid-template-columns:1fr;box-shadow:none;border:0;
+    background:rgba(0,0,0,.18);margin:2px 0 6px}
+  .nav-item:hover .drop,.nav-item:focus-within .drop{display:none}
+  .nav-item.open .drop{display:grid}
+  .nav-social{justify-content:center;padding:8px 0}
+  .soc-ico{width:44px;height:40px}
+  .menu a.cta{text-align:center;justify-content:center;margin:4px 0 0}
+  .burger{display:block}
+  .nav .inner{position:relative}
+  footer.site .cols{grid-template-columns:1fr 1fr 1fr}
+}
+@media (max-width:620px){
+  footer.site .cols{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .drop a,.drop .soon-item{animation:none;opacity:1;transform:none}
+  .chev{transition:none}
+}

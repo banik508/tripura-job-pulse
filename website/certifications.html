@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
 <style>
   .page.grid-page { max-width: 1100px; }
   .page.grid-page h1 { font-size: 28px; }
@@ -62,12 +63,8 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="inner">
-    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
-    <a id="account-link" class="header-link" href="login.html?next=certifications.html">Sign in</a>
-  </div>
-</header>
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a><div class="menu" style="display:flex"><a href="jobs.html">Jobs</a><a href="study-material.html">Study material</a><a href="mock-tests.html">Mock tests</a><a href="certifications.html">Certifications</a><a href="cv.html">CV builder</a><a href="current-affairs.html">Current affairs</a></div></div></nav></noscript>
 
 <main class="page grid-page">
   <h1>Certifications</h1>
@@ -89,6 +86,8 @@
 
   <p class="note">Certificates are issued by Tripura Job Pulse and certify skills assessed in our exams. They are not university degrees or government qualifications, and are not affiliated with or endorsed by Microsoft or any software maker. Employers can check any certificate on our <a href="verify.html">verification page</a>.</p>
 </main>
+
+<div id="tjp-footer"></div>
 
 <dialog id="dlg" aria-labelledby="dlg-title">
   <div class="dlg">
@@ -294,5 +293,6 @@ function drawCertificate(jsPDF, c, siteUrl) {
 
   load();
 </script>
+<script src="tjp-header.js"></script>
 </body>
 </html>

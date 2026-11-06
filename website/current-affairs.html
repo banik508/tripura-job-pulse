@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tjp-header.css">
 <style>
   :root {
     --teal-deep: #0E4F4C;
@@ -79,11 +80,8 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="wrap">
-    <a class="brand" href="#">Tripura <span>Job Pulse</span></a>
-  </div>
-</header>
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a><div class="menu" style="display:flex"><a href="jobs.html">Jobs</a><a href="study-material.html">Study material</a><a href="mock-tests.html">Mock tests</a><a href="certifications.html">Certifications</a><a href="cv.html">CV builder</a><a href="current-affairs.html">Current affairs</a></div></div></nav></noscript>
 
 <div class="wrap">
   <section class="page-head">
@@ -99,6 +97,8 @@
   </nav>
 
   <main id="news" aria-live="polite"></main>
+
+<div id="tjp-footer"></div>
 </div>
 
 <script src="config.js"></script>
@@ -225,5 +225,6 @@
 
   load("tripura");
 </script>
+<script src="tjp-header.js"></script>
 </body>
 </html>

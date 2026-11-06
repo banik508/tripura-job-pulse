@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
 <style>
   .page.plans { max-width: 960px; }
   .balance { margin-top: 24px; background: var(--teal-deep); color: #F2F7F6; border-radius: 12px; padding: 20px 24px; display: flex; gap: 32px; flex-wrap: wrap; align-items: center; }
@@ -52,12 +53,8 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="inner">
-    <a class="brand" href="jobs.html">Tripura <span>Job Pulse</span></a>
-    <a class="header-link" href="profile.html">My profile</a>
-  </div>
-</header>
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a><div class="menu" style="display:flex"><a href="jobs.html">Jobs</a><a href="study-material.html">Study material</a><a href="mock-tests.html">Mock tests</a><a href="certifications.html">Certifications</a><a href="cv.html">CV builder</a><a href="current-affairs.html">Current affairs</a></div></div></nav></noscript>
 
 <main class="page plans">
   <h1>Job plans</h1>
@@ -72,6 +69,8 @@
     <ul id="history-list"></ul>
   </section>
 </main>
+
+<div id="tjp-footer"></div>
 
 <dialog id="dlg" aria-labelledby="dlg-title">
   <div class="dlg">
@@ -233,5 +232,6 @@
 
   load();
 </script>
+<script src="tjp-header.js"></script>
 </body>
 </html>

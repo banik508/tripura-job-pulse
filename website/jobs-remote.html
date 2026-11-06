@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
 <style>
   .page.jobs { max-width: 1120px; }
   .layout { display: grid; grid-template-columns: 250px 1fr; gap: 28px; margin-top: 24px; align-items: start; }
@@ -51,12 +52,8 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="inner">
-    <a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>
-    <a id="account-link" class="header-link" href="login.html">Sign in</a>
-  </div>
-</header>
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a><div class="menu" style="display:flex"><a href="jobs.html">Jobs</a><a href="study-material.html">Study material</a><a href="mock-tests.html">Mock tests</a><a href="certifications.html">Certifications</a><a href="cv.html">CV builder</a><a href="current-affairs.html">Current affairs</a></div></div></nav></noscript>
 
 <main class="page jobs">
   <h1>Remote jobs</h1>
@@ -108,6 +105,8 @@
     </section>
   </div>
 </main>
+
+<div id="tjp-footer"></div>
 
 <script src="config.js"></script>
 <script src="job-filters.js"></script>
@@ -246,5 +245,6 @@
 
   load();
 </script>
+<script src="tjp-header.js"></script>
 </body>
 </html>

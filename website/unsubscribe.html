@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
 <style>
   .page.narrow { max-width: 560px; }
   .box { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px; margin-top: 24px; text-align: center; }
@@ -19,12 +20,16 @@
 </style>
 </head>
 <body>
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a><div class="menu" style="display:flex"><a href="jobs.html">Jobs</a><a href="study-material.html">Study material</a><a href="mock-tests.html">Mock tests</a><a href="certifications.html">Certifications</a><a href="cv.html">CV builder</a><a href="current-affairs.html">Current affairs</a></div></div></nav></noscript>
 
 <main class="page narrow">
   <div class="box" id="box">
     <p id="msg">Please wait…</p>
   </div>
 </main>
+
+<div id="tjp-footer"></div>
 
 <script src="config.js"></script>
 <script type="module">
@@ -66,5 +71,6 @@
     }
   }
 </script>
+<script src="tjp-header.js"></script>
 </body>
 </html>

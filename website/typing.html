@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
 <style>
   .page.typing { max-width: 920px; }
   .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-top: 24px; }
@@ -91,12 +92,8 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="inner">
-    <a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>
-    <a id="account-link" class="header-link" href="login.html?next=typing.html">Sign in</a>
-  </div>
-</header>
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a><div class="menu" style="display:flex"><a href="jobs.html">Jobs</a><a href="study-material.html">Study material</a><a href="mock-tests.html">Mock tests</a><a href="certifications.html">Certifications</a><a href="cv.html">CV builder</a><a href="current-affairs.html">Current affairs</a></div></div></nav></noscript>
 
 <main class="page typing">
   <h1>Typing speed</h1>
@@ -182,6 +179,8 @@
     <div id="t-cert"></div>
   </section>
 </main>
+
+<div id="tjp-footer"></div>
 
 <dialog id="pay-dlg" aria-labelledby="pay-title">
   <div class="dlg">
@@ -562,5 +561,6 @@
   $("pay-close").onclick = () => $("pay-dlg").close();
   $("pay-dlg").addEventListener("click", e => { if (e.target === $("pay-dlg")) $("pay-dlg").close(); });
 </script>
+<script src="tjp-header.js"></script>
 </body>
 </html>

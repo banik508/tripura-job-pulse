@@ -28,60 +28,10 @@
     --live: #40E0A0;
   }
 
-  /* The icon primitive every data-icon span relies on: the SVG is applied as a
-     mask over the current text colour, so an icon always matches its context. */
-  .icon { display: inline-block; width: 20px; height: 20px; flex: none; background: currentColor;
-          -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
-
   /* ---------- Layout ---------- */
   body { overflow-x: hidden; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
   section { scroll-margin-top: 76px; }
-
-  /* ---------- Top navigation ---------- */
-  .nav { position: sticky; top: 0; z-index: 60; background: rgba(14,79,76,.94); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.09); }
-  .nav .inner { display: flex; align-items: center; gap: 8px; padding: 9px 18px; max-width: 1180px; margin: 0 auto; }
-  .nav a.brand { font-family: Sora, sans-serif; font-weight: 700; font-size: 20px; color: #F2F7F6; text-decoration: none; white-space: nowrap; }
-  .nav a.brand span { color: var(--marigold); }
-  .menu { display: flex; gap: 2px; margin-left: auto; align-items: center; flex-wrap: nowrap; }
-  .menu > a, .nav-btn { color: #D8EAE6; text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 11px; border-radius: 8px; white-space: nowrap; background: none; border: 0; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; position: relative; }
-  .menu > a:hover, .nav-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
-  .menu a.cta { background: var(--marigold); color: #3A2A06; font-weight: 600; margin-left: 4px; }
-  .menu a.cta:hover { background: #E8B45B; }
-  .chev { width: 13px; height: 13px; background: currentColor; -webkit-mask: var(--chev) center / contain no-repeat; mask: var(--chev) center / contain no-repeat; transition: transform .2s ease; opacity: .75; }
-  .nav-item { position: relative; }
-  .nav-item.open .chev { transform: rotate(180deg); }
-
-  /* marigold underline on the current page */
-  .menu > a.here::after, .nav-item.here .nav-btn::after { content: ""; position: absolute; left: 11px; right: 11px; bottom: 2px; height: 2px; border-radius: 2px; background: var(--marigold); }
-
-  /* ---------- Drop-down panel ---------- */
-  .drop { position: absolute; top: calc(100% + 8px); left: 0; min-width: 440px; background: #0C4442; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; padding: 10px; display: none; grid-template-columns: 1fr 1fr; gap: 4px; box-shadow: 0 18px 44px rgba(0,0,0,.34); }
-  .drop.one-col { grid-template-columns: 1fr; min-width: 290px; }
-  .nav-item:hover .drop, .nav-item:focus-within .drop, .nav-item.open .drop { display: grid; }
-  .drop a, .drop .soon-item { display: flex; gap: 11px; align-items: flex-start; padding: 10px; border-radius: 10px; text-decoration: none; opacity: 0; transform: translateY(-5px); animation: dropIn .26s ease forwards; }
-  .drop a:hover { background: rgba(255,255,255,.08); }
-  .drop > :nth-child(1) { animation-delay: .02s }
-  .drop > :nth-child(1) { animation-delay: .02s } .drop > :nth-child(2) { animation-delay: .06s }
-  .drop > :nth-child(3) { animation-delay: .10s } .drop > :nth-child(4) { animation-delay: .14s }
-  .drop > :nth-child(5) { animation-delay: .18s } .drop > :nth-child(6) { animation-delay: .22s }
-  @keyframes dropIn { to { opacity: 1; transform: none; } }
-  .drop .di { flex: none; width: 32px; height: 32px; border-radius: 9px; background: rgba(217,161,59,.16); color: var(--marigold); display: flex; align-items: center; justify-content: center; }
-  .drop .di .icon { width: 17px; height: 17px; }
-  .drop b { display: block; font-family: Sora, sans-serif; font-size: 14px; font-weight: 600; color: #fff; }
-  .drop i { display: block; font-style: normal; font-size: 12.5px; color: #A9CFC8; margin-top: 2px; line-height: 1.4; }
-  .drop .soon, .menu .soon { font-size: 10px; letter-spacing: .6px; text-transform: uppercase; color: var(--marigold); border: 1px solid rgba(217,161,59,.45); border-radius: 99px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
-
-  
-  /* Not built yet: shown, labelled, and not clickable until it exists. */
-  .soon-item { cursor: default; opacity: .72; }
-  .soon-item:hover { background: none !important; }
-  .menu > span.soon-link { color: #9FC6BF; font-size: 14px; font-weight: 500; padding: 8px 11px; display: inline-flex; align-items: center; gap: 6px; cursor: default; }
-  .nav-social { display: flex; gap: 2px; margin: 0 2px 0 6px; }
-  .soc-ico { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; color: #D8EAE6; }
-  .soc-ico:hover { background: rgba(255,255,255,.12); color: #fff; }
-  .soc-ico .icon { width: 18px; height: 18px; }
-  .burger { display: none; margin-left: auto; background: none; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; color: #fff; font-size: 22px; line-height: 1; padding: 5px 12px; cursor: pointer; }
 
   /* ---------- Hero (compressed) ---------- */
   .hero { background: linear-gradient(158deg, #0A3634 0%, #0E4F4C 52%, #14615C 100%); color: #EAF4F1; position: relative; overflow: hidden; }
@@ -294,21 +244,6 @@
   .declare ul { list-style: none; padding: 0 18px 18px 30px; display: flex; flex-direction: column; gap: 9px; font-size: 14px; line-height: 1.55; color: var(--muted); }
   .declare li::before { content: "•  "; color: var(--teal); font-weight: 700; }
 
-  /* ---------- Footer ---------- */
-  footer.site { background: #0A2B2C; color: #B7CFCB; padding: 46px 0 26px; }
-  footer.site .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; gap: 26px; }
-  footer.site h4 { font-family: Sora, sans-serif; font-size: 14.5px; color: #fff; margin-bottom: 11px; }
-  footer.site a { color: #B7CFCB; text-decoration: none; display: block; padding: 4px 0; font-size: 14.5px; }
-  footer.site a:hover { color: #fff; }
-  footer.site .brandline { font-family: Sora, sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
-  footer.site .brandline span { color: var(--marigold); }
-  footer.site .tag { font-size: 14.5px; margin-top: 9px; max-width: 32ch; }
-  .foot-social { display: flex; gap: 7px; margin-top: 15px; }
-  .foot-social a { width: 34px; height: 34px; border-radius: 9px; background: rgba(255,255,255,.07); display: flex; align-items: center; justify-content: center; padding: 0; }
-  .foot-social a:hover { background: rgba(255,255,255,.16); }
-  .foot-social .icon { width: 18px; height: 18px; }
-  footer.site .bottom { border-top: 1px solid rgba(255,255,255,.12); margin-top: 30px; padding-top: 17px; font-size: 14px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-
   /* ---------- Dismissible alerts bar ---------- */
   .alert-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; background: rgba(10,43,44,.97); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,.14); color: #DCEDE9; transform: translateY(110%); transition: transform .4s cubic-bezier(.22,1,.36,1); }
   .alert-bar.show { transform: none; }
@@ -411,62 +346,13 @@
     .alert-bar { transition: none; }
   }
 </style>
+<link rel="stylesheet" href="tjp-header.css">
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
-<nav class="nav">
-  <div class="inner">
-    <a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>
-    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
-    <div class="menu" id="menu">
-
-      <div class="nav-item">
-        <button class="nav-btn" type="button" aria-expanded="false">Jobs <span class="chev"></span></button>
-        <div class="drop">
-          <a href="jobs.html"><span class="di"><span class="icon" data-icon="briefcase"></span></span><span><b>Tripura jobs</b><i>Government, private and remote, checked before publishing</i></span></a>
-          <a href="jobs-india.html"><span class="di"><span class="icon" data-icon="map-pin"></span></span><span><b>Within India</b><i>Vacancies outside Tripura worth applying for</i></span></a>
-          <a href="jobs-remote.html"><span class="di"><span class="icon" data-icon="world"></span></span><span><b>Remote jobs</b><i>Work from anywhere in Tripura</i></span></a>
-          <a href="plans.html"><span class="di"><span class="icon" data-icon="check"></span></span><span><b>Job plans</b><i>One-time UPI payment, no subscription</i></span></a>
-        </div>
-      </div>
-
-      <div class="nav-item">
-        <button class="nav-btn" type="button" aria-expanded="false">Prepare <span class="chev"></span></button>
-        <div class="drop">
-          <a href="study-material.html"><span class="di"><span class="icon" data-icon="book"></span></span><span><b>Study material</b><i>Modules written to the official syllabus</i></span></a>
-          <a href="mock-tests.html"><span class="di"><span class="icon" data-icon="clock"></span></span><span><b>Mock tests</b><i>Timed practice, marked the moment you submit</i></span></a>
-          <a href="current-affairs.html"><span class="di"><span class="icon" data-icon="news"></span></span><span><b>Current affairs</b><i>Tripura, India and world, twice a day</i></span></a>
-          <a href="typing.html"><span class="di"><span class="icon" data-icon="keyboard"></span></span><span><b>Typing test</b><i>Practice for the clerical typing stage</i></span></a>
-        </div>
-      </div>
-
-      <a href="certifications.html">Certifications</a>
-
-      <div class="nav-item">
-        <button class="nav-btn" type="button" aria-expanded="false">Career Toolkit <span class="chev"></span></button>
-        <div class="drop">
-          <a href="cv.html"><span class="di"><span class="icon" data-icon="file-text"></span></span><span><b>CV builder</b><i>A Word CV tailored to the vacancy you pick</i></span></a>
-          <a href="typing.html"><span class="di"><span class="icon" data-icon="keyboard"></span></span><span><b>Typing test</b><i>Measure your speed and accuracy</i></span></a>
-          <span class="soon-item"><span class="di"><span class="icon" data-icon="calculator"></span></span><span><b>Salary calculator <span class="soon">soon</span></b><i>Pay level to in-hand salary</i></span></span>
-          <span class="soon-item"><span class="di"><span class="icon" data-icon="list-check"></span></span><span><b>Document checklist <span class="soon">soon</span></b><i>Exactly what to carry, per recruitment</i></span></span>
-          <span class="soon-item"><span class="di"><span class="icon" data-icon="search"></span></span><span><b>Eligibility checker <span class="soon">soon</span></b><i>Every vacancy you actually qualify for</i></span></span>
-          <span class="soon-item"><span class="di"><span class="icon" data-icon="route"></span></span><span><b>Career roadmap <span class="soon">soon</span></b><i>Your path from where you are to the post you want</i></span></span>
-        </div>
-      </div>
-
-      <span class="soon-link">Blog <span class="soon">soon</span></span>
-
-      <span class="nav-social">
-        <a id="lnk-fb" class="soc-ico" href="#" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook"><span class="icon" data-icon="brand-facebook"></span></a>
-        <a id="lnk-ig" class="soc-ico" href="#" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><span class="icon" data-icon="brand-instagram"></span></a>
-        <a id="lnk-yt" class="soc-ico" href="#" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube"><span class="icon" data-icon="brand-youtube"></span></a>
-        <a id="lnk-wa" class="soc-ico" href="#" target="_blank" rel="noopener" aria-label="WhatsApp channel" title="WhatsApp channel"><span class="icon" data-icon="brand-whatsapp"></span></a>
-      </span>
-      <a class="cta" id="account-link" href="login.html">Sign in</a>
-    </div>
-  </div>
-</nav>
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a><div class="menu" style="display:flex"><a href="jobs.html">Jobs</a><a href="study-material.html">Study material</a><a href="mock-tests.html">Mock tests</a><a href="certifications.html">Certifications</a><a href="cv.html">CV builder</a><a href="current-affairs.html">Current affairs</a></div></div></nav></noscript>
 
 <!-- ============ HERO ============ -->
 <header class="hero">
@@ -824,59 +710,13 @@
 </section>
 
 <!-- ============ FOOTER ============ -->
-<footer class="site">
-  <div class="wrap">
-    <div class="cols">
-      <div>
-        <p class="brandline">Tripura <span>Job Pulse</span></p>
-        <p class="tag">Jobs, preparation and skills for Tripura's job seekers, in one place.</p>
-        <div class="foot-social">
-          <a id="f-fb" href="#" target="_blank" rel="noopener" aria-label="Facebook"><span class="icon" data-icon="brand-facebook"></span></a>
-          <a id="f-ig" href="#" target="_blank" rel="noopener" aria-label="Instagram"><span class="icon" data-icon="brand-instagram"></span></a>
-          <a id="f-yt" href="#" target="_blank" rel="noopener" aria-label="YouTube"><span class="icon" data-icon="brand-youtube"></span></a>
-          <a id="f-wa" href="#" target="_blank" rel="noopener" aria-label="WhatsApp channel"><span class="icon" data-icon="brand-whatsapp"></span></a>
-          <a id="f-li" href="#" target="_blank" rel="noopener" aria-label="LinkedIn"><span class="icon" data-icon="brand-linkedin"></span></a>
-        </div>
-      </div>
-      <div>
-        <h4>Find work</h4>
-        <a href="jobs.html">Tripura jobs</a>
-        <a href="jobs-india.html">Jobs within India</a>
-        <a href="jobs-remote.html">Remote jobs</a>
-        <a href="plans.html">Job plans</a>
-      </div>
-      <div>
-        <h4>Prepare</h4>
-        <a href="study-material.html">Study material</a>
-        <a href="mock-tests.html">Mock tests</a>
-        <a href="current-affairs.html">Current affairs</a>
-      </div>
-      <div>
-        <h4>Career Toolkit</h4>
-        <a href="cv.html">CV builder</a>
-        <a href="typing.html">Typing test</a>
-        <a href="certifications.html">Certifications</a>
-        <a href="verify.html">Verify a certificate</a>
-      </div>
-      <div>
-        <h4>More</h4>
-        <a href="#contact">Post a vacancy</a>
-        <a href="#contact">Contact us</a>
-        <a href="#declaration">Declaration</a>
-      </div>
-    </div>
-    <div class="bottom">
-      <span id="copy">© Tripura Job Pulse</span>
-      <span><a href="#declaration" style="display:inline">Declaration</a></span>
-    </div>
-  </div>
-</footer>
+<div id="tjp-footer"></div>
 
 <!-- ============ DISMISSIBLE ALERTS BAR ============ -->
 <div class="alert-bar" id="alert-bar">
   <div class="ab">
     <p><b>Get vacancies the day they open.</b><span class="long"> New jobs, exam dates and current affairs, straight to your phone.</span></p>
-    <a class="ab-btn wa" id="ab-wa" href="#" target="_blank" rel="noopener"><span class="icon" data-icon="brand-whatsapp"></span> WhatsApp<span class="long"> channel</span></a>
+    <a class="ab-btn wa" data-link="WHATSAPP" href="#" target="_blank" rel="noopener"><span class="icon" data-icon="brand-whatsapp"></span> WhatsApp<span class="long"> channel</span></a>
     <button class="ab-btn em" id="ab-email" type="button"><span class="icon" data-icon="mail"></span> Email alerts</button>
     <button class="ab-close" id="ab-close" type="button" aria-label="Hide this bar">×</button>
   </div>
@@ -912,33 +752,13 @@
 </dialog>
 
 <script src="config.js"></script>
+<script src="tjp-header.js"></script>
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
   const CFG = window.TJP_CONFIG || {};
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
   const $ = id => document.getElementById(id);
   const ICON_BASE = "https://cdn.jsdelivr.net/npm/@tabler/icons@3.47.0/icons/outline/";
-
-  // ---------- Icons ----------
-  document.querySelectorAll("[data-icon]").forEach(s => {
-    s.style.setProperty("--icon", `url("${ICON_BASE}${s.dataset.icon}.svg")`);
-    s.setAttribute("aria-hidden", "true");
-  });
-  document.documentElement.style.setProperty("--chev", `url("${ICON_BASE}chevron-down.svg")`);
-
-  // ---------- Social links from config ----------
-  const L = CFG.LINKS || {};
-  const setLink = (id, url) => {
-    const a = $(id);
-    if (!a) return;
-    if (url) a.href = url; else a.remove();
-  };
-  setLink("lnk-fb", L.FACEBOOK);   setLink("f-fb", L.FACEBOOK);
-  setLink("lnk-ig", L.INSTAGRAM);  setLink("f-ig", L.INSTAGRAM);
-  setLink("lnk-yt", L.YOUTUBE);    setLink("f-yt", L.YOUTUBE);
-  setLink("lnk-wa", L.WHATSAPP);   setLink("f-wa", L.WHATSAPP);  setLink("ab-wa", L.WHATSAPP);
-  setLink("f-li", L.LINKEDIN);
-  $("copy").textContent = "© " + new Date().getFullYear() + " Tripura Job Pulse";
 
   // ---------- Moving strip ----------
   const TICKER = [
@@ -960,39 +780,6 @@
     }
   }
 
-  // ---------- Menu and drop-downs ----------
-  $("burger").addEventListener("click", () => {
-    const open = $("menu").classList.toggle("open");
-    $("burger").setAttribute("aria-expanded", String(open));
-  });
-  document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const item = btn.closest(".nav-item");
-      const wasOpen = item.classList.contains("open");
-      document.querySelectorAll(".nav-item.open").forEach(n => {
-        n.classList.remove("open");
-        n.querySelector(".nav-btn").setAttribute("aria-expanded", "false");
-      });
-      if (!wasOpen) { item.classList.add("open"); btn.setAttribute("aria-expanded", "true"); }
-    });
-  });
-  document.addEventListener("click", () => {
-    document.querySelectorAll(".nav-item.open").forEach(n => {
-      n.classList.remove("open");
-      n.querySelector(".nav-btn").setAttribute("aria-expanded", "false");
-    });
-  });
-  document.addEventListener("keydown", e => {
-    if (e.key !== "Escape") return;
-    document.querySelectorAll(".nav-item.open").forEach(n => n.classList.remove("open"));
-    $("menu").classList.remove("open");
-  });
-  document.querySelectorAll(".menu a").forEach(a => a.addEventListener("click", () => {
-    $("menu").classList.remove("open");
-    document.querySelectorAll(".nav-item.open").forEach(n => n.classList.remove("open"));
-  }));
-
   // ---------- Reveal on scroll ----------
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } });
@@ -1011,15 +798,20 @@
   railIO.observe($("rail"));
 
   // ---------- Signed in? ----------
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
 
   // ---------- Hero: the newest open vacancy ----------
   (async () => {
     const today = new Date().toISOString().slice(0, 10);
     const { data, error } = await supabase
       .from("jobs").select("title, organisation, last_date")
-      .gte("last_date", today).order("last_date", { ascending: true }).limit(1);
+      .gte("last_date", today).order("last_date", { ascending: true }).limit(25);
+    // Tripura first. A generic remote contract role is a poor advertisement
+    // for a Tripura jobs site, however soon it closes.
+    const LOCAL = /tripura|agartala|tpsc|jrbt|trbt|ttaadc|udaipur|dharmanagar|belonia|kailashahar|ambassa|khowai/i;
+    if (data && data.length) {
+      const local = data.find(j => LOCAL.test(`${j.title || ""} ${j.organisation || ""}`));
+      if (local) data.splice(0, data.length, local);
+    }
     if (error || !data || !data.length) {
       $("lc-title").textContent = "New vacancies, twice a day";
       $("lc-meta").innerHTML = "Government, private and remote";
