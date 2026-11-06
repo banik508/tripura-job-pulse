@@ -13,6 +13,7 @@ window.TJP_CONFIG = {
     WHATSAPP: "https://wa.me/919871800295",
     YOUTUBE: "https://www.youtube.com/@TripuraJobPulse",
     FACEBOOK: "https://www.facebook.com/tripurajobpulse"
+    INSTAGRAM: "https://www.instagram.com/tripurajobpulse/",
   }
 };
 
