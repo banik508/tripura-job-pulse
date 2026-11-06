@@ -780,22 +780,8 @@
     }
   }
 
-  // ---------- Reveal on scroll ----------
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } });
-  }, { threshold: .14 });
-  document.querySelectorAll(".reveal").forEach((el, i) => {
-    el.style.transitionDelay = (i % 3) * 90 + "ms";
-    io.observe(el);
-  });
-  // Safety net: if anything stops the observer, show everything after 3 seconds.
-  setTimeout(() => document.querySelectorAll(".reveal:not(.on)").forEach(el => el.classList.add("on")), 3000);
-
-  // The journey rail animates as one unit, not item by item.
-  const railIO = new IntersectionObserver(es => {
-    es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); railIO.unobserve(e.target); } });
-  }, { threshold: .25 });
-  railIO.observe($("rail"));
+  // Section reveals and the journey rail are handled by tjp-header.js,
+  // so they do not wait on the Supabase import above.
 
   // ---------- Signed in? ----------
 

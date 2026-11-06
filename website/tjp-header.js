@@ -137,10 +137,12 @@
     if (f) f.outerHTML = footerHTML();
 
     document.querySelectorAll("[data-icon]").forEach(function (s) {
-      s.style.setProperty("--icon", 'url("' + ICON_BASE + s.dataset.icon + '.svg")');
       s.setAttribute("aria-hidden", "true");
+      // tjp-header.css carries the icons inline. Only ask the CDN for one it
+      // does not have, so a normal page makes no icon requests at all.
+      var have = getComputedStyle(s).getPropertyValue("--icon").trim();
+      if (!have) s.style.setProperty("--icon", 'url("' + ICON_BASE + s.dataset.icon + '.svg")');
     });
-    document.documentElement.style.setProperty("--chev", 'url("' + ICON_BASE + 'chevron-down.svg")');
 
     // Social links come from config.js. An unconfigured link is removed, not left dead.
     var L = (window.TJP_CONFIG || {}).LINKS || {};
@@ -154,6 +156,37 @@
 
     wire();
     signedIn();
+    reveals();
+  }
+
+  /* Fade sections in as they scroll into view.
+     This lives here, not in a page's own module, because a module that imports
+     from a CDN does not run until that CDN answers. Content must never be
+     invisible because a third party is slow. */
+  function reveals() {
+    var items = document.querySelectorAll(".reveal, #rail");
+    if (!items.length) return;
+    var show = function (el) { el.classList.add("on"); };
+
+    if (!("IntersectionObserver" in window)) {
+      items.forEach(show);
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        show(e.target);
+        io.unobserve(e.target);
+      });
+    }, { threshold: 0.14 });
+
+    items.forEach(function (el, i) {
+      if (el.classList.contains("reveal")) el.style.transitionDelay = (i % 3) * 90 + "ms";
+      io.observe(el);
+    });
+
+    // Safety net: whatever happens, nothing stays hidden past three seconds.
+    setTimeout(function () { items.forEach(show); }, 3000);
   }
 
   function wire() {
