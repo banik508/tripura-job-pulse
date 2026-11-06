@@ -437,7 +437,6 @@
           <a href="study-material.html"><span class="di"><span class="icon" data-icon="book"></span></span><span><b>Study material</b><i>Modules written to the official syllabus</i></span></a>
           <a href="mock-tests.html"><span class="di"><span class="icon" data-icon="clock"></span></span><span><b>Mock tests</b><i>Timed practice, marked the moment you submit</i></span></a>
           <a href="current-affairs.html"><span class="di"><span class="icon" data-icon="news"></span></span><span><b>Current affairs</b><i>Tripura, India and world, twice a day</i></span></a>
-          <a href="typing.html"><span class="di"><span class="icon" data-icon="keyboard"></span></span><span><b>Typing test</b><i>Practice for the clerical typing stage</i></span></a>
         </div>
       </div>
 
@@ -1019,7 +1018,14 @@
     const today = new Date().toISOString().slice(0, 10);
     const { data, error } = await supabase
       .from("jobs").select("title, organisation, last_date")
-      .gte("last_date", today).order("last_date", { ascending: true }).limit(1);
+      .gte("last_date", today).order("last_date", { ascending: true }).limit(25);
+    // Tripura first. A generic remote contract role is a poor advertisement
+    // for a Tripura jobs site, however soon it closes.
+    const LOCAL = /tripura|agartala|tpsc|jrbt|trbt|ttaadc|udaipur|dharmanagar|belonia|kailashahar|ambassa|khowai/i;
+    if (data && data.length) {
+      const local = data.find(j => LOCAL.test(`${j.title || ""} ${j.organisation || ""}`));
+      if (local) data.splice(0, data.length, local);
+    }
     if (error || !data || !data.length) {
       $("lc-title").textContent = "New vacancies, twice a day";
       $("lc-meta").innerHTML = "Government, private and remote";
