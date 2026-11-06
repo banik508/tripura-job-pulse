@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin: vacancy submissions | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1180px; }
+  /* One admin menu, the same on every admin page. */
+  .admin-nav { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .admin-nav a { font-size: 15px; font-weight: 500; color: var(--muted); text-decoration: none;
+                 padding: 7px 12px; border-radius: 8px; border: 1px solid transparent; }
+  .admin-nav a:hover { background: var(--teal-soft); color: var(--teal-deep); }
+  .admin-nav a[aria-current="page"] { background: var(--teal-deep); color: #fff; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-top: 28px; flex-wrap: wrap; }
+  .tab { font: inherit; font-weight: 600; font-size: 16px; padding: 10px 16px; border: 0; background: none; color: var(--muted); border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -1px; display: inline-flex; align-items: center; gap: 7px; }
+  .tab[aria-selected="true"] { color: var(--teal-deep); border-bottom-color: var(--marigold); }
+  .tab .n { font-size: 13px; font-weight: 700; background: var(--teal-soft); color: var(--teal-deep); border-radius: 99px; padding: 1px 8px; }
+  .tab[aria-selected="true"] .n { background: var(--marigold); color: #3A2A06; }
+
+  .tools { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+  .tools .spacer { margin-left: auto; }
+  .small-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 6px 11px; border-radius: 6px; cursor: pointer; background: #fff; border: 1px solid var(--teal); color: var(--teal); }
+  .small-btn:hover { background: var(--teal-soft); }
+  .small-btn.go { background: var(--teal); color: #fff; }
+  .small-btn.go:hover { background: var(--teal-deep); }
+  .small-btn.danger { border-color: var(--error); color: var(--error); }
+  .small-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.nowrap { white-space: nowrap; }
+  td .title { font-weight: 600; color: var(--teal-deep); }
+  td .sub { color: var(--muted); font-size: 14px; }
+  td.who { white-space: pre-line; }
+  .more { font: inherit; font-size: 14px; background: none; border: 0; color: var(--teal); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 0; margin-top: 4px; }
+  .desc { display: none; white-space: pre-line; margin-top: 6px; color: var(--muted); max-width: 46ch; }
+  .desc.show { display: block; }
+  select.status { font: inherit; font-size: 14px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: #fff; width: auto; }
+  .acts { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .pill { font-size: 13px; font-weight: 600; padding: 2px 9px; border-radius: 99px; white-space: nowrap; background: #FFF3DA; color: #7A5413; }
+  .pill.live { background: #E4F2E8; color: var(--ok); }
+  .empty { padding: 26px 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Vacancy submissions</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-vacancies.html" aria-current="page">Vacancy submissions</a>
+    <a href="admin-cards.html">Job cards</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+    <a href="admin-messages.html">Messages</a>
+  </nav>
+
+  <div id="area" hidden>
+    <p class="lead" style="margin-top:14px">Vacancies employers sent through the form on the home page.
+      Call to verify, then publish. Nothing here is on the site until you publish it.</p>
+
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+
+    <div class="tools">
+      <button class="small-btn" id="refresh" type="button">Refresh</button>
+      <span class="spacer"></span>
+      <button class="small-btn" id="csv" type="button">Download for Excel</button>
+    </div>
+
+    <p id="msg" class="msg" hidden style="margin-top:14px"></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Received</th><th>Vacancy</th><th>Where</th><th>Closes</th>
+          <th>Contact</th><th>Status</th><th>Action</th>
+        </tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+
+  const STATUSES = [
+    ["new", "New"], ["contacted", "Contacted"], ["verified", "Verified"],
+    ["published", "Published"], ["rejected", "Rejected"]
+  ];
+  const TABS = [["new", "New"], ["contacted", "Contacted"], ["verified", "Verified"],
+                ["published", "Published"], ["rejected", "Rejected"], ["all", "All"]];
+
+  const cell = (t, cls) => { const td = document.createElement("td"); if (t !== undefined) td.textContent = t; if (cls) td.className = cls; return td; };
+  const when = iso => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  const onDay = d => d ? new Date(d + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+  const money = (a, b) => {
+    const f = n => "₹" + Number(n).toLocaleString("en-IN");
+    if (a && b) return f(a) + " – " + f(b) + " per month";
+    if (a) return "From " + f(a) + " per month";
+    if (b) return "Up to " + f(b) + " per month";
+    return "";
+  };
+  function say(text, type) { const n = $("msg"); n.textContent = text; n.className = "msg " + (type || "error"); n.hidden = !text; }
+
+  /* ---------- access ---------- */
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-vacancies.html"; throw new Error("Not signed in"); }
+  const { data: adminRow } = await supabase.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("Not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false; $("area").hidden = false;
+
+  /* ---------- state ---------- */
+  let view = "new", rows = [], counts = {};
+
+  function drawTabs() {
+    $("tabs").innerHTML = "";
+    for (const [key, label] of TABS) {
+      const b = document.createElement("button");
+      b.className = "tab"; b.role = "tab"; b.dataset.view = key;
+      b.setAttribute("aria-selected", String(key === view));
+      b.textContent = label;
+      const c = counts[key];
+      if (c) { const s = document.createElement("span"); s.className = "n"; s.textContent = c; b.append(s); }
+      b.onclick = () => { view = key; drawTabs(); load(); };
+      $("tabs").append(b);
+    }
+  }
+
+  async function countAll() {
+    const { data, error } = await supabase.from("job_submissions").select("status");
+    if (error) return;
+    counts = { all: data.length };
+    for (const r of data) counts[r.status] = (counts[r.status] || 0) + 1;
+  }
+
+  /* ---------- the one that matters: copy a verified vacancy into jobs ---------- */
+  async function publish(s, btn) {
+    if (!confirm("Publish “" + s.job_title + "” to the live job list?")) return;
+    btn.disabled = true; btn.textContent = "Publishing…";
+
+    const inTripura = s.district && s.district !== "Outside Tripura" && s.district !== "Remote";
+    const region = s.job_type === "remote" ? "remote" : (inTripura ? "tripura" : "india");
+
+    const job = {
+      title: s.job_title,
+      organisation: s.company,
+      job_type: s.job_type,
+      region: region,
+      city: inTripura ? s.district : null,
+      state: inTripura ? "Tripura" : null,
+      location: s.district || null,
+      qualification: s.qualification || null,
+      salary: money(s.salary_min, s.salary_max) || null,
+      last_date: s.last_date,
+      description: s.description || null,
+      how_to_apply: "Contact " + s.contact_name + " on " + s.contact_phone +
+                    (s.contact_email ? " or " + s.contact_email : "") + ".",
+      apply_link: s.contact_email ? "mailto:" + s.contact_email : null,
+      is_active: true
+    };
+
+    const { data, error } = await supabase.from("jobs").insert([job]).select("id").maybeSingle();
+    btn.disabled = false; btn.textContent = "Publish to jobs";
+    if (error) return say("Couldn't publish: " + error.message);
+
+    const { error: upErr } = await supabase.from("job_submissions")
+      .update({ status: "published", published_job_id: data ? data.id : null }).eq("id", s.id);
+    if (upErr) return say("Published to the job list, but couldn't mark the submission: " + upErr.message);
+
+    say("Published. It is now on the live job list.", "ok");
+    await countAll(); drawTabs(); load();
+  }
+
+  /* ---------- draw ---------- */
+  async function load() {
+    say(""); $("body").innerHTML = "";
+    let q = supabase.from("job_submissions").select("*").order("created_at", { ascending: false });
+    if (view !== "all") q = q.eq("status", view);
+    const { data, error } = await q;
+    if (error) return say("Couldn't load submissions. Refresh the page.");
+    rows = data || [];
+
+    if (!rows.length) {
+      const tr = document.createElement("tr");
+      const td = cell(view === "new" ? "No new vacancies waiting." : "Nothing here.", "empty");
+      td.colSpan = 7; tr.append(td); $("body").append(tr); return;
+    }
+
+    for (const s of rows) {
+      const tr = document.createElement("tr");
+
+      // vacancy
+      const what = document.createElement("td");
+      const t = document.createElement("div"); t.className = "title"; t.textContent = s.job_title;
+      const org = document.createElement("div"); org.className = "sub"; org.textContent = s.company;
+      what.append(t, org);
+      if (s.qualification) { const q2 = document.createElement("div"); q2.className = "sub"; q2.textContent = s.qualification; what.append(q2); }
+      const pay = money(s.salary_min, s.salary_max);
+      if (pay) { const p = document.createElement("div"); p.className = "sub"; p.textContent = pay; what.append(p); }
+      if (s.description) {
+        const d = document.createElement("div"); d.className = "desc"; d.textContent = s.description;
+        const more = document.createElement("button"); more.className = "more"; more.type = "button";
+        more.textContent = "Read the description";
+        more.onclick = () => { d.classList.toggle("show"); more.textContent = d.classList.contains("show") ? "Hide" : "Read the description"; };
+        what.append(more, d);
+      }
+
+      // where
+      const where = document.createElement("td");
+      where.append(document.createTextNode(s.district || "—"));
+      const ty = document.createElement("div"); ty.className = "sub";
+      ty.textContent = { government: "Government", private: "Private", remote: "Remote" }[s.job_type] || s.job_type;
+      where.append(ty);
+
+      // status
+      const st = document.createElement("td");
+      const sel = document.createElement("select"); sel.className = "status";
+      for (const [v, label] of STATUSES) {
+        const o = document.createElement("option"); o.value = v; o.textContent = label;
+        if (v === s.status) o.selected = true;
+        sel.append(o);
+      }
+      sel.onchange = async () => {
+        const { error } = await supabase.from("job_submissions").update({ status: sel.value }).eq("id", s.id);
+        if (error) { say("Couldn't update: " + error.message); return; }
+        await countAll(); drawTabs(); load();
+      };
+      st.append(sel);
+      if (s.published_job_id) { const p = document.createElement("div"); p.className = "pill live"; p.style.marginTop = "6px"; p.textContent = "On the site"; st.append(p); }
+
+      // actions
+      const acts = document.createElement("td");
+      const box = document.createElement("div"); box.className = "acts";
+      const pub = document.createElement("button");
+      pub.className = "small-btn go"; pub.type = "button"; pub.textContent = "Publish to jobs";
+      pub.disabled = !!s.published_job_id;
+      pub.title = s.published_job_id ? "Already published" : "Copy this into the live job list";
+      pub.onclick = () => publish(s, pub);
+      const del = document.createElement("button");
+      del.className = "small-btn danger"; del.type = "button"; del.textContent = "Delete";
+      del.onclick = async () => {
+        if (!confirm("Delete this submission permanently? The employer's details will be lost.")) return;
+        const { error } = await supabase.from("job_submissions").delete().eq("id", s.id);
+        if (error) { say("Couldn't delete: " + error.message); return; }
+        await countAll(); drawTabs(); load();
+      };
+      box.append(pub, del); acts.append(box);
+
+      tr.append(
+        cell(when(s.created_at), "nowrap"),
+        what, where,
+        cell(onDay(s.last_date), "nowrap"),
+        cell([s.contact_name, s.contact_phone, s.contact_email].filter(Boolean).join("\n"), "who"),
+        st, acts
+      );
+      $("body").append(tr);
+    }
+  }
+
+  /* ---------- download ---------- */
+  $("csv").onclick = () => {
+    if (!rows.length) return say("Nothing to download in this tab.");
+    const head = ["Received", "Job title", "Company", "Job type", "District", "Qualification",
+                  "Salary from", "Salary to", "Last date", "Contact name", "Contact phone",
+                  "Contact email", "Status", "Description"];
+    const body = rows.map(s => [
+      s.created_at, s.job_title, s.company, s.job_type, s.district, s.qualification,
+      s.salary_min || "", s.salary_max || "", s.last_date, s.contact_name, s.contact_phone,
+      s.contact_email || "", s.status, (s.description || "").replace(/\r?\n/g, " ")
+    ]);
+    const csv = [head, ...body]
+      .map(r => r.map(v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"').join(","))
+      .join("\r\n");
+    // The BOM tells Excel the file is UTF-8, so Bengali and ₹ open correctly.
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vacancy-submissions-" + view + "-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
+  $("refresh").onclick = async () => { await countAll(); drawTabs(); load(); };
+  $("logout").addEventListener("click", async () => { await supabase.auth.signOut(); window.location.href = "login.html"; });
+
+  await countAll();
+  drawTabs();
+  load();
+</script>
+</body>
+</html>

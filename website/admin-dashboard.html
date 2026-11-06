@@ -10,7 +10,12 @@
 <link rel="stylesheet" href="style.css">
 <style>
   .page.wide { max-width: 1120px; }
-  .admin-nav { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  /* One admin menu, the same on every admin page. */
+  .admin-nav { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .admin-nav a { font-size: 15px; font-weight: 500; color: var(--muted); text-decoration: none;
+                 padding: 7px 12px; border-radius: 8px; border: 1px solid transparent; }
+  .admin-nav a:hover { background: var(--teal-soft); color: var(--teal-deep); }
+  .admin-nav a[aria-current="page"] { background: var(--teal-deep); color: #fff; }
   h2.sec { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); margin-top: 34px; padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
   .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-top: 16px; }
   .tile { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
@@ -57,8 +62,9 @@
   <h1>Dashboard</h1>
   <p id="gate-msg" class="lead">Checking your access…</p>
   <nav class="admin-nav" id="admin-nav" hidden>
-    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin-dashboard.html" aria-current="page">Dashboard</a>
     <a href="admin.html">Jobs</a>
+    <a href="admin-vacancies.html">Vacancy submissions</a>
     <a href="admin-cards.html">Job cards</a>
     <a href="admin-study.html">Study material</a>
     <a href="admin-tests.html">Mock tests</a>
