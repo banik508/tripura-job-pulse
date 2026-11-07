@@ -12,7 +12,7 @@ window.TJP_CONFIG = {
   LINKS: {
     WHATSAPP: "https://wa.me/919871800295",
     YOUTUBE: "https://www.youtube.com/@TripuraJobPulse",
-    FACEBOOK: "https://www.facebook.com/tripurajobpulse"
+    FACEBOOK: "https://www.facebook.com/tripurajobpulse",
     INSTAGRAM: "https://www.instagram.com/tripurajobpulse/",
   }
 };
