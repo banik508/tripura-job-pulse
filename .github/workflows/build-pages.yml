@@ -1,13 +1,17 @@
 name: Build job pages and sitemap
 
-# Writes a real HTML page for every job, plus sitemap.xml and robots.txt,
-# then commits them. Netlify is linked to this repository, so the commit
-# is what puts the pages on the live site.
+# Writes a real HTML page for every job and every published blog post, plus
+# sitemap.xml and robots.txt, then commits them. Netlify is linked to this
+# repository, so the commit is what puts the pages on the live site.
+#
+# Blog posts need this job to run before they have a shareable page, so the
+# schedule is every 30 minutes rather than every six hours. If a run finds
+# nothing changed it commits nothing, so the frequency costs almost nothing.
+# To publish a post immediately, use "Run workflow" on this page.
 
 on:
   schedule:
-    # Every six hours. New jobs appear within a few hours of being uploaded.
-    - cron: "40 */6 * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -36,12 +40,13 @@ jobs:
         run: |
           git config user.name "Tripura Job Pulse bot"
           git config user.email "actions@github.com"
-          git add website/job website/sitemap.xml website/robots.txt
+          git add website/job website/blog website/blog.html \
+                  website/sitemap.xml website/robots.txt
           if git diff --staged --quiet; then
             echo "Nothing changed since the last run." >> $GITHUB_STEP_SUMMARY
           else
             count=$(git diff --staged --name-only | wc -l)
-            git commit -m "Rebuild job pages and sitemap"
+            git commit -m "Rebuild job and blog pages"
             git push
             echo "Published. $count file(s) changed; the live site updates in about a minute." >> $GITHUB_STEP_SUMMARY
           fi
