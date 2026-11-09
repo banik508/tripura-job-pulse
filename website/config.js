@@ -13,7 +13,7 @@ window.TJP_CONFIG = {
     WHATSAPP: "https://wa.me/919871800295",
     YOUTUBE: "https://www.youtube.com/@TripuraJobPulse",
     FACEBOOK: "https://www.facebook.com/tripurajobpulse",
-    INSTAGRAM: "https://www.instagram.com/tripurajobpulse/",
+    INSTAGRAM: "https://www.instagram.com/tripurajobpulse/"
   }
 };
 
@@ -66,6 +66,7 @@ window.TJP_CONFIG = {
   var ADMIN_LINKS = [
     ["admin-dashboard.html", "Dashboard"],
     ["admin.html", "Jobs"],
+    ["admin-vacancies.html", "Vacancy submissions"],
     ["admin-cards.html", "Job cards"],
     ["admin-study.html", "Study material"],
     ["admin-tests.html", "Mock tests"],
@@ -164,6 +165,12 @@ window.TJP_CONFIG = {
   }
 
   function build() {
+    // tjp-header.js owns the header on pages that carry its placeholder.
+    // Without this, those pages get two headers: the one it injects, and
+    // the one built below, which falls back to inserting itself at the top
+    // of the body when it cannot find an old header to replace.
+    if (document.getElementById("tjp-header")) return;
+
     css();
     var old = document.querySelector("header.site-header");
     var keepLogout = document.getElementById("logout");          // admin sign-out button
