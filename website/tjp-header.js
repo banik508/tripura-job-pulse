@@ -57,6 +57,7 @@
     ["Career Toolkit", [["cv.html","CV builder"],["typing.html","Typing test"],
                         ["certifications.html","Certifications"],["verify.html","Verify a certificate"]]],
     ["More",      [["index.html#contact","Post a vacancy"],["index.html#contact","Contact us"],
+                   ["privacy.html","Privacy policy"],["delete-account.html","Delete your account"],
                    ["index.html#declaration","Declaration"]]]
   ];
 
@@ -105,6 +106,8 @@
     // Signed out, the Sign in link returns the visitor to the page they were on.
     var next = HERE && HERE !== "index.html" && HERE !== "login.html" ? "?next=" + encodeURIComponent(HERE) : "";
     out += '<a class="cta" id="account-link" href="login.html' + next + '">Sign in</a>';
+    // Hidden until a session is found. Every page then has a way out.
+    out += '<button class="signout" id="signout-link" type="button" hidden>Sign out</button>';
 
     return '<nav class="nav"><div class="inner">' +
            '<a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>' +
@@ -233,17 +236,48 @@
   function signedIn() {
     var link = document.getElementById("account-link");
     if (!link) return;
-    var live = false;
+    var live = false, token = null, keys = [];
     try {
       for (var i = 0; i < localStorage.length; i++) {
         var k = localStorage.key(i);
         if (!/^sb-.*-auth-token$/.test(k)) continue;
+        keys.push(k);
         var v = JSON.parse(localStorage.getItem(k) || "{}");
         var s = v.currentSession || v;
-        if (s && s.access_token && (!s.expires_at || s.expires_at * 1000 > Date.now())) live = true;
+        if (s && s.access_token && (!s.expires_at || s.expires_at * 1000 > Date.now())) {
+          live = true; token = s.access_token;
+        }
       }
     } catch (e) { /* private mode, blocked storage — fall through to Sign in */ }
-    if (live) { link.textContent = "My profile"; link.href = "profile.html"; }
+
+    if (!live) return;
+    link.textContent = "My profile";
+    link.href = "profile.html";
+
+    var out = document.getElementById("signout-link");
+    if (!out) return;
+    out.hidden = false;
+
+    out.addEventListener("click", function () {
+      out.disabled = true;
+      out.textContent = "Signing out\u2026";
+
+      // Clear this browser first, so the person is signed out even if the
+      // network call fails. Then ask Supabase to revoke the refresh token.
+      var cfg = window.TJP_CONFIG || {};
+      try { keys.forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+
+      var done = function () { window.location.href = "index.html"; };
+      if (!cfg.SUPABASE_URL || !cfg.SUPABASE_KEY || !token) return done();
+
+      var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      if (ctrl) setTimeout(function () { ctrl.abort(); }, 4000);
+      fetch(cfg.SUPABASE_URL + "/auth/v1/logout", {
+        method: "POST",
+        headers: { apikey: cfg.SUPABASE_KEY, Authorization: "Bearer " + token },
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(done, done);
+    });
   }
 
   if (document.readyState === "loading") {
