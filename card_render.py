@@ -10,6 +10,7 @@ browser canvas, so a scheduled script can make the images.
 
 import io
 import os
+import re
 from datetime import datetime
 
 import qrcode
@@ -411,5 +412,245 @@ def caption_for(job):
         tags += ["#WorkFromHome", "#RemoteJobs"]
     if job.get("region") == "india":
         tags.append("#JobsInIndia")
+    lines.append(" ".join(tags))
+    return "\n".join(lines)
+
+
+# ===========================================================================
+#  General knowledge cards
+#
+#  Same visual language as the job cards - teal gradient, gold spine, logo at
+#  the top - so a follower scrolling past recognises them as ours.
+#
+#  The answer is printed on the card rather than withheld for the comments.
+#  These are revision cards: people screenshot them. A card that makes you
+#  wait for a reply is worth nothing in a camera roll.
+# ===========================================================================
+
+LETTERS = ["A", "B", "C", "D"]
+
+
+def _round_rect(d, box, radius, fill=None, outline=None, width=1):
+    d.rounded_rectangle(box, radius=radius, fill=fill, outline=outline, width=width)
+
+
+def _header(layer, d, W, M, CX, kicker):
+    head_y = M + 10
+    logo(layer, CX - 150, head_y - 10, 1.0)
+    d.text((CX - 62, head_y + 18), "TRIPURA", font=sora(34, 700),
+           fill=WHITE + (255,), anchor="ls")
+    d.text((CX - 62, head_y + 56), "JOB PULSE", font=sora(34, 700),
+           fill=GOLD + (255,), anchor="ls")
+    d.line([M, head_y + 96, W - M, head_y + 96], fill=(255, 255, 255, 46), width=2)
+
+    y = head_y + 140
+    d.text((CX, y), kicker, font=hind(26, "SemiBold"),
+           fill=GOLD + (255,), anchor="ma")
+    return y + 52
+
+
+def _pills(d, CX, y, items):
+    """A centred row of pills. The first one is gold, the rest are outlined."""
+    f = hind(26, "SemiBold")
+    widths = [f.getlength(t) + 44 for t in items]
+    total = sum(widths) + 14 * max(0, len(items) - 1)
+    x = CX - total / 2
+    for i, text in enumerate(items):
+        w = widths[i]
+        if i == 0:
+            _round_rect(d, [x, y, x + w, y + 50], 25, fill=GOLD + (255,))
+            d.text((x + w / 2, y + 25), text, font=f, fill=(58, 42, 6, 255), anchor="mm")
+        else:
+            _round_rect(d, [x, y, x + w, y + 50], 25, outline=(255, 255, 255, 90), width=2)
+            d.text((x + w / 2, y + 25), text, font=f, fill=(255, 255, 255, 230), anchor="mm")
+        x += w + 14
+    return y + 50
+
+
+def _fit(text, make_font, sizes, max_width, max_lines):
+    """Largest size from `sizes` at which the text still fits in max_lines."""
+    for s in sizes:
+        f = make_font(s)
+        lines = wrap(text, f, max_width, max_lines)
+        if len(lines) <= max_lines and all(f.getlength(l) <= max_width for l in lines):
+            return f, lines
+    f = make_font(sizes[-1])
+    return f, wrap(text, f, max_width, max_lines)
+
+
+def render_gk_card(item, size="portrait"):
+    """Draw one general knowledge card and return JPEG bytes."""
+    W, H = SIZES[size]
+    M, CX = 80, W // 2
+    inner = W - 2 * M
+
+    img = gradient(W, H).convert("RGBA")
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+
+    faint = (255, 255, 255, 15)
+    d.ellipse([W + 80 - 280, H * 0.16 - 280, W + 80 + 280, H * 0.16 + 280],
+              outline=faint, width=64)
+    d.ellipse([-110 - 240, H * 0.86 - 240, -110 + 240, H * 0.86 + 240],
+              outline=faint, width=64)
+    d.rectangle([0, 0, 17, H], fill=GOLD + (255,))
+    person_figure(layer, W - 190, H - 150, 1.25 if H > 1200 else 1.05, 0.08)
+
+    is_q = (item.get("kind") or "question") == "question"
+    y = _header(layer, d, W, M, CX, "GENERAL KNOWLEDGE")
+
+    pills = [item.get("topic") or "General"]
+    if is_q and item.get("difficulty"):
+        pills.append(str(item["difficulty"]).title())
+    y = _pills(d, CX, y, pills) + 46
+
+    answer_i = item.get("answer_index")
+    options = list(item.get("options") or [])
+    note = (item.get("explanation") or "").strip()
+
+    # ---- work out the whole block before drawing any of it ----
+    #
+    # Sizing the question first and hoping the rest fits is what loses the
+    # explanation on a long question - exactly where the explanation is worth
+    # most. So measure what has to appear, then give the question what is left.
+    footer_top = H - 126
+    row_h, gap = 78, 16
+
+    if is_q and len(options) == 4:
+        block_h = 4 * row_h + 3 * gap + 16 + 34
+    elif not is_q and item.get("answer"):
+        af, alines = _fit(str(item["answer"]), lambda s: hind(s, "SemiBold"),
+                          [40, 36, 32, 29], inner - 60, 3)
+        block_h = len(alines) * int(af.size * 1.35) + 44 + 22 + 34
+    else:
+        af, alines, block_h = None, [], 34
+
+    note_font, note_lines, note_h = None, [], 0
+    if note:
+        note_font, note_lines = _fit(note, lambda s: hind(s, "Regular"),
+                                     [31, 28, 25, 22], inner - 56, 4)
+        note_h = len(note_lines) * int(note_font.size * 1.45) + 40
+
+    room = footer_top - 24 - y - block_h - note_h
+
+    text = (item.get("question") or "").strip()
+    sizes = [58, 52, 46, 41, 37, 33, 29] if is_q else [64, 58, 52, 46, 41, 37, 33]
+    max_lines = 5 if is_q else 6
+    font, lines = None, []
+    for s in sizes:
+        f = sora(s, 700)
+        ls = wrap(text, f, inner, max_lines)
+        if len(ls) * int(f.size * 1.26) <= room:
+            font, lines = f, ls
+            break
+    if font is None:                       # nothing fits; use the smallest
+        font, lines = _fit(text, lambda s: sora(s, 700), sizes, inner, max_lines)
+
+    lh = int(font.size * 1.26)
+    for line in lines:
+        d.text((CX, y), line, font=font, fill=WHITE + (255,), anchor="ma")
+        y += lh
+    y += 34
+
+    if is_q and len(options) == 4:
+        of = hind(32, "Medium")
+        row_h, gap = 78, 16
+        for i, opt in enumerate(options):
+            right = (i == answer_i)
+            box = [M, y, W - M, y + row_h]
+            if right:
+                _round_rect(d, box, 14, fill=(217, 161, 59, 235))
+                badge, badge_text = (58, 42, 6, 255), (58, 42, 6, 255)
+            else:
+                _round_rect(d, box, 14, fill=(255, 255, 255, 26),
+                            outline=(255, 255, 255, 46), width=2)
+                badge, badge_text = (255, 255, 255, 235), (255, 255, 255, 235)
+
+            d.text((M + 30, y + row_h / 2), LETTERS[i] + ".",
+                   font=hind(32, "Bold"), fill=badge, anchor="lm")
+            label = wrap(str(opt), of, inner - 170, 1)[0]
+            d.text((M + 84, y + row_h / 2), label, font=of, fill=badge_text, anchor="lm")
+
+            if right:
+                cx2, cy2 = W - M - 42, y + row_h / 2
+                d.line([cx2 - 14, cy2, cx2 - 4, cy2 + 11], fill=(58, 42, 6, 255), width=6)
+                d.line([cx2 - 4, cy2 + 11, cx2 + 15, cy2 - 13], fill=(58, 42, 6, 255), width=6)
+            y += row_h + gap
+        y += 16
+
+    elif not is_q and item.get("answer"):
+        box_h = len(alines) * int(af.size * 1.35) + 44
+        _round_rect(d, [M, y, W - M, y + box_h], 14, fill=(217, 161, 59, 230))
+        ty = y + 22
+        for line in alines:
+            d.text((CX, ty), line, font=af, fill=(58, 42, 6, 255), anchor="ma")
+            ty += int(af.size * 1.35)
+        y += box_h + 22
+
+    # ---- why it is the answer ----
+    if note_lines:
+        _round_rect(d, [M, y, W - M, y + note_h], 14, fill=(255, 255, 255, 22))
+        ty = y + 20
+        for line in note_lines:
+            d.text((M + 28, ty), line, font=note_font, fill=(226, 240, 237, 255), anchor="la")
+            ty += int(note_font.size * 1.45)
+        y += note_h
+
+    # ---- footer ----
+    fy = H - 92
+    d.line([M, fy - 34, W - M, fy - 34], fill=(255, 255, 255, 46), width=2)
+    d.text((M, fy), "tripurajobpulse.com", font=hind(30, "SemiBold"),
+           fill=GOLD + (255,), anchor="la")
+    tail = "Daily GK for Tripura job seekers"
+    d.text((W - M, fy), tail, font=hind(26, "Regular"),
+           fill=(197, 219, 215, 255), anchor="ra")
+
+    out = Image.alpha_composite(img, layer).convert("RGB")
+    buf = io.BytesIO()
+    out.save(buf, "JPEG", quality=92, optimize=True)
+    return buf.getvalue()
+
+
+def gk_caption(item):
+    """The words under the picture."""
+    is_q = (item.get("kind") or "question") == "question"
+    topic = item.get("topic") or "General knowledge"
+    lines = []
+
+    if is_q:
+        lines.append(f"GK question — {topic}")
+        lines.append("")
+        lines.append(item.get("question", "").strip())
+        lines.append("")
+        for i, opt in enumerate(item.get("options") or []):
+            lines.append(f"{LETTERS[i]}. {opt}")
+        lines.append("")
+        idx = item.get("answer_index")
+        if isinstance(idx, int) and 0 <= idx < len(item.get("options") or []):
+            lines.append(f"Answer: {LETTERS[idx]}. {item['options'][idx]}")
+    else:
+        lines.append(f"Did you know — {topic}")
+        lines.append("")
+        lines.append(item.get("question", "").strip())
+        if item.get("answer"):
+            lines.append("")
+            lines.append(str(item["answer"]))
+
+    if item.get("explanation"):
+        lines += ["", item["explanation"].strip()]
+    if item.get("source_name"):
+        lines += ["", f"Source: {item['source_name']}"]
+
+    lines += [
+        "",
+        f"More general knowledge, mock tests and every Tripura vacancy: {SITE}/gk.html",
+        "",
+    ]
+
+    tags = ["#GK", "#GeneralKnowledge", "#TripuraGK", "#Tripura", "#Agartala",
+            "#TripuraJobPulse", "#TPSC", "#JRBT", "#CompetitiveExams", "#SarkariExam"]
+    topic_tag = "#" + re.sub(r"[^A-Za-z0-9]", "", topic)
+    if len(topic_tag) > 2 and topic_tag not in tags:
+        tags.insert(2, topic_tag)
     lines.append(" ".join(tags))
     return "\n".join(lines)

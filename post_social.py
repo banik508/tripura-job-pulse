@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 import requests
 from supabase import create_client
 
-from card_render import caption_for, render_card
+from card_render import caption_for, gk_caption, render_card, render_gk_card
 
 try:
     from dotenv import load_dotenv
@@ -42,6 +42,9 @@ FB_PAGE_TOKEN = os.environ["FB_PAGE_TOKEN"]
 IG_USER_ID = os.environ["IG_USER_ID"]
 SITE = os.environ.get("SITE_URL", "https://tripurajobpulse.com").rstrip("/")
 MAX_POSTS = int(os.environ.get("MAX_POSTS", "2"))
+# General knowledge cards go out alongside the jobs. Set MAX_GK to 0 in the
+# workflow to pause them without touching anything else.
+MAX_GK = int(os.environ.get("MAX_GK", "1"))
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 GRAPH = f"https://graph.facebook.com/{os.environ.get('GRAPH_VERSION', 'v23.0')}"
 
@@ -154,6 +157,84 @@ def post_to_instagram(image_url, caption):
     return body["id"]
 
 
+def gk_to_post():
+    """Which general knowledge cards go out this run.
+
+    Anything already posted is skipped, so the bank is worked through rather
+    than the same few items going round again. Oldest first, so items you
+    wrote weeks ago are not stranded behind everything added since.
+    """
+    if MAX_GK < 1:
+        return []
+
+    posted = sb.table("gk_posts").select("gk_id").limit(5000).execute().data or []
+    done = {r["gk_id"] for r in posted}
+
+    rows = sb.table("gk_items").select("*").eq(
+        "status", "published"
+    ).order("created_at", desc=False).limit(500).execute().data or []
+
+    fresh = [g for g in rows if g["id"] not in done]
+    if not fresh:
+        summary("General knowledge: every published item has already been posted.")
+        return []
+
+    return fresh[:MAX_GK]
+
+
+def upload_gk_card(item, image):
+    path = f"gk-{item['id']}.jpg"
+    sb.storage.from_(BUCKET).upload(
+        path,
+        image,
+        {"content-type": "image/jpeg", "upsert": "true", "cache-control": "3600"},
+    )
+    return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{path}"
+
+
+def record_gk(gk_id, platform, post_id, image_url):
+    sb.table("gk_posts").insert({
+        "gk_id": gk_id,
+        "platform": platform,
+        "post_id": str(post_id) if post_id else None,
+        "image_url": image_url,
+    }).execute()
+
+
+def post_gk():
+    """One general knowledge card per run, after the job."""
+    items = gk_to_post()
+    for item in items:
+        label = (item.get("question") or "")[:60]
+        print(f"\n--- GK: {label}")
+        image = render_gk_card(item, "portrait")
+        print(f"    card drawn, {len(image) // 1024} KB")
+
+        url = upload_gk_card(item, image)
+        print(f"    uploaded: {url}")
+        text = gk_caption(item)
+
+        if DRY_RUN:
+            summary(f"- Practice run for GK **{label}** - card made, nothing posted.")
+            print("    Caption would be:")
+            print("    " + text.replace("\n", "\n    "))
+            continue
+
+        try:
+            fb_id = post_to_facebook(url, text)
+            record_gk(item["id"], "facebook", fb_id, url)
+            summary(f"- Facebook: **posted** GK - {label}")
+        except Exception as err:
+            summary(f"- Facebook: **FAILED** on GK - {err}")
+
+        try:
+            ig_id = post_to_instagram(url, text)
+            record_gk(item["id"], "instagram", ig_id, url)
+            summary(f"- Instagram: **posted** GK - {label}")
+        except Exception as err:
+            summary(f"- Instagram: **FAILED** on GK - {err}")
+
+
 def record(job_id, platform, post_id, image_url):
     sb.table("social_posts").insert({
         "job_id": job_id,
@@ -180,8 +261,7 @@ def main():
 
     jobs = jobs_to_post()
     if not jobs:
-        summary("Nothing new to post — every open job has already been posted.")
-        return
+        summary("No new job to post — every open job has already been posted.")
 
     print(f"{len(jobs)} job(s) to post.")
     for job in jobs:
@@ -213,6 +293,13 @@ def main():
             summary(f"- Instagram: **posted** — {job['title']}")
         except Exception as err:
             summary(f"- Instagram: **FAILED** — {err}")
+
+    # The general knowledge card goes out whether or not there was a job,
+    # so a day with no new vacancy is not a silent day on the page.
+    try:
+        post_gk()
+    except Exception as err:
+        summary(f"- General knowledge: **FAILED** - {err}")
 
     print("\nDone.")
 
