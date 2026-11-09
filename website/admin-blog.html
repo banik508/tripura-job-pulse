@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin: blog | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1180px; }
+  .admin-nav { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .admin-nav a { font-size: 15px; font-weight: 500; color: var(--muted); text-decoration: none;
+                 padding: 7px 12px; border-radius: 8px; border: 1px solid transparent; }
+  .admin-nav a:hover { background: var(--teal-soft); color: var(--teal-deep); }
+  .admin-nav a[aria-current="page"] { background: var(--teal-deep); color: #fff; }
+
+  h2.sec { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); margin-top: 32px;
+           padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+
+  .split { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; margin-top: 18px; }
+  @media (max-width: 940px) { .split { grid-template-columns: 1fr; } }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .card h3 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); }
+  .card .hint { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .field { margin-top: 14px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .field .sub { font-weight: 400; color: var(--muted); font-size: 13px; }
+  input[type=text], input[type=file], textarea, select {
+    font: inherit; font-size: 15px; width: 100%; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  textarea { resize: vertical; line-height: 1.65; }
+  textarea#body { min-height: 440px; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 14px; }
+  .counter { font-size: 13px; color: var(--muted); margin-top: 5px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .counter b { font-weight: 600; color: var(--teal-deep); }
+  .counter .over { color: #A33A34; font-weight: 600; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .btn-sm { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 18px; border-radius: 8px;
+            border: 0; background: var(--teal-deep); color: #fff; cursor: pointer; }
+  .btn-sm.ghost { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .btn-sm.danger { background: #fff; color: var(--error); border: 1px solid var(--error); }
+  .btn-sm:disabled { opacity: .55; cursor: default; }
+
+  .cover-box { margin-top: 10px; border: 1px dashed var(--line); border-radius: 10px; padding: 12px;
+               text-align: center; background: var(--paper, #F4F8F6); }
+  .cover-box img { max-width: 100%; border-radius: 8px; display: block; margin: 0 auto 10px; }
+  .cover-box .none { font-size: 14px; color: var(--muted); padding: 22px 0; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 15px; background: #fff; }
+  .table-wrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.blank { color: #9AA8A5; font-style: italic; }
+  .pill { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+  .pill.live { background: #E3F3EF; color: #0B5F4E; }
+  .pill.draft { background: #F0EADA; color: #7A5413; }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .small-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 7px;
+               border: 1px solid var(--line); background: #fff; color: var(--teal-deep); cursor: pointer; }
+  .small-btn:hover { background: var(--teal-soft); }
+  .small-btn.danger { color: var(--error); border-color: #E9C9C7; }
+
+  .syntax { font-size: 13.5px; color: var(--muted); margin-top: 10px; line-height: 1.9; }
+  .syntax code { background: var(--teal-soft); color: var(--teal-deep); padding: 1px 6px;
+                 border-radius: 5px; font-size: 13px; }
+  details.help summary { cursor: pointer; font-weight: 600; color: var(--teal); font-size: 14px; }
+
+  .notice { background: #FFF8EA; border: 1px solid var(--marigold); border-radius: 10px;
+            padding: 13px 16px; font-size: 14.5px; color: #7A5413; margin-top: 16px; }
+  .notice a { color: #7A5413; font-weight: 600; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Blog</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-vacancies.html">Vacancy submissions</a>
+    <a href="admin-blog.html" aria-current="page">Blog</a>
+    <a href="admin-cards.html">Job cards</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+    <a href="admin-messages.html">Messages</a>
+  </nav>
+
+  <div id="area" hidden>
+
+    <h2 class="sec" id="editor-title">Write a new post</h2>
+    <p id="msg" class="msg" hidden style="margin-top:14px"></p>
+
+    <div class="split">
+      <div class="card">
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" type="text" placeholder="How to prepare for the JRBT Group D written test" autocomplete="off">
+          <div class="counter"><span>Web address: <b id="slug-preview">—</b></span></div>
+        </div>
+
+        <div class="field">
+          <label for="excerpt">Summary <span class="sub">— shown on the blog list, and as the description when someone shares the post</span></label>
+          <textarea id="excerpt" rows="3" placeholder="One or two sentences. This is what people read before deciding to click."></textarea>
+          <div class="counter"><span><b id="ex-count">0</b> characters</span>
+            <span id="ex-warn" class="over" hidden>Over 160 — LinkedIn and Facebook will cut it off</span></div>
+        </div>
+
+        <div class="field">
+          <label for="body">The post</label>
+          <textarea id="body" placeholder="Write here.&#10;&#10;Leave a blank line between paragraphs.&#10;&#10;## A heading looks like this"></textarea>
+          <div class="counter">
+            <span><b id="words">0</b> words</span>
+            <span><b id="mins">0</b> min read</span>
+          </div>
+          <details class="help" style="margin-top:12px">
+            <summary>Formatting you can use</summary>
+            <div class="syntax">
+              <code>## Heading</code> and <code>### Smaller heading</code><br>
+              <code>**bold**</code> and <code>*italic*</code><br>
+              <code>- item</code> for a bullet list, <code>1. item</code> for a numbered one<br>
+              <code>[words to show](https://the-link)</code><br>
+              <code>&gt; a quote</code><br>
+              <code>![description](image address)</code> to put a picture in the middle<br>
+              <code>---</code> on its own line for a dividing line<br>
+              Anything else is treated as ordinary text. Leave a blank line between paragraphs.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Cover picture</h3>
+          <p class="hint">This is what shows on LinkedIn and Facebook when the post is shared.
+            Landscape works best, around 1200 by 630.</p>
+          <div class="cover-box" id="cover-box">
+            <div class="none" id="cover-none">No picture yet</div>
+            <img id="cover-img" alt="" hidden>
+          </div>
+          <div class="field">
+            <input id="cover-file" type="file" accept="image/png,image/jpeg,image/webp">
+          </div>
+          <div class="field">
+            <label for="cover-alt">Describe the picture <span class="sub">— for people using a screen reader</span></label>
+            <input id="cover-alt" type="text" placeholder="Students outside an examination hall" autocomplete="off">
+          </div>
+          <button class="small-btn danger" id="cover-clear" type="button" hidden>Remove picture</button>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3>Publishing</h3>
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="draft">Draft — only you can see it</option>
+              <option value="published">Published — live on the site</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="tags">Tags <span class="sub">— separated by commas</span></label>
+            <input id="tags" type="text" placeholder="JRBT, preparation, Group D" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="slug">Web address <span class="sub">— set from the title; change it before publishing if you want</span></label>
+            <input id="slug" type="text" autocomplete="off">
+          </div>
+          <div class="row">
+            <button class="btn-sm" id="save" type="button">Save</button>
+            <button class="btn-sm ghost" id="reset" type="button">New post</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice" id="publish-note" hidden>
+      Saved and published. The post is on <a href="blog.html">the blog page</a> straight away.
+      Its own shareable page is built by the scheduled job, which runs every 30 minutes — until then,
+      sharing the link on LinkedIn or Facebook will not show the title and picture.
+      To build it now, open
+      <a id="run-link" href="https://github.com/banik508/tripura-job-pulse/actions" target="_blank" rel="noopener">GitHub Actions</a>,
+      pick “Build job pages”, and press Run workflow.
+    </div>
+
+    <h2 class="sec">All posts</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Status</th><th>Published</th><th>Updated</th><th></th></tr></thead>
+        <tbody id="list-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const BUCKET = "blog";
+
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const say = (text, kind) => {
+    const m = $("msg");
+    m.textContent = text; m.className = "msg " + (kind || "error"); m.hidden = !text;
+    if (text) m.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  /* ---------- access ---------- */
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-blog.html"; throw new Error("not signed in"); }
+  const { data: adminRow } = await supabase.from("admins")
+    .select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false;
+  $("area").hidden = false;
+
+  /* ---------- state ---------- */
+  let editingId = null;     // null means "new post"
+  let coverUrl = null;
+  let coverPath = null;     // path inside the bucket, so we can delete it
+
+  /* ---------- helpers ---------- */
+  const slugify = s => (s || "")
+    .toLowerCase().trim()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 70)
+    .replace(/-+$/g, "");
+
+  const prettyDate = iso => iso
+    ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : "";
+
+  function counts() {
+    const words = ($("body").value.trim().match(/\S+/g) || []).length;
+    $("words").textContent = words.toLocaleString("en-IN");
+    $("mins").textContent = Math.max(1, Math.round(words / 200));
+    const ex = $("excerpt").value.length;
+    $("ex-count").textContent = ex;
+    $("ex-warn").hidden = ex <= 160;
+  }
+  $("body").addEventListener("input", counts);
+  $("excerpt").addEventListener("input", counts);
+
+  // The slug follows the title until the slug is edited by hand.
+  let slugTouched = false;
+  $("slug").addEventListener("input", () => {
+    slugTouched = true;
+    $("slug-preview").textContent = "/blog/" + ($("slug").value || "…") + ".html";
+  });
+  $("title").addEventListener("input", () => {
+    if (!slugTouched) {
+      $("slug").value = slugify($("title").value);
+      $("slug-preview").textContent = "/blog/" + ($("slug").value || "…") + ".html";
+    }
+  });
+
+  function showCover(url) {
+    coverUrl = url || null;
+    $("cover-img").hidden = !url;
+    $("cover-none").hidden = !!url;
+    $("cover-clear").hidden = !url;
+    if (url) $("cover-img").src = url;
+  }
+
+  /* ---------- cover upload ---------- */
+  $("cover-file").addEventListener("change", async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      e.target.value = "";
+      return say("That picture is larger than 3 MB. Please shrink it first — big images make the page slow to open on a phone.");
+    }
+    say("");
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = Date.now() + "-" + (slugify($("title").value) || "cover") + "." + ext;
+
+    const up = await supabase.storage.from(BUCKET).upload(path, file, {
+      contentType: file.type || "image/jpeg", upsert: false
+    });
+    if (up.error) { console.error(up.error); return say("Couldn't upload the picture: " + up.error.message); }
+
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+    coverPath = path;
+    showCover(data.publicUrl);
+    say("Picture uploaded.", "ok");
+  });
+
+  $("cover-clear").addEventListener("click", async () => {
+    if (coverPath) { try { await supabase.storage.from(BUCKET).remove([coverPath]); } catch (e) {} }
+    coverPath = null;
+    $("cover-file").value = "";
+    showCover(null);
+  });
+
+  /* ---------- save ---------- */
+  $("save").addEventListener("click", async () => {
+    const title = $("title").value.trim();
+    const slug = ($("slug").value.trim() || slugify(title));
+    const body = $("body").value.trim();
+    const excerpt = $("excerpt").value.trim();
+    const status = $("status").value;
+
+    if (!title) return say("Give the post a title.");
+    if (!slug) return say("The web address came out empty. Type one yourself.");
+    if (!body) return say("The post has no text in it yet.");
+    if (status === "published" && !excerpt)
+      return say("Write a summary before publishing — it is what people see on LinkedIn and Facebook.");
+
+    const tags = $("tags").value.split(",").map(t => t.trim()).filter(Boolean);
+    const row = {
+      slug, title, excerpt: excerpt || null, body,
+      cover_url: coverUrl, cover_alt: $("cover-alt").value.trim() || null,
+      tags, status
+    };
+
+    $("save").disabled = true; $("save").textContent = "Saving…";
+    const res = editingId
+      ? await supabase.from("blog_posts").update(row).eq("id", editingId).select().single()
+      : await supabase.from("blog_posts").insert(row).select().single();
+    $("save").disabled = false; $("save").textContent = "Save";
+
+    if (res.error) {
+      console.error(res.error);
+      if ((res.error.message || "").includes("duplicate"))
+        return say("Another post already uses that web address. Change it and save again.");
+      return say("Couldn't save: " + res.error.message);
+    }
+
+    editingId = res.data.id;
+    $("editor-title").textContent = "Editing: " + res.data.title;
+    $("publish-note").hidden = status !== "published";
+    say(status === "published" ? "Saved and published." : "Saved as a draft. Nobody else can see it.", "ok");
+    load();
+  });
+
+  /* ---------- new / edit / delete ---------- */
+  function blank() {
+    editingId = null; coverPath = null; slugTouched = false;
+    ["title", "excerpt", "body", "tags", "slug", "cover-alt"].forEach(id => { $(id).value = ""; });
+    $("status").value = "draft";
+    $("cover-file").value = "";
+    $("slug-preview").textContent = "—";
+    showCover(null);
+    counts();
+    $("editor-title").textContent = "Write a new post";
+    $("publish-note").hidden = true;
+    say("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  $("reset").addEventListener("click", blank);
+
+  function edit(p) {
+    editingId = p.id;
+    slugTouched = true;
+    coverPath = null;                     // only set when a new file is uploaded
+    $("title").value = p.title || "";
+    $("slug").value = p.slug || "";
+    $("excerpt").value = p.excerpt || "";
+    $("body").value = p.body || "";
+    $("tags").value = (p.tags || []).join(", ");
+    $("cover-alt").value = p.cover_alt || "";
+    $("status").value = p.status || "draft";
+    $("slug-preview").textContent = "/blog/" + p.slug + ".html";
+    showCover(p.cover_url);
+    counts();
+    $("editor-title").textContent = "Editing: " + p.title;
+    $("publish-note").hidden = true;
+    say("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- list ---------- */
+  async function load() {
+    const { data, error } = await supabase.from("blog_posts")
+      .select("*").order("updated_at", { ascending: false });
+    const body = $("list-body"); body.innerHTML = "";
+    if (error) { console.error(error); return say("Couldn't load the posts: " + error.message); }
+
+    if (!data || !data.length) {
+      const tr = document.createElement("tr");
+      const td = el("td", "blank", "No posts yet. Write your first one above.");
+      td.colSpan = 5; tr.append(td); body.append(tr);
+      return;
+    }
+
+    for (const p of data) {
+      const tr = document.createElement("tr");
+      tr.append(el("td", "", p.title));
+
+      const st = el("td");
+      st.append(el("span", "pill " + (p.status === "published" ? "live" : "draft"),
+                   p.status === "published" ? "Published" : "Draft"));
+      tr.append(st);
+
+      tr.append(el("td", "", prettyDate(p.published_at)),
+                el("td", "", prettyDate(p.updated_at)));
+
+      const acts = el("td");
+      const wrap = el("div", "acts");
+
+      const e1 = el("button", "small-btn", "Edit");
+      e1.onclick = () => edit(p);
+      wrap.append(e1);
+
+      if (p.status === "published") {
+        const v = el("a", "small-btn", "View");
+        v.href = "blog/" + p.slug + ".html"; v.target = "_blank"; v.rel = "noopener";
+        v.style.textDecoration = "none";
+        wrap.append(v);
+      }
+
+      const t = el("button", "small-btn", p.status === "published" ? "Unpublish" : "Publish");
+      t.onclick = async () => {
+        if (p.status !== "published" && !p.excerpt)
+          return say("Add a summary to “" + p.title + "” before publishing it.");
+        t.disabled = true;
+        const { error } = await supabase.from("blog_posts")
+          .update({ status: p.status === "published" ? "draft" : "published" }).eq("id", p.id);
+        t.disabled = false;
+        if (error) { console.error(error); return say("Couldn't change that: " + error.message); }
+        if (p.status !== "published") $("publish-note").hidden = false;
+        load();
+      };
+      wrap.append(t);
+
+      const d = el("button", "small-btn danger", "Delete");
+      d.onclick = async () => {
+        if (!confirm("Delete “" + p.title + "”? This cannot be undone.")) return;
+        const { error } = await supabase.from("blog_posts").delete().eq("id", p.id);
+        if (error) { console.error(error); return say("Couldn't delete: " + error.message); }
+        if (editingId === p.id) blank();
+        load();
+      };
+      wrap.append(d);
+
+      acts.append(wrap);
+      tr.append(acts);
+      body.append(tr);
+    }
+  }
+
+  $("logout").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "login.html";
+  });
+
+  counts();
+  load();
+</script>
+</body>
+</html>

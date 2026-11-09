@@ -213,15 +213,39 @@
   }
 
   async function load() {
-    const { data, error } = await supabase
-      .from("jobs")
-      .select("id, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at")
-      .eq("region", REGION)
-      .or(`last_date.gte.${todayISO()},last_date.is.null`)
-      .order("created_at", { ascending: false })
-      .limit(500);
-    if (error) { console.error(error); showState("Couldn't load jobs.", "Check your internet connection and refresh the page."); return; }
-    all = data;
+    // Every open vacancy, not the first 500 of them.
+    //
+    // Filtering happens in the browser, so the page needs the whole set. The
+    // old limit of 500 silently hid the rest once the list passed that mark -
+    // the jobs were in the database and simply never reached anyone. Supabase
+    // returns at most 1000 rows per request, so ask for them a page at a time
+    // until a short page comes back.
+    const PAGE = 1000;
+    const rows = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at")
+        .eq("region", REGION)
+        .or(`last_date.gte.${todayISO()},last_date.is.null`)
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE - 1);
+
+      if (error) {
+        console.error(error);
+        // Anything already fetched is worth showing rather than nothing at all.
+        if (!rows.length) {
+          showState("Couldn't load jobs.", "Check your internet connection and refresh the page.");
+          return;
+        }
+        break;
+      }
+      rows.push(...(data || []));
+      if (!data || data.length < PAGE) break;
+      if (from > 20000) break;                 // a guard, never expected to fire
+    }
+
+    all = rows;
     setupFilters();
     render();
   }

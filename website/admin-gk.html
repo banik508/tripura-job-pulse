@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin: general knowledge | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1180px; }
+  .admin-nav { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .admin-nav a { font-size: 15px; font-weight: 500; color: var(--muted); text-decoration: none;
+                 padding: 7px 12px; border-radius: 8px; border: 1px solid transparent; }
+  .admin-nav a:hover { background: var(--teal-soft); color: var(--teal-deep); }
+  .admin-nav a[aria-current="page"] { background: var(--teal-deep); color: #fff; }
+
+  h2.sec { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); margin-top: 32px;
+           padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+
+  .split { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; margin-top: 18px; }
+  @media (max-width: 940px) { .split { grid-template-columns: 1fr; } }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .card h3 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); }
+  .card .hint { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+
+  .field { margin-top: 14px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .field .sub { font-weight: 400; color: var(--muted); font-size: 13px; }
+  input[type=text], input[type=url], textarea, select {
+    font: inherit; font-size: 15px; width: 100%; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  textarea { resize: vertical; line-height: 1.6; }
+  .counter { font-size: 13px; color: var(--muted); margin-top: 5px; }
+  .counter .over { color: #A33A34; font-weight: 600; }
+
+  .opt { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; margin-top: 8px; }
+  .opt .letter { font-family: Sora, sans-serif; font-weight: 700; color: var(--teal-deep); text-align: center; }
+  .opt input[type=radio] { width: 18px; height: 18px; accent-color: var(--teal); }
+  .opt-wrap { display: grid; grid-template-columns: 1fr 86px; gap: 10px; align-items: center; }
+  .right-tag { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .btn-sm { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 18px; border-radius: 8px;
+            border: 0; background: var(--teal-deep); color: #fff; cursor: pointer; }
+  .btn-sm.ghost { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .btn-sm:disabled { opacity: .55; cursor: default; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 15px; background: #fff; }
+  .table-wrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.blank { color: #9AA8A5; font-style: italic; }
+  .pill { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+  .pill.live { background: #E3F3EF; color: #0B5F4E; }
+  .pill.draft { background: #F0EADA; color: #7A5413; }
+  .pill.sent { background: #EDE7F6; color: #4A3A78; }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .small-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 7px;
+               border: 1px solid var(--line); background: #fff; color: var(--teal-deep); cursor: pointer; }
+  .small-btn:hover { background: var(--teal-soft); }
+  .small-btn.danger { color: var(--error); border-color: #E9C9C7; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+  .filters select, .filters input { width: auto; min-width: 150px; }
+  .stat { font-size: 14px; color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>General knowledge</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-vacancies.html">Vacancy submissions</a>
+    <a href="admin-blog.html">Blog</a>
+    <a href="admin-gk.html" aria-current="page">General knowledge</a>
+    <a href="admin-cards.html">Job cards</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+    <a href="admin-messages.html">Messages</a>
+  </nav>
+
+  <div id="area" hidden>
+    <h2 class="sec" id="editor-title">Add an item</h2>
+    <p id="msg" class="msg" hidden style="margin-top:14px"></p>
+
+    <div class="split">
+      <div class="card">
+        <div class="field">
+          <label for="kind">Type</label>
+          <select id="kind">
+            <option value="question">Question — four choices, one correct</option>
+            <option value="fact">Fact — a statement worth knowing</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="question" id="q-label">The question</label>
+          <textarea id="question" rows="3" placeholder="Which river flows through Agartala?"></textarea>
+          <div class="counter"><span id="q-count">0</span> characters
+            <span id="q-warn" class="over" hidden>— long questions shrink on the card, keep it under 120 if you can</span></div>
+        </div>
+
+        <div id="options-box">
+          <div class="field"><label>The four choices <span class="sub">— tick the correct one</span></label></div>
+          <div class="opt"><span class="letter">A</span>
+            <div class="opt-wrap"><input type="text" id="opt0" autocomplete="off">
+              <label class="right-tag"><input type="radio" name="ans" value="0" checked> correct</label></div></div>
+          <div class="opt"><span class="letter">B</span>
+            <div class="opt-wrap"><input type="text" id="opt1" autocomplete="off">
+              <label class="right-tag"><input type="radio" name="ans" value="1"> correct</label></div></div>
+          <div class="opt"><span class="letter">C</span>
+            <div class="opt-wrap"><input type="text" id="opt2" autocomplete="off">
+              <label class="right-tag"><input type="radio" name="ans" value="2"> correct</label></div></div>
+          <div class="opt"><span class="letter">D</span>
+            <div class="opt-wrap"><input type="text" id="opt3" autocomplete="off">
+              <label class="right-tag"><input type="radio" name="ans" value="3"> correct</label></div></div>
+        </div>
+
+        <div class="field" id="answer-box" hidden>
+          <label for="answer">The headline detail <span class="sub">— shown in the gold box on the card</span></label>
+          <input id="answer" type="text" placeholder="856 km of international border" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="explanation">Why <span class="sub">— the bit that makes it worth remembering</span></label>
+          <textarea id="explanation" rows="3" placeholder="Ten were added by the 42nd Amendment in 1976. The eleventh came in 2002."></textarea>
+          <div class="counter"><span id="e-count">0</span> characters
+            <span id="e-warn" class="over" hidden>— over 220 will be trimmed on the card</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Filing</h3>
+          <div class="field">
+            <label for="topic">Topic</label>
+            <input id="topic" type="text" list="topics" placeholder="Tripura GK" autocomplete="off">
+            <datalist id="topics">
+              <option value="Tripura GK"></option>
+              <option value="Indian Polity"></option>
+              <option value="Indian History"></option>
+              <option value="Geography"></option>
+              <option value="Economy"></option>
+              <option value="Science"></option>
+              <option value="Sports"></option>
+              <option value="Current affairs"></option>
+            </datalist>
+          </div>
+          <div class="field">
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="draft">Draft — not used anywhere</option>
+              <option value="published">Published — in the quiz, and queued for posting</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="source_name">Source <span class="sub">— optional</span></label>
+            <input id="source_name" type="text" placeholder="Census of India" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="source_url">Source link <span class="sub">— optional</span></label>
+            <input id="source_url" type="url" placeholder="https://" autocomplete="off">
+          </div>
+          <div class="row">
+            <button class="btn-sm" id="save" type="button">Save</button>
+            <button class="btn-sm ghost" id="reset" type="button">New item</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3>How these get used</h3>
+          <p class="hint">A published item appears in the quiz on the general knowledge page
+            straight away. It also joins the queue for Facebook and Instagram — the scheduled
+            poster sends one job card and one GK card each run, oldest unposted item first,
+            and never repeats one.</p>
+          <p class="hint" id="queue-note"></p>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec">The bank</h2>
+    <div class="filters">
+      <select id="f-topic"><option value="">All topics</option></select>
+      <select id="f-status">
+        <option value="">Draft and published</option>
+        <option value="published">Published only</option>
+        <option value="draft">Drafts only</option>
+      </select>
+      <input id="f-search" type="text" placeholder="Search…" autocomplete="off">
+      <span class="stat" id="count"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Topic</th><th>Type</th><th>Status</th><th>Posted</th><th></th></tr></thead>
+        <tbody id="list-body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const say = (text, kind) => {
+    const m = $("msg");
+    m.textContent = text; m.className = "msg " + (kind || "error"); m.hidden = !text;
+    if (text) m.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  /* ---------- access ---------- */
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-gk.html"; throw new Error("not signed in"); }
+  const { data: adminRow } = await supabase.from("admins")
+    .select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false;
+  $("area").hidden = false;
+
+  let editingId = null;
+  let items = [];
+  let postedIds = new Set();
+
+  /* ---------- question or fact ---------- */
+  function kindChanged() {
+    const q = $("kind").value === "question";
+    $("options-box").hidden = !q;
+    $("answer-box").hidden = q;
+    $("q-label").textContent = q ? "The question" : "The statement";
+    $("question").placeholder = q
+      ? "Which river flows through Agartala?"
+      : "Tripura is surrounded by Bangladesh on three of its four sides.";
+  }
+  $("kind").addEventListener("change", kindChanged);
+
+  function counts() {
+    const q = $("question").value.length, e = $("explanation").value.length;
+    $("q-count").textContent = q; $("q-warn").hidden = q <= 120;
+    $("e-count").textContent = e; $("e-warn").hidden = e <= 220;
+  }
+  $("question").addEventListener("input", counts);
+  $("explanation").addEventListener("input", counts);
+
+  /* ---------- save ---------- */
+  $("save").addEventListener("click", async () => {
+    const kind = $("kind").value;
+    const question = $("question").value.trim();
+    const topic = $("topic").value.trim();
+
+    if (!question) return say(kind === "question" ? "Type the question." : "Type the statement.");
+    if (!topic) return say("Give it a topic, so it can be filed and filtered.");
+
+    const row = {
+      kind, topic, question,
+      explanation: $("explanation").value.trim() || null,
+      source_name: $("source_name").value.trim() || null,
+      source_url: $("source_url").value.trim() || null,
+      difficulty: $("difficulty").value,
+      status: $("status").value
+    };
+
+    if (kind === "question") {
+      const opts = [0, 1, 2, 3].map(i => $("opt" + i).value.trim());
+      if (opts.some(o => !o)) return say("All four choices need filling in.");
+      const picked = document.querySelector('input[name="ans"]:checked');
+      if (!picked) return say("Tick which choice is correct.");
+      row.options = opts;
+      row.answer_index = Number(picked.value);
+      row.answer = opts[row.answer_index];
+    } else {
+      row.options = [];
+      row.answer_index = null;
+      row.answer = $("answer").value.trim() || null;
+    }
+
+    $("save").disabled = true; $("save").textContent = "Saving…";
+    const res = editingId
+      ? await supabase.from("gk_items").update(row).eq("id", editingId).select().single()
+      : await supabase.from("gk_items").insert(row).select().single();
+    $("save").disabled = false; $("save").textContent = "Save";
+
+    if (res.error) {
+      console.error(res.error);
+      if ((res.error.message || "").includes("gk_shape"))
+        return say("A question needs exactly four choices and one of them marked correct. A fact needs none.");
+      return say("Couldn't save: " + res.error.message);
+    }
+
+    editingId = res.data.id;
+    $("editor-title").textContent = "Editing an item";
+    say(row.status === "published"
+      ? "Saved and published. It is in the quiz now, and queued for Facebook and Instagram."
+      : "Saved as a draft.", "ok");
+    load();
+  });
+
+  /* ---------- new / edit ---------- */
+  function blank() {
+    editingId = null;
+    ["question", "explanation", "answer", "source_name", "source_url",
+     "opt0", "opt1", "opt2", "opt3"].forEach(id => { $(id).value = ""; });
+    $("kind").value = "question";
+    $("difficulty").value = "medium";
+    $("status").value = "draft";
+    const first = document.querySelector('input[name="ans"][value="0"]');
+    if (first) first.checked = true;
+    kindChanged(); counts();
+    $("editor-title").textContent = "Add an item";
+    say("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  $("reset").addEventListener("click", blank);
+
+  function edit(it) {
+    editingId = it.id;
+    $("kind").value = it.kind || "question";
+    $("question").value = it.question || "";
+    $("explanation").value = it.explanation || "";
+    $("answer").value = it.answer || "";
+    $("topic").value = it.topic || "";
+    $("difficulty").value = it.difficulty || "medium";
+    $("status").value = it.status || "draft";
+    $("source_name").value = it.source_name || "";
+    $("source_url").value = it.source_url || "";
+    const opts = it.options || [];
+    [0, 1, 2, 3].forEach(i => { $("opt" + i).value = opts[i] || ""; });
+    const pick = document.querySelector('input[name="ans"][value="' + (it.answer_index ?? 0) + '"]');
+    if (pick) pick.checked = true;
+    kindChanged(); counts();
+    $("editor-title").textContent = "Editing an item";
+    say("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- the list ---------- */
+  function draw() {
+    const topic = $("f-topic").value;
+    const status = $("f-status").value;
+    const term = $("f-search").value.trim().toLowerCase();
+
+    const shown = items.filter(i =>
+      (!topic || i.topic === topic) &&
+      (!status || i.status === status) &&
+      (!term || (i.question + " " + (i.explanation || "") + " " + (i.options || []).join(" "))
+        .toLowerCase().includes(term)));
+
+    const body = $("list-body"); body.innerHTML = "";
+    if (!shown.length) {
+      const tr = document.createElement("tr");
+      const td = el("td", "blank", items.length ? "Nothing matches those filters." : "Nothing in the bank yet.");
+      td.colSpan = 6; tr.append(td); body.append(tr);
+    } else {
+      for (const it of shown) {
+        const tr = document.createElement("tr");
+        tr.append(el("td", "", it.question));
+        tr.append(el("td", "", it.topic));
+        tr.append(el("td", "", it.kind === "fact" ? "Fact" : "Question"));
+
+        const st = el("td");
+        st.append(el("span", "pill " + (it.status === "published" ? "live" : "draft"),
+                     it.status === "published" ? "Published" : "Draft"));
+        tr.append(st);
+
+        const po = el("td");
+        if (postedIds.has(it.id)) po.append(el("span", "pill sent", "Posted"));
+        else po.append(el("span", "", it.status === "published" ? "Queued" : "—"));
+        tr.append(po);
+
+        const acts = el("td");
+        const wrap = el("div", "acts");
+        const e1 = el("button", "small-btn", "Edit"); e1.onclick = () => edit(it); wrap.append(e1);
+
+        const t = el("button", "small-btn", it.status === "published" ? "Unpublish" : "Publish");
+        t.onclick = async () => {
+          t.disabled = true;
+          const { error } = await supabase.from("gk_items")
+            .update({ status: it.status === "published" ? "draft" : "published" }).eq("id", it.id);
+          t.disabled = false;
+          if (error) { console.error(error); return say("Couldn't change that: " + error.message); }
+          load();
+        };
+        wrap.append(t);
+
+        const d = el("button", "small-btn danger", "Delete");
+        d.onclick = async () => {
+          if (!confirm("Delete this item? This cannot be undone.")) return;
+          const { error } = await supabase.from("gk_items").delete().eq("id", it.id);
+          if (error) { console.error(error); return say("Couldn't delete: " + error.message); }
+          if (editingId === it.id) blank();
+          load();
+        };
+        wrap.append(d);
+
+        acts.append(wrap); tr.append(acts); body.append(tr);
+      }
+    }
+    $("count").textContent = shown.length + " of " + items.length;
+  }
+
+  ["f-topic", "f-status"].forEach(id => $(id).addEventListener("change", draw));
+  $("f-search").addEventListener("input", draw);
+
+  async function load() {
+    const [res, posts] = await Promise.all([
+      supabase.from("gk_items").select("*").order("created_at", { ascending: false }),
+      supabase.from("gk_posts").select("gk_id")
+    ]);
+    if (res.error) { console.error(res.error); return say("Couldn't load the bank: " + res.error.message); }
+    items = res.data || [];
+    postedIds = new Set((posts.data || []).map(r => r.gk_id));
+
+    const topics = [...new Set(items.map(i => i.topic).filter(Boolean))].sort();
+    const keep = $("f-topic").value;
+    $("f-topic").innerHTML = '<option value="">All topics</option>';
+    for (const t of topics) {
+      const o = document.createElement("option"); o.value = t; o.textContent = t;
+      $("f-topic").append(o);
+    }
+    $("f-topic").value = keep;
+
+    const queued = items.filter(i => i.status === "published" && !postedIds.has(i.id)).length;
+    $("queue-note").textContent = queued
+      ? queued + " published item" + (queued === 1 ? "" : "s") + " waiting to be posted."
+      : "Nothing is waiting to be posted. Publish more to keep the queue fed.";
+
+    draw();
+  }
+
+  $("logout").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "login.html";
+  });
+
+  kindChanged(); counts(); load();
+</script>
+</body>
+</html>

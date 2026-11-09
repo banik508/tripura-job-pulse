@@ -103,7 +103,14 @@
     <div style="display:flex; gap:12px; flex-wrap:wrap">
       <button id="save-btn" class="btn" type="submit">Save profile</button>
       <a class="btn" href="cv.html" style="background:#fff; color:var(--teal); border:1px solid var(--teal); text-decoration:none">Build my CV</a>
+      <button id="logout" class="btn" type="button" style="background:#fff; color:var(--muted); border:1px solid var(--line)">Sign out</button>
     </div>
+
+    <p style="margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:15px;color:var(--muted)">
+      Want to leave? You can
+      <a href="delete-account.html">delete your account and everything in it</a>,
+      at any time, free of charge.
+    </p>
   </form>
 </main>
 
@@ -173,7 +180,8 @@
     showMsg("Profile saved.", "ok");
   });
 
-  $("logout").addEventListener("click", async () => {
+  // Guarded: the header is shared now, so this button may not be on the page.
+  $("logout") && $("logout").addEventListener("click", async () => {
     await supabase.auth.signOut();
     window.location.href = "login.html";
   });

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salary calculator | Tripura Job Pulse</title>
+<meta name="description" content="Work out the in-hand salary for a Tripura government pay level — basic pay, dearness allowance, house rent allowance and the deductions.">
+<link rel="canonical" href="https://tripurajobpulse.com/salary.html">
+<meta property="og:title" content="Salary calculator">
+<meta property="og:description" content="Pay level to in-hand salary, with the allowances and deductions set out.">
+<meta property="og:url" content="https://tripurajobpulse.com/salary.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tripura Job Pulse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
+<style>
+  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 80px; }
+  .wrap h1 { font-family: Sora, sans-serif; font-size: 32px; color: var(--teal-deep); }
+  .wrap .lead { font-size: 17.5px; color: var(--muted); margin-top: 10px; max-width: 640px; }
+
+  .grid { display: grid; grid-template-columns: 330px 1fr; gap: 20px; align-items: start; margin-top: 26px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .box h2 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); }
+
+  .ctl { margin-top: 15px; }
+  .ctl:first-of-type { margin-top: 12px; }
+  .ctl label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .ctl .sub { font-weight: 400; color: var(--muted); font-size: 13px; }
+  select, input[type=number] { font: inherit; font-size: 15px; width: 100%; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+  .radios { display: flex; gap: 8px; flex-wrap: wrap; }
+  .radios label { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500;
+                  border: 1px solid var(--line); border-radius: 9px; padding: 9px 13px; cursor: pointer; margin: 0; }
+  .radios input { accent-color: var(--teal); }
+
+  .total { background: linear-gradient(135deg, #0B3A38, #15706B); border-radius: 14px;
+           padding: 22px 24px; color: #fff; }
+  .total .l { font-size: 14px; color: #B7CFCB; }
+  .total .n { font-family: Sora, sans-serif; font-size: 42px; font-weight: 700; line-height: 1.1; margin-top: 4px; }
+  @media (max-width: 420px) { .total .n { font-size: 33px; } }
+  .total .m { font-size: 14px; color: #B7CFCB; margin-top: 8px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; margin-top: 16px; }
+  th, td { text-align: left; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.head th { font-family: Sora, sans-serif; font-size: 13px; text-transform: uppercase;
+               letter-spacing: .5px; color: var(--muted); border-bottom: 2px solid var(--teal-soft); }
+  tr.sum td { font-weight: 700; color: var(--teal-deep); border-bottom: 2px solid var(--teal-soft); }
+  tr.minus td { color: #A33A34; }
+
+  .note { font-size: 14px; color: var(--muted); margin-top: 22px; line-height: 1.65;
+          border-left: 3px solid var(--marigold); padding-left: 14px; }
+  .off { background: #fff; border: 1px dashed var(--line); border-radius: 14px;
+         padding: 44px 24px; text-align: center; color: var(--muted); margin-top: 26px; }
+  .off b { display: block; font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); margin-bottom: 8px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="tjp-header"></div>
+
+<main class="wrap">
+  <h1>Salary calculator</h1>
+  <p class="lead">Pick a pay level and see what actually reaches your bank account — basic pay plus
+    allowances, less the deductions.</p>
+
+  <div class="off" id="off" hidden>
+    <b>Not ready yet</b>
+    The pay figures are still being entered from the official matrix.
+    Rather than show you a number that might be wrong, this page stays off until they are checked.
+  </div>
+
+  <div class="grid" id="tool" hidden>
+    <div class="box">
+      <h2>Your post</h2>
+
+      <div class="ctl">
+        <label for="level">Pay level</label>
+        <select id="level"></select>
+      </div>
+
+      <div class="ctl">
+        <label for="basic">Basic pay <span class="sub">— change it if yours differs</span></label>
+        <input type="number" id="basic" min="1000" step="100">
+      </div>
+
+      <div class="ctl">
+        <label>Where you are posted <span class="sub">— this sets the house rent allowance</span></label>
+        <div class="radios" id="city">
+          <label><input type="radio" name="city" value="x"> Class X</label>
+          <label><input type="radio" name="city" value="y"> Class Y</label>
+          <label><input type="radio" name="city" value="z" checked> Class Z</label>
+        </div>
+      </div>
+
+      <div class="ctl">
+        <label><input type="checkbox" id="hra-on" checked style="width:auto;accent-color:var(--teal)">
+          I receive house rent allowance</label>
+        <p class="sub" style="margin-top:4px">Untick it if you are in government quarters.</p>
+      </div>
+
+      <div class="ctl">
+        <label><input type="checkbox" id="nps-on" checked style="width:auto;accent-color:var(--teal)">
+          Pension contribution is deducted</label>
+      </div>
+    </div>
+
+    <div>
+      <div class="total">
+        <div class="l">In hand, each month</div>
+        <div class="n" id="inhand">—</div>
+        <div class="m" id="gross-line"></div>
+      </div>
+
+      <div class="box" style="margin-top:16px">
+        <table>
+          <tr class="head"><th>What you are paid</th><th class="n" style="text-align:right">Per month</th></tr>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <p class="note" id="note"></p>
+    </div>
+  </div>
+</main>
+
+<div id="tjp-footer"></div>
+
+<script src="config.js"></script>
+<script src="tjp-header.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const $ = id => document.getElementById(id);
+  const rupees = n => "₹" + Math.round(n).toLocaleString("en-IN");
+
+  let settings = null, levels = [];
+
+  function row(tbody, label, amount, cls) {
+    const tr = document.createElement("tr");
+    if (cls) tr.className = cls;
+    const a = document.createElement("td"); a.textContent = label;
+    const b = document.createElement("td"); b.className = "n";
+    b.textContent = (cls === "minus" ? "− " : "") + rupees(Math.abs(amount));
+    tr.append(a, b); tbody.append(tr);
+  }
+
+  function calculate() {
+    if (!settings) return;
+    const basic = Math.max(0, Number($("basic").value) || 0);
+    const cls = (document.querySelector('input[name="city"]:checked') || {}).value || "z";
+    const hraPct = $("hra-on").checked
+      ? Number(settings["hra_" + cls + "_percent"] || 0) : 0;
+
+    const da  = basic * Number(settings.da_percent || 0) / 100;
+    const hra = basic * hraPct / 100;
+    const ta  = Number(settings.ta_amount || 0);
+    const gross = basic + da + hra + ta;
+
+    const nps = $("nps-on").checked
+      ? (basic + da) * Number(settings.nps_percent || 0) / 100 : 0;
+    const pt = Number(settings.pt_amount || 0);
+    const deductions = nps + pt;
+    const inhand = gross - deductions;
+
+    const tbody = $("rows"); tbody.innerHTML = "";
+    row(tbody, "Basic pay", basic);
+    row(tbody, `Dearness allowance (${settings.da_percent}%)`, da);
+    if (hraPct) row(tbody, `House rent allowance (${hraPct}%, class ${cls.toUpperCase()})`, hra);
+    if (ta) row(tbody, "Transport allowance", ta);
+    row(tbody, "Gross", gross, "sum");
+    if (nps) row(tbody, `Pension contribution (${settings.nps_percent}% of basic + DA)`, nps, "minus");
+    if (pt) row(tbody, "Professional tax", pt, "minus");
+    row(tbody, "In hand", inhand, "sum");
+
+    $("inhand").textContent = rupees(inhand);
+    $("gross-line").textContent = "Gross " + rupees(gross) + " · deductions " + rupees(deductions);
+  }
+
+  async function load() {
+    const [s, l] = await Promise.all([
+      supabase.from("pay_settings").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("pay_levels").select("*").order("sort_order", { ascending: true })
+    ]);
+
+    // Row level security hides the figures until they are switched on, so an
+    // empty answer here means "not published yet", not "something broke".
+    if (s.error || !s.data || !s.data.is_live || !(l.data || []).length) {
+      $("off").hidden = false;
+      return;
+    }
+
+    settings = s.data;
+    levels = l.data;
+    $("tool").hidden = false;
+
+    const sel = $("level");
+    sel.innerHTML = "";
+    levels.forEach((lv, i) => {
+      const o = new Option(lv.level + " — basic " + rupees(lv.basic), String(i));
+      sel.append(o);
+    });
+    $("basic").value = levels[0].basic;
+
+    sel.addEventListener("change", () => {
+      $("basic").value = levels[Number(sel.value)].basic;
+      calculate();
+    });
+
+    ["basic", "hra-on", "nps-on"].forEach(id => $(id).addEventListener("input", calculate));
+    document.querySelectorAll('input[name="city"]').forEach(r => r.addEventListener("change", calculate));
+
+    const bits = [];
+    if (settings.effective_from) {
+      bits.push("Figures in force from " +
+        new Date(settings.effective_from + "T00:00:00").toLocaleDateString("en-IN",
+          { day: "numeric", month: "long", year: "numeric" }) + ".");
+    }
+    if (settings.source_note) bits.push(settings.source_note);
+    bits.push("This is an estimate. Your actual pay slip depends on your department, your date of " +
+      "joining and any allowance specific to the post. Treat the official order as the authority, " +
+      "not this page.");
+    $("note").textContent = bits.join(" ");
+
+    calculate();
+  }
+
+  load();
+</script>
+</body>
+</html>

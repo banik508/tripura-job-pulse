@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delete your account | Tripura Job Pulse</title>
+<meta name="description" content="Delete your Tripura Job Pulse account and everything stored with it, at any time, free of charge.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
+<style>
+  .page.narrow { max-width: 620px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-top: 22px; }
+  .card.danger { border-left: 4px solid var(--error); }
+  .card h2 { font-family: Sora, sans-serif; font-size: 19px; color: var(--teal-deep); }
+  .card p { margin-top: 8px; color: var(--muted); }
+  .card ul { margin: 10px 0 0 20px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+  .btn.danger { background: var(--error); }
+  .btn.danger:hover { background: #8C2824; }
+  .btn.ghost { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .steps { counter-reset: s; list-style: none; margin: 14px 0 0; display: flex; flex-direction: column; gap: 12px; }
+  .steps li { position: relative; padding-left: 36px; }
+  .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 1px;
+    width: 24px; height: 24px; border-radius: 50%; background: var(--teal-soft); color: var(--teal-deep);
+    font-family: Sora, sans-serif; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .confirm-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="tjp-header"></div>
+<noscript><nav class="nav"><div class="inner"><a class="brand" href="index.html">Tripura <span>Job Pulse</span></a></div></nav></noscript>
+
+<main class="page narrow">
+  <h1>Delete your account</h1>
+  <p class="lead">You can delete your Tripura Job Pulse account at any time, free of charge.
+    You do not need to give a reason, and you do not need to ask us.</p>
+
+  <div class="card">
+    <h2>What gets deleted</h2>
+    <p>Everything we hold that is tied to your login:</p>
+    <ul>
+      <li>Your login and email address</li>
+      <li>Your profile — name, phone number, district, date of birth, education, experience, skills and languages</li>
+      <li>Your mock test attempts and scores</li>
+      <li>Your typing test attempts</li>
+      <li>Your skill certificates, and the record behind them</li>
+      <li>Your payment records and any job plan you bought</li>
+    </ul>
+    <p><strong>This cannot be undone.</strong> Any certificate you have earned will stop working
+      on our verification page, so if an employer checks it afterwards it will not be found.
+      Download anything you want to keep before you delete.</p>
+    <p>Job alert emails are a separate list. If you only want those to stop, use the unsubscribe
+      link at the bottom of any alert — that does not touch your account.</p>
+  </div>
+
+  <!-- Signed in: delete it here and now -->
+  <div class="card danger" id="signed-in" hidden>
+    <h2>Delete the account you are signed in to</h2>
+    <p id="who"></p>
+    <p id="del-msg" class="msg" hidden></p>
+    <div class="confirm-row" id="step-1">
+      <button class="btn danger" id="start" type="button" style="width:auto">Delete my account</button>
+      <a class="btn ghost" href="profile.html" style="width:auto;text-decoration:none">Go back to my profile</a>
+    </div>
+    <div id="step-2" hidden>
+      <p style="color:var(--ink);margin-top:14px"><strong>Are you sure?</strong>
+        Type <strong>DELETE</strong> below to confirm. There is no way back from this.</p>
+      <div class="field" style="margin-top:10px">
+        <label for="word">Type DELETE</label>
+        <input id="word" autocomplete="off" autocapitalize="characters" placeholder="DELETE">
+      </div>
+      <div class="confirm-row">
+        <button class="btn danger" id="confirm" type="button" style="width:auto">Yes, delete everything</button>
+        <button class="btn ghost" id="cancel" type="button" style="width:auto">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signed out: either sign in, or ask us -->
+  <div class="card" id="signed-out">
+    <h2>You are not signed in</h2>
+    <p>The quickest way is to sign in and delete it yourself — it takes about ten seconds.</p>
+    <ol class="steps">
+      <li>Sign in with your email address</li>
+      <li>Come back to this page</li>
+      <li>Press <strong>Delete my account</strong> and confirm</li>
+    </ol>
+    <div class="confirm-row">
+      <a class="btn" href="login.html?next=delete-account.html" style="width:auto;text-decoration:none">Sign in</a>
+    </div>
+  </div>
+
+  <div class="card" id="ask">
+    <h2>If you cannot sign in</h2>
+    <p>Lost the password, or no longer use that email address? Ask us here and we will delete the
+      account for you. We will reply to confirm once it is done.</p>
+    <form id="req-form" novalidate style="margin-top:4px">
+      <div class="field">
+        <label for="r-email">The email address on the account</label>
+        <input id="r-email" type="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="r-note">Anything that helps us find it <span class="optional">(optional)</span></label>
+        <input id="r-note" placeholder="Your name, or the phone number on the profile">
+      </div>
+      <p id="req-msg" class="msg" hidden></p>
+      <button class="btn" id="req-btn" type="submit">Request deletion</button>
+    </form>
+    <p style="font-size:14px;margin-top:12px">You can also write to
+      <a href="mailto:tripurajobpulse@gmail.com">tripurajobpulse@gmail.com</a> from the address on
+      the account. We action every request within seven days.</p>
+  </div>
+
+  <p class="lead" style="margin-top:22px;font-size:15px">
+    What we collect and why is set out in our <a href="privacy.html">privacy policy</a>.</p>
+</main>
+
+<div id="tjp-footer"></div>
+
+<script src="config.js"></script>
+<script src="tjp-header.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const say = (node, text, type) => { node.textContent = text; node.className = "msg " + (type || "error"); node.hidden = !text; };
+
+  /* ---------- signed in or not ---------- */
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    $("signed-in").hidden = false;
+    $("signed-out").hidden = true;
+    $("who").textContent = "Signed in as " + session.user.email + ".";
+  }
+
+  /* ---------- delete, with a deliberate second step ---------- */
+  $("start") && ($("start").onclick = () => { $("step-1").hidden = true; $("step-2").hidden = false; $("word").focus(); });
+  $("cancel") && ($("cancel").onclick = () => { $("step-2").hidden = true; $("step-1").hidden = false; say($("del-msg"), ""); });
+
+  $("confirm") && ($("confirm").addEventListener("click", async () => {
+    if ($("word").value.trim().toUpperCase() !== "DELETE") {
+      return say($("del-msg"), "Type DELETE in the box to confirm.");
+    }
+    say($("del-msg"), "");
+    $("confirm").disabled = true; $("confirm").textContent = "Deleting…";
+
+    const { error } = await supabase.rpc("delete_my_account");
+    if (error) {
+      $("confirm").disabled = false; $("confirm").textContent = "Yes, delete everything";
+      console.error(error);
+      return say($("del-msg"), "We couldn't delete it just now. Please try again, or use the request form below and we will do it for you.");
+    }
+
+    // The login is gone; clear the session held in this browser too.
+    try { await supabase.auth.signOut(); } catch (e) {}
+    document.querySelector("main").innerHTML =
+      '<h1>Your account has been deleted</h1>' +
+      '<p class="lead">Everything we held about you is gone. Thank you for having used Tripura Job Pulse.</p>' +
+      '<p class="lead" style="margin-top:18px">You are welcome back any time — the jobs stay free to browse.</p>' +
+      '<div style="margin-top:22px"><a class="btn" href="index.html" style="width:auto;text-decoration:none">Back to the home page</a></div>';
+    window.scrollTo(0, 0);
+  }));
+
+  /* ---------- request form, for people who cannot sign in ---------- */
+  $("req-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = $("r-email").value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say($("req-msg"), "Enter the email address on the account.");
+    say($("req-msg"), "");
+    $("req-btn").disabled = true; $("req-btn").textContent = "Sending…";
+    const { error } = await supabase.from("deletion_requests")
+      .insert({ email, note: $("r-note").value.trim() || null });
+    $("req-btn").disabled = false; $("req-btn").textContent = "Request deletion";
+    if (error) { console.error(error); return say($("req-msg"), "Couldn't send that just now. Please email us instead."); }
+    $("req-form").reset();
+    say($("req-msg"), "Request received. We will delete the account and email you to confirm, within seven days.", "ok");
+  });
+</script>
+</body>
+</html>

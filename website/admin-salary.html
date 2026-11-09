@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin: pay figures | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1100px; }
+  .admin-nav { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .admin-nav a { font-size: 15px; font-weight: 500; color: var(--muted); text-decoration: none;
+                 padding: 7px 12px; border-radius: 8px; border: 1px solid transparent; }
+  .admin-nav a:hover { background: var(--teal-soft); color: var(--teal-deep); }
+  .admin-nav a[aria-current="page"] { background: var(--teal-deep); color: #fff; }
+
+  h2.sec { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); margin-top: 30px;
+           padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-top: 16px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .field .sub { font-weight: 400; color: var(--muted); font-size: 13px; }
+  input[type=text], input[type=number], input[type=date], textarea {
+    font: inherit; font-size: 15px; width: 100%; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px; }
+  textarea { resize: vertical; }
+
+  .live { display: flex; gap: 12px; align-items: flex-start; background: #FFF8EA;
+          border: 1px solid var(--marigold); border-radius: 10px; padding: 14px 16px; margin-top: 16px; }
+  .live input { width: 20px; height: 20px; accent-color: var(--teal-deep); margin-top: 2px; }
+  .live b { display: block; font-size: 15px; color: #7A5413; }
+  .live p { font-size: 14px; color: #7A5413; margin-top: 4px; line-height: 1.55; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+  .btn-sm { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 18px; border-radius: 8px;
+            border: 0; background: var(--teal-deep); color: #fff; cursor: pointer; }
+  .btn-sm.ghost { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .btn-sm:disabled { opacity: .55; cursor: default; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 15px; background: #fff; }
+  .table-wrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.blank { color: #9AA8A5; font-style: italic; }
+  td input { padding: 7px 9px; font-size: 14px; }
+  .small-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 7px;
+               border: 1px solid var(--line); background: #fff; color: var(--teal-deep); cursor: pointer; }
+  .small-btn.danger { color: var(--error); border-color: #E9C9C7; }
+
+  .preview { background: var(--teal-soft); border-radius: 10px; padding: 14px 16px; margin-top: 16px; font-size: 15px; }
+  .preview b { font-family: Sora, sans-serif; color: var(--teal-deep); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Pay figures</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-vacancies.html">Vacancy submissions</a>
+    <a href="admin-blog.html">Blog</a>
+    <a href="admin-gk.html">General knowledge</a>
+    <a href="admin-salary.html" aria-current="page">Pay figures</a>
+    <a href="admin-cards.html">Job cards</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+    <a href="admin-messages.html">Messages</a>
+  </nav>
+
+  <div id="area" hidden>
+    <p id="msg" class="msg" hidden style="margin-top:14px"></p>
+
+    <h2 class="sec">Allowances and deductions</h2>
+    <div class="card">
+      <div class="fields">
+        <div class="field">
+          <label for="da">Dearness allowance <span class="sub">%</span></label>
+          <input type="number" id="da" step="0.01" min="0" max="500">
+        </div>
+        <div class="field">
+          <label for="hx">House rent, class X <span class="sub">%</span></label>
+          <input type="number" id="hx" step="0.01" min="0" max="100">
+        </div>
+        <div class="field">
+          <label for="hy">House rent, class Y <span class="sub">%</span></label>
+          <input type="number" id="hy" step="0.01" min="0" max="100">
+        </div>
+        <div class="field">
+          <label for="hz">House rent, class Z <span class="sub">%</span></label>
+          <input type="number" id="hz" step="0.01" min="0" max="100">
+        </div>
+        <div class="field">
+          <label for="ta">Transport allowance <span class="sub">rupees a month</span></label>
+          <input type="number" id="ta" step="1" min="0">
+        </div>
+        <div class="field">
+          <label for="nps">Pension contribution <span class="sub">% of basic + DA</span></label>
+          <input type="number" id="nps" step="0.01" min="0" max="100">
+        </div>
+        <div class="field">
+          <label for="pt">Professional tax <span class="sub">rupees a month</span></label>
+          <input type="number" id="pt" step="1" min="0">
+        </div>
+        <div class="field">
+          <label for="eff">In force from</label>
+          <input type="date" id="eff">
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label for="src">Where these came from <span class="sub">— shown to visitors under the result</span></label>
+        <textarea id="src" rows="2" placeholder="From the Finance Department order dated …"></textarea>
+      </div>
+
+      <div class="live">
+        <input type="checkbox" id="live">
+        <div>
+          <b>Show the calculator on the website</b>
+          <p>Leave this off until every figure above is checked against the official order.
+            While it is off, visitors see a short note saying the page is not ready, and the
+            figures are not readable by anyone but you.</p>
+        </div>
+      </div>
+
+      <div class="preview" id="preview"></div>
+
+      <div class="row">
+        <button class="btn-sm" id="save" type="button">Save</button>
+      </div>
+    </div>
+
+    <h2 class="sec">Pay levels</h2>
+    <div class="card">
+      <div class="fields">
+        <div class="field">
+          <label for="n-level">Level</label>
+          <input type="text" id="n-level" placeholder="Level 1" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="n-basic">Starting basic pay</label>
+          <input type="number" id="n-basic" step="1" min="1" placeholder="18000">
+        </div>
+        <div class="field">
+          <label for="n-order">Order</label>
+          <input type="number" id="n-order" step="1" placeholder="1">
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn-sm ghost" id="add" type="button">Add this level</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Level</th><th>Basic pay</th><th>Order</th><th></th></tr></thead>
+        <tbody id="levels"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const say = (t, kind) => {
+    const m = $("msg");
+    m.textContent = t; m.className = "msg " + (kind || "error"); m.hidden = !t;
+  };
+  const rupees = n => "₹" + Math.round(n).toLocaleString("en-IN");
+  const num = id => Number($(id).value) || 0;
+
+  /* ---------- access ---------- */
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-salary.html"; throw new Error("not signed in"); }
+  const { data: adminRow } = await supabase.from("admins")
+    .select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false;
+  $("area").hidden = false;
+
+  let levels = [];
+
+  /* A worked example, so a typo in a percentage is obvious before it goes live. */
+  function preview() {
+    const basic = levels.length ? Number(levels[0].basic) : 18000;
+    const da = basic * num("da") / 100;
+    const hra = basic * num("hz") / 100;
+    const gross = basic + da + hra + num("ta");
+    const inhand = gross - (basic + da) * num("nps") / 100 - num("pt");
+    $("preview").innerHTML = "";
+    $("preview").append(
+      document.createTextNode("On a basic of " + rupees(basic) + " in a class Z posting, that comes to "),
+      el("b", "", rupees(gross) + " gross"),
+      document.createTextNode(" and "),
+      el("b", "", rupees(inhand) + " in hand"),
+      document.createTextNode(".")
+    );
+  }
+  ["da", "hx", "hy", "hz", "ta", "nps", "pt"].forEach(id => $(id).addEventListener("input", preview));
+
+  /* ---------- settings ---------- */
+  $("save").addEventListener("click", async () => {
+    if ($("live").checked && !levels.length) {
+      return say("Add at least one pay level before switching the calculator on.");
+    }
+    $("save").disabled = true; $("save").textContent = "Saving…";
+    const { error } = await supabase.from("pay_settings").update({
+      da_percent: num("da"),
+      hra_x_percent: num("hx"), hra_y_percent: num("hy"), hra_z_percent: num("hz"),
+      ta_amount: num("ta"), nps_percent: num("nps"), pt_amount: num("pt"),
+      effective_from: $("eff").value || null,
+      source_note: $("src").value.trim() || null,
+      is_live: $("live").checked
+    }).eq("id", 1);
+    $("save").disabled = false; $("save").textContent = "Save";
+    if (error) { console.error(error); return say("Couldn't save: " + error.message); }
+    say($("live").checked
+      ? "Saved. The calculator is live on the website."
+      : "Saved. The calculator stays hidden until you tick the box above.", "ok");
+  });
+
+  /* ---------- levels ---------- */
+  $("add").addEventListener("click", async () => {
+    const level = $("n-level").value.trim();
+    const basic = Number($("n-basic").value);
+    if (!level) return say("Give the level a name.");
+    if (!(basic > 0)) return say("Basic pay has to be a number above zero.");
+    const { error } = await supabase.from("pay_levels").insert({
+      level, basic, sort_order: Number($("n-order").value) || levels.length + 1
+    });
+    if (error) {
+      console.error(error);
+      return say((error.message || "").includes("duplicate")
+        ? "There is already a level with that name." : "Couldn't add it: " + error.message);
+    }
+    $("n-level").value = ""; $("n-basic").value = ""; $("n-order").value = "";
+    say("Level added.", "ok");
+    load();
+  });
+
+  function drawLevels() {
+    const body = $("levels"); body.innerHTML = "";
+    if (!levels.length) {
+      const tr = document.createElement("tr");
+      const td = el("td", "blank", "No pay levels yet. Add them from the official matrix above.");
+      td.colSpan = 4; tr.append(td); body.append(tr);
+      return;
+    }
+    for (const lv of levels) {
+      const tr = document.createElement("tr");
+      tr.append(el("td", "", lv.level), el("td", "", rupees(lv.basic)), el("td", "", String(lv.sort_order)));
+      const act = el("td");
+      const d = el("button", "small-btn danger", "Remove");
+      d.onclick = async () => {
+        if (!confirm("Remove " + lv.level + "?")) return;
+        const { error } = await supabase.from("pay_levels").delete().eq("id", lv.id);
+        if (error) { console.error(error); return say("Couldn't remove it: " + error.message); }
+        load();
+      };
+      act.append(d); tr.append(act); body.append(tr);
+    }
+  }
+
+  async function load() {
+    const [s, l] = await Promise.all([
+      supabase.from("pay_settings").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("pay_levels").select("*").order("sort_order", { ascending: true })
+    ]);
+    if (s.error) { console.error(s.error); return say("Couldn't load the figures: " + s.error.message); }
+    const d = s.data || {};
+    $("da").value = d.da_percent ?? 0;
+    $("hx").value = d.hra_x_percent ?? 0;
+    $("hy").value = d.hra_y_percent ?? 0;
+    $("hz").value = d.hra_z_percent ?? 0;
+    $("ta").value = d.ta_amount ?? 0;
+    $("nps").value = d.nps_percent ?? 0;
+    $("pt").value = d.pt_amount ?? 0;
+    $("eff").value = d.effective_from || "";
+    $("src").value = d.source_note || "";
+    $("live").checked = !!d.is_live;
+
+    levels = l.data || [];
+    drawLevels();
+    preview();
+  }
+
+  $("logout").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "login.html";
+  });
+
+  load();
+</script>
+</body>
+</html>
