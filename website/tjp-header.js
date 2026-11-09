@@ -17,6 +17,18 @@
   var ICON_BASE = "https://cdn.jsdelivr.net/npm/@tabler/icons@3.47.0/icons/outline/";
   var HERE = (location.pathname.split("/").pop() || "index.html").toLowerCase();
 
+  /* Pages in a subfolder - /blog/a-post.html - need "../" in front of every
+     link, or "jobs.html" resolves to "/blog/jobs.html" and 404s. Work out how
+     deep this page sits and prefix accordingly. */
+  var PARTS = location.pathname.replace(/^\/+|\/+$/g, "").split("/");
+  var DEPTH = Math.max(0, PARTS.length - 1);
+  var PRE = DEPTH ? new Array(DEPTH + 1).join("../") : "";
+  var U = function (href) {
+    if (!href) return href;
+    if (/^(https?:|mailto:|tel:|#)/i.test(href)) return href;
+    return PRE + href;
+  };
+
   /* ---------- the menu, in one place ---------- */
   var MENU = [
     { label: "Jobs", items: [
@@ -39,7 +51,7 @@
       [null, "search",     "Eligibility checker","Every vacancy you actually qualify for"],
       [null, "route",      "Career roadmap",     "Your path from where you are to the post you want"]
     ]},
-    { label: "Blog", soon: true }
+    { label: "Blog", href: "blog.html" }
   ];
 
   var SOCIAL = [
@@ -56,8 +68,10 @@
                    ["current-affairs.html","Current affairs"]]],
     ["Career Toolkit", [["cv.html","CV builder"],["typing.html","Typing test"],
                         ["certifications.html","Certifications"],["verify.html","Verify a certificate"]]],
+    // privacy.html and delete-account.html are built but not uploaded yet.
+    // Listing them here would put two dead links in every page footer.
     ["More",      [["index.html#contact","Post a vacancy"],["index.html#contact","Contact us"],
-                   ["privacy.html","Privacy policy"],["delete-account.html","Delete your account"],
+                   ["blog.html","Blog"],
                    ["index.html#declaration","Declaration"]]]
   ];
 
@@ -79,7 +93,7 @@
         return;
       }
       if (m.href) {
-        out += '<a href="' + m.href + '"' + (isHere(m.href) ? ' class="here"' : "") + ">" + esc(m.label) + "</a>";
+        out += '<a href="' + U(m.href) + '"' + (isHere(m.href) ? ' class="here"' : "") + ">" + esc(m.label) + "</a>";
         return;
       }
       var open = m.items.some(function (i) { return isHere(i[0]); });
@@ -89,7 +103,7 @@
              '<div class="drop' + (m.items.length < 4 ? " one-col" : "") + '">' +
              m.items.map(function (it) {
                var href = it[0], tag = href ? "a" : "span";
-               var attrs = href ? ' href="' + href + '"' : ' class="soon-item"';
+               var attrs = href ? ' href="' + U(href) + '"' : ' class="soon-item"';
                return "<" + tag + attrs + '><span class="di"><span class="icon" data-icon="' + it[1] +
                       '"></span></span><span><b>' + esc(it[2]) +
                       (href ? "" : ' <span class="soon">soon</span>') +
@@ -105,12 +119,12 @@
 
     // Signed out, the Sign in link returns the visitor to the page they were on.
     var next = HERE && HERE !== "index.html" && HERE !== "login.html" ? "?next=" + encodeURIComponent(HERE) : "";
-    out += '<a class="cta" id="account-link" href="login.html' + next + '">Sign in</a>';
+    out += '<a class="cta" id="account-link" href="' + U('login.html') + next + '">Sign in</a>';
     // Hidden until a session is found. Every page then has a way out.
     out += '<button class="signout" id="signout-link" type="button" hidden>Sign out</button>';
 
     return '<nav class="nav"><div class="inner">' +
-           '<a class="brand" href="index.html">Tripura <span>Job Pulse</span></a>' +
+           '<a class="brand" href="' + U("index.html") + '">Tripura <span>Job Pulse</span></a>' +
            '<button class="burger" id="tjp-burger" aria-label="Menu" aria-expanded="false">&#9776;</button>' +
            '<div class="menu" id="tjp-menu">' + out + "</div></div></nav>";
   }
@@ -125,11 +139,11 @@
       }).join("") + "</div></div>" +
       FOOT.map(function (c) {
         return "<div><h4>" + esc(c[0]) + "</h4>" +
-               c[1].map(function (l) { return '<a href="' + l[0] + '">' + esc(l[1]) + "</a>"; }).join("") +
+               c[1].map(function (l) { return '<a href="' + U(l[0]) + '">' + esc(l[1]) + "</a>"; }).join("") +
                "</div>";
       }).join("") +
       '</div><div class="bottom"><span id="tjp-copy">© Tripura Job Pulse</span>' +
-      '<span><a href="index.html#declaration">Declaration</a></span></div></div></footer>';
+      '<span><a href="' + U("index.html") + '#declaration">Declaration</a></span></div></div></footer>';
   }
 
   /* ---------- paint ---------- */
@@ -252,7 +266,7 @@
 
     if (!live) return;
     link.textContent = "My profile";
-    link.href = "profile.html";
+    link.href = U("profile.html");
 
     var out = document.getElementById("signout-link");
     if (!out) return;
@@ -267,7 +281,7 @@
       var cfg = window.TJP_CONFIG || {};
       try { keys.forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
 
-      var done = function () { window.location.href = "index.html"; };
+      var done = function () { window.location.href = U("index.html"); };
       if (!cfg.SUPABASE_URL || !cfg.SUPABASE_KEY || !token) return done();
 
       var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
