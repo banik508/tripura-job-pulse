@@ -39,6 +39,7 @@ import os
 import re
 import shutil
 import sys
+import urllib.parse
 
 from supabase import create_client
 
@@ -61,6 +62,7 @@ STATIC = [
     ("cv.html", "0.6", "monthly"),
     ("learn.html", "0.6", "monthly"),
     ("plans.html", "0.5", "monthly"),
+    ("blog.html", "0.8", "weekly"),
     ("login.html", "0.3", "monthly"),
 ]
 
@@ -445,7 +447,7 @@ def render_index(entries):
 """
 
 
-def render_sitemap(entries):
+def render_sitemap(entries, posts=()):
     today = dt.date.today().isoformat()
     out = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
@@ -470,6 +472,13 @@ def render_sitemap(entries):
                 f'    <changefreq>weekly</changefreq>',
                 f'    <priority>{"0.8" if is_open(job) else "0.6"}</priority></url>']
 
+    for p in posts:
+        changed = post_date(p)
+        out += [f'  <url><loc>{SITE}/blog/{p["slug"]}.html</loc>',
+                f'    <lastmod>{changed.isoformat()}</lastmod>',
+                f'    <changefreq>monthly</changefreq>',
+                f'    <priority>0.7</priority></url>']
+
     out.append('</urlset>')
     return "\n".join(out)
 
@@ -486,6 +495,404 @@ Disallow: /result.html
 
 Sitemap: {SITE}/sitemap.xml
 """
+
+
+
+# ===========================================================================
+#  The blog
+#
+#  Posts are written in the admin panel and stored in Supabase. This turns
+#  each published one into a real HTML page.
+#
+#  Why static rather than loading the post with JavaScript: when a link is
+#  shared on LinkedIn, Facebook or WhatsApp, those sites fetch the page with
+#  a crawler that does not run JavaScript. A page that fills itself in after
+#  loading shares as a blank card with no title and no picture. The tags have
+#  to be in the HTML as it leaves the server, so the page is built here.
+# ===========================================================================
+
+BLOGDIR = os.path.join(OUT, "blog")
+
+
+def md_inline(text):
+    """Bold, italic, links and inline code, applied to already-escaped text."""
+    # links first, so the text inside them is not mangled by the rules below
+    text = re.sub(r"\[([^\]]+)\]\((https?://[^\s)]+)\)",
+                  r'<a href="\2" target="_blank" rel="noopener">\1</a>', text)
+    text = re.sub(r"\[([^\]]+)\]\((?!https?://)([^\s)]+)\)", r'<a href="\2">\1</a>', text)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
+    text = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", text)
+    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
+    return text
+
+
+def md_to_html(src):
+    """A deliberately small subset of Markdown.
+
+    Everything is HTML-escaped before any formatting is applied, so a stray
+    < or an pasted tag in a post can never become live markup on the page.
+    Anything not recognised below is shown as an ordinary paragraph.
+    """
+    lines = (src or "").replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    out, para, list_type = [], [], None
+
+    def close_para():
+        if para:
+            out.append("<p>" + md_inline(" ".join(para)) + "</p>")
+            para.clear()
+
+    def close_list():
+        nonlocal list_type
+        if list_type:
+            out.append("</ul>" if list_type == "ul" else "</ol>")
+            list_type = None
+
+    for raw in lines:
+        line = raw.rstrip()
+        stripped = line.strip()
+
+        if not stripped:
+            close_para(); close_list()
+            continue
+
+        esc_line = esc(stripped)
+
+        # picture on its own line
+        m = re.match(r"^!\[([^\]]*)\]\(([^\s)]+)\)$", stripped)
+        if m:
+            close_para(); close_list()
+            out.append(f'<figure><img src="{esc(m.group(2))}" alt="{esc(m.group(1))}" loading="lazy">'
+                       + (f"<figcaption>{esc(m.group(1))}</figcaption>" if m.group(1) else "")
+                       + "</figure>")
+            continue
+
+        if re.match(r"^-{3,}$", stripped):
+            close_para(); close_list()
+            out.append("<hr>")
+            continue
+
+        m = re.match(r"^(#{2,4})\s+(.*)$", esc_line)
+        if m:
+            close_para(); close_list()
+            level = len(m.group(1))
+            out.append(f"<h{level}>{md_inline(m.group(2))}</h{level}>")
+            continue
+
+        m = re.match(r"^&gt;\s?(.*)$", esc_line)      # "> quote", already escaped
+        if m:
+            close_para(); close_list()
+            out.append(f"<blockquote>{md_inline(m.group(1))}</blockquote>")
+            continue
+
+        m = re.match(r"^[-*]\s+(.*)$", esc_line)
+        if m:
+            close_para()
+            if list_type != "ul":
+                close_list(); out.append("<ul>"); list_type = "ul"
+            out.append(f"<li>{md_inline(m.group(1))}</li>")
+            continue
+
+        m = re.match(r"^\d+[.)]\s+(.*)$", esc_line)
+        if m:
+            close_para()
+            if list_type != "ol":
+                close_list(); out.append("<ol>"); list_type = "ol"
+            out.append(f"<li>{md_inline(m.group(1))}</li>")
+            continue
+
+        close_list()
+        para.append(esc_line)
+
+    close_para(); close_list()
+    return "\n".join(out)
+
+
+def reading_time(body):
+    words = len(re.findall(r"\S+", body or ""))
+    return max(1, round(words / 200))
+
+
+def post_date(post):
+    value = post.get("published_at") or post.get("created_at")
+    d = as_date(value)
+    return d or dt.date.today()
+
+
+def share_row(url, title):
+    """Share buttons. Each one is a plain link, so they work without scripts."""
+    q_url = urllib.parse.quote(url, safe="")
+    q_title = urllib.parse.quote(title, safe="")
+    targets = [
+        ("LinkedIn", f"https://www.linkedin.com/sharing/share-offsite/?url={q_url}"),
+        ("Facebook", f"https://www.facebook.com/sharer/sharer.php?u={q_url}"),
+        ("WhatsApp", f"https://api.whatsapp.com/send?text={q_title}%20{q_url}"),
+        ("X", f"https://twitter.com/intent/tweet?text={q_title}&url={q_url}"),
+    ]
+    links = "".join(
+        f'<a class="share-btn" href="{esc(href)}" target="_blank" rel="noopener">{name}</a>'
+        for name, href in targets
+    )
+    return ('<div class="share"><span class="share-label">Share this</span>'
+            + links
+            + f'<button class="share-btn copy" type="button" data-url="{esc(url)}">Copy link</button>'
+            + "</div>")
+
+
+BLOG_CSS = """
+  .post { max-width: 760px; margin: 0 auto; padding: 30px 20px 80px; }
+  .post .kicker { font-size: 14px; color: var(--muted); display: flex; gap: 10px;
+                  flex-wrap: wrap; align-items: center; }
+  .post .kicker a { color: var(--teal); }
+  .post h1 { font-family: Sora, sans-serif; font-size: 36px; line-height: 1.18;
+             color: var(--teal-deep); margin-top: 10px; }
+  @media (max-width: 620px) { .post h1 { font-size: 27px; } }
+  .post .standfirst { font-size: 19px; line-height: 1.6; color: var(--muted); margin-top: 14px; }
+  .post .cover { width: 100%; border-radius: 14px; margin-top: 24px; display: block; }
+  .post .tags { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 16px; }
+  .post .tags span { font-size: 13px; font-weight: 600; background: var(--teal-soft);
+                     color: var(--teal-deep); padding: 3px 11px; border-radius: 99px; }
+  .body { margin-top: 30px; font-size: 18px; line-height: 1.75; color: var(--ink); }
+  .body > * + * { margin-top: 18px; }
+  .body h2 { font-family: Sora, sans-serif; font-size: 25px; color: var(--teal-deep); margin-top: 38px; }
+  .body h3 { font-family: Sora, sans-serif; font-size: 20px; color: var(--ink); margin-top: 28px; }
+  .body h4 { font-family: Sora, sans-serif; font-size: 17px; color: var(--ink); margin-top: 22px; }
+  .body ul, .body ol { padding-left: 24px; }
+  .body li + li { margin-top: 8px; }
+  .body a { color: var(--teal); }
+  .body code { background: var(--teal-soft); color: var(--teal-deep); padding: 1px 6px;
+               border-radius: 5px; font-size: .92em; }
+  .body blockquote { border-left: 4px solid var(--marigold); padding: 4px 0 4px 18px;
+                     color: var(--muted); font-style: italic; }
+  .body figure { margin: 26px 0; }
+  .body figure img { width: 100%; border-radius: 12px; display: block; }
+  .body figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; text-align: center; }
+  .body hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+  .share { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+           margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .share-label { font-size: 14px; font-weight: 600; color: var(--muted); margin-right: 4px; }
+  .share-btn { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 15px;
+               border-radius: 8px; border: 1px solid var(--line); background: #fff;
+               color: var(--teal-deep); text-decoration: none; cursor: pointer; }
+  .share-btn:hover { background: var(--teal-soft); border-color: var(--teal); }
+  .backlink { display: inline-block; margin-top: 34px; color: var(--teal); font-weight: 600; }
+"""
+
+COPY_SCRIPT = """
+<script>
+  document.querySelectorAll(".share-btn.copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var url = b.dataset.url;
+      var done = function () { b.textContent = "Link copied"; setTimeout(function () { b.textContent = "Copy link"; }, 2000); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { window.prompt("Copy this link", url); });
+      } else { window.prompt("Copy this link", url); }
+    });
+  });
+</script>
+"""
+
+
+def render_post(post):
+    slug = post["slug"]
+    url = f"{SITE}/blog/{slug}.html"
+    title = post.get("title") or "Post"
+    excerpt = (post.get("excerpt") or "").strip()
+    desc = excerpt or f"{title} — Tripura Job Pulse"
+    cover = (post.get("cover_url") or "").strip()
+    cover_alt = (post.get("cover_alt") or title).strip()
+    d = post_date(post)
+    mins = reading_time(post.get("body"))
+    tags = [t for t in (post.get("tags") or []) if t]
+
+    head = [
+        "<!DOCTYPE html>", '<html lang="en">', "<head>",
+        '<meta charset="UTF-8">',
+        '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        f"<title>{esc(title)} | Tripura Job Pulse</title>",
+        f'<meta name="description" content="{esc(desc)}">',
+        f'<link rel="canonical" href="{url}">',
+        f'<meta property="og:title" content="{esc(title)}">',
+        f'<meta property="og:description" content="{esc(desc)}">',
+        f'<meta property="og:url" content="{url}">',
+        '<meta property="og:type" content="article">',
+        '<meta property="og:site_name" content="Tripura Job Pulse">',
+        f'<meta property="article:published_time" content="{d.isoformat()}">',
+    ]
+    if cover:
+        head += [
+            f'<meta property="og:image" content="{esc(cover)}">',
+            f'<meta property="og:image:alt" content="{esc(cover_alt)}">',
+            '<meta name="twitter:card" content="summary_large_image">',
+        ]
+    else:
+        head.append('<meta name="twitter:card" content="summary">')
+    head += [
+        f'<meta name="twitter:title" content="{esc(title)}">',
+        f'<meta name="twitter:description" content="{esc(desc)}">',
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700'
+        '&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">',
+        '<link rel="stylesheet" href="../style.css">',
+        '<link rel="stylesheet" href="../tjp-header.css">',
+        f"<style>{BLOG_CSS}</style>",
+        "</head>", "<body>",
+        '<div id="tjp-header"></div>',
+    ]
+
+    jsonld = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": title,
+        "description": desc,
+        "datePublished": d.isoformat(),
+        "author": {"@type": "Organization", "name": post.get("author") or "Tripura Job Pulse"},
+        "publisher": {"@type": "Organization", "name": "Tripura Job Pulse"},
+        "mainEntityOfPage": url,
+    }
+    if cover:
+        jsonld["image"] = cover
+
+    body = [
+        '<main class="post">',
+        '<p class="kicker"><a href="../blog.html">Blog</a><span>·</span>'
+        f"<span>{pretty(d)}</span><span>·</span><span>{mins} min read</span></p>",
+        f"<h1>{esc(title)}</h1>",
+    ]
+    if excerpt:
+        body.append(f'<p class="standfirst">{esc(excerpt)}</p>')
+    if cover:
+        body.append(f'<img class="cover" src="{esc(cover)}" alt="{esc(cover_alt)}">')
+    if tags:
+        body.append('<div class="tags">'
+                    + "".join(f"<span>{esc(t)}</span>" for t in tags)
+                    + "</div>")
+    body += [
+        f'<div class="body">{md_to_html(post.get("body"))}</div>',
+        share_row(url, title),
+        '<a class="backlink" href="../blog.html">&larr; All posts</a>',
+        "</main>",
+        '<div id="tjp-footer"></div>',
+        f'<script type="application/ld+json">{safe_json(jsonld)}</script>',
+        '<script src="../config.js"></script>',
+        '<script src="../tjp-header.js"></script>',
+        COPY_SCRIPT,
+        "</body>", "</html>",
+    ]
+    return "\n".join(head + body)
+
+
+BLOG_INDEX_CSS = """
+  .bwrap { max-width: 940px; margin: 0 auto; padding: 30px 20px 80px; }
+  .bwrap h1 { font-family: Sora, sans-serif; font-size: 34px; color: var(--teal-deep); }
+  .bwrap .lead { font-size: 18px; color: var(--muted); margin-top: 10px; max-width: 620px; }
+  .plist { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+           gap: 20px; margin-top: 32px; }
+  .pcard { background: #fff; border: 1px solid var(--line); border-radius: 14px;
+           overflow: hidden; display: flex; flex-direction: column; text-decoration: none;
+           transition: border-color .15s, box-shadow .15s; }
+  .pcard:hover { border-color: var(--teal); box-shadow: 0 4px 16px rgba(14,79,76,.10); }
+  .pcard .thumb { aspect-ratio: 16 / 9; background: var(--teal-soft); display: block;
+                  width: 100%; object-fit: cover; }
+  .pcard .ph { aspect-ratio: 16 / 9; background: linear-gradient(135deg, #0E4F4C, #15706B);
+               display: flex; align-items: center; justify-content: center; color: #9FD8D1;
+               font-family: Sora, sans-serif; font-size: 15px; letter-spacing: .04em; }
+  .pcard .inner { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+  .pcard h2 { font-family: Sora, sans-serif; font-size: 18px; line-height: 1.32;
+              color: var(--teal-deep); }
+  .pcard p { font-size: 15px; color: var(--muted); margin-top: 8px; flex: 1; line-height: 1.55; }
+  .pcard .meta { font-size: 13px; color: #8AA09D; margin-top: 14px; }
+  .empty-note { background: #fff; border: 1px dashed var(--line); border-radius: 14px;
+                padding: 40px 24px; text-align: center; color: var(--muted); margin-top: 30px; }
+"""
+
+
+def render_blog_index(posts):
+    cards = []
+    for p in posts:
+        d = post_date(p)
+        cover = (p.get("cover_url") or "").strip()
+        thumb = (f'<img class="thumb" src="{esc(cover)}" alt="{esc(p.get("cover_alt") or "")}" loading="lazy">'
+                 if cover else '<div class="ph">TRIPURA JOB PULSE</div>')
+        cards.append(
+            f'<a class="pcard" href="blog/{esc(p["slug"])}.html">{thumb}<div class="inner">'
+            f'<h2>{esc(p.get("title") or "")}</h2>'
+            f'<p>{esc((p.get("excerpt") or "")[:180])}</p>'
+            f'<div class="meta">{pretty(d)} · {reading_time(p.get("body"))} min read</div>'
+            "</div></a>"
+        )
+
+    body = ('<div class="plist">' + "".join(cards) + "</div>") if cards else (
+        '<div class="empty-note">No posts yet. The first one is on its way.</div>')
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blog | Tripura Job Pulse</title>
+<meta name="description" content="Guides, explainers and advice on finding work in Tripura and preparing for recruitment examinations.">
+<link rel="canonical" href="{SITE}/blog.html">
+<meta property="og:title" content="Tripura Job Pulse blog">
+<meta property="og:description" content="Guides, explainers and advice on finding work in Tripura and preparing for recruitment examinations.">
+<meta property="og:url" content="{SITE}/blog.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tripura Job Pulse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
+<style>{BLOG_INDEX_CSS}</style>
+</head>
+<body>
+<div id="tjp-header"></div>
+<main class="bwrap">
+<h1>Blog</h1>
+<p class="lead">Guides and explainers on finding work in Tripura, preparing for recruitment
+examinations, and getting the paperwork right.</p>
+{body}
+</main>
+<div id="tjp-footer"></div>
+<script src="config.js"></script>
+<script src="tjp-header.js"></script>
+</body>
+</html>
+"""
+
+
+def build_blog(sb):
+    """Write website/blog.html and one page per published post. Returns the posts."""
+    posts = []
+    try:
+        posts = (sb.table("blog_posts")
+                   .select("*")
+                   .eq("status", "published")
+                   .order("published_at", desc=True)
+                   .execute().data) or []
+    except Exception as exc:
+        # The table may not exist yet. Carry on and write an empty blog, so a
+        # missing table cannot take the job pages down with it - and so the
+        # workflow still finds website/blog to commit.
+        summary(f"Blog: no posts read ({exc}).")
+
+    if os.path.isdir(BLOGDIR):
+        shutil.rmtree(BLOGDIR)
+    os.makedirs(BLOGDIR, exist_ok=True)
+
+    written = 0
+    for p in posts:
+        if not p.get("slug"):
+            continue
+        with open(os.path.join(BLOGDIR, p["slug"] + ".html"), "w", encoding="utf-8") as f:
+            f.write(render_post(p))
+        written += 1
+
+    with open(os.path.join(OUT, "blog.html"), "w", encoding="utf-8") as f:
+        f.write(render_blog_index(posts))
+
+    summary(f"Blog: {written} published post(s).")
+    return posts
 
 
 # ----------------------------------------------------------------- main
@@ -538,8 +945,10 @@ def main():
 
     with open(os.path.join(JOBDIR, "index.html"), "w", encoding="utf-8") as f:
         f.write(render_index(entries))
+    posts = build_blog(sb)
+
     with open(os.path.join(OUT, "sitemap.xml"), "w", encoding="utf-8") as f:
-        f.write(render_sitemap(entries))
+        f.write(render_sitemap(entries, posts))
     with open(os.path.join(OUT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write(ROBOTS)
 
