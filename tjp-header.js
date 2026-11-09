@@ -34,8 +34,7 @@
     { label: "Jobs", items: [
       ["jobs.html",        "briefcase", "Tripura jobs",   "Government, private and remote, checked before publishing"],
       ["jobs-india.html",  "map-pin",   "Within India",   "Vacancies outside Tripura worth applying for"],
-      ["jobs-remote.html", "world",     "Remote jobs",    "Work from anywhere in Tripura"],
-      ["plans.html",       "check",     "Job plans",      "One-time UPI payment, no subscription"]
+      ["jobs-remote.html", "world",     "Remote jobs",    "Work from anywhere in Tripura"]
     ]},
     { label: "Prepare", items: [
       ["study-material.html",  "book",  "Study material",  "Modules written to the official syllabus"],
@@ -45,12 +44,13 @@
     ]},
     { label: "Certifications", href: "certifications.html" },
     { label: "Career Toolkit", items: [
-      ["cv.html",     "file-text", "CV builder",  "A Word CV tailored to the vacancy you pick"],
-      ["typing.html", "keyboard",  "Typing test", "Practice for the clerical typing stage"],
-      [null, "calculator", "Salary calculator",  "Pay level to in-hand salary"],
-      [null, "list-check", "Document checklist", "Exactly what to carry, per recruitment"],
-      [null, "search",     "Eligibility checker","Every vacancy you actually qualify for"],
-      [null, "route",      "Career roadmap",     "Your path from where you are to the post you want"]
+      ["cv.html",       "file-text",  "CV builder",      "A Word CV tailored to the vacancy you pick"],
+      ["cv-score.html", "certificate","CV score checker","See how your CV reads against a vacancy"],
+      ["resize.html",   "image",      "Photo and signature resizer",
+                                      "Exact size and file limits the portals ask for"],
+      ["salary.html",   "calculator", "Salary calculator","Pay level to in-hand salary"],
+      ["typing.html",   "keyboard",   "Typing test",     "Practice for the clerical typing stage"],
+      [null,            "route",      "Career roadmap",  "Your path from where you are to the post you want"]
     ]},
     { label: "Blog", href: "blog.html" }
   ];
@@ -68,12 +68,12 @@
     ["Prepare",   [["study-material.html","Study material"],["mock-tests.html","Mock tests"],
                    ["current-affairs.html","Current affairs"],
                    ["gk.html","General knowledge"]]],
-    ["Career Toolkit", [["cv.html","CV builder"],["typing.html","Typing test"],
-                        ["certifications.html","Certifications"],["verify.html","Verify a certificate"]]],
-    // privacy.html and delete-account.html are built but not uploaded yet.
-    // Listing them here would put two dead links in every page footer.
+    ["Career Toolkit", [["cv.html","CV builder"],["cv-score.html","CV score checker"],
+                        ["resize.html","Photo and signature resizer"],["salary.html","Salary calculator"],
+                        ["typing.html","Typing test"],["verify.html","Verify a certificate"]]],
     ["More",      [["index.html#contact","Post a vacancy"],["index.html#contact","Contact us"],
-                   ["blog.html","Blog"],
+                   ["blog.html","Blog"],["plans.html","Job plans"],
+                   ["privacy.html","Privacy policy"],["delete-account.html","Delete your account"],
                    ["index.html#declaration","Declaration"]]]
   ];
 
@@ -102,14 +102,15 @@
       out += '<div class="nav-item' + (open ? " here" : "") + '">' +
              '<button class="nav-btn" type="button" aria-expanded="false">' + esc(m.label) +
              ' <span class="chev"></span></button>' +
-             '<div class="drop' + (m.items.length < 4 ? " one-col" : "") + '">' +
+             '<div class="drop">' +
              m.items.map(function (it) {
+               // Name only. The one-line explanations made every panel wide
+               // enough to wrap, which is harder to read than the plain list.
                var href = it[0], tag = href ? "a" : "span";
                var attrs = href ? ' href="' + U(href) + '"' : ' class="soon-item"';
-               return "<" + tag + attrs + '><span class="di"><span class="icon" data-icon="' + it[1] +
-                      '"></span></span><span><b>' + esc(it[2]) +
+               return "<" + tag + attrs + "><b>" + esc(it[2]) +
                       (href ? "" : ' <span class="soon">soon</span>') +
-                      "</b><i>" + esc(it[3]) + "</i></span></" + tag + ">";
+                      "</b></" + tag + ">";
              }).join("") +
              "</div></div>";
     });

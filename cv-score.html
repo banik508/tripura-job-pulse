@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CV score checker | Tripura Job Pulse</title>
+<meta name="description" content="Paste your CV and a vacancy, and see how well they match — missing keywords, length, contact details and what to fix first.">
+<link rel="canonical" href="https://tripurajobpulse.com/cv-score.html">
+<meta property="og:title" content="CV score checker">
+<meta property="og:description" content="See how your CV reads against a vacancy, and what to fix first.">
+<meta property="og:url" content="https://tripurajobpulse.com/cv-score.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tripura Job Pulse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
+<style>
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }
+  .wrap h1 { font-family: Sora, sans-serif; font-size: 32px; color: var(--teal-deep); }
+  .wrap .lead { font-size: 17.5px; color: var(--muted); margin-top: 10px; max-width: 660px; }
+  .privacy { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px;
+             font-weight: 600; color: #0B5F4E; background: #E3F3EF; border-radius: 99px; padding: 7px 15px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 24px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .box h2 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); }
+  .box .hint { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+  textarea { font: inherit; font-size: 15px; width: 100%; padding: 11px 13px; margin-top: 11px;
+             border: 1px solid var(--line); border-radius: 9px; resize: vertical; line-height: 1.6; }
+  textarea#cv { min-height: 300px; }
+  textarea#jd { min-height: 190px; }
+  select { font: inherit; font-size: 15px; width: 100%; padding: 10px 12px; margin-top: 11px;
+           border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+  .count { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .upload { border: 2px dashed var(--line); border-radius: 11px; padding: 20px 16px; text-align: center;
+            background: var(--paper, #F4F8F6); cursor: pointer; margin-top: 12px; }
+  .upload:hover, .upload.over { border-color: var(--teal); background: #E8F4F1; }
+  .upload b { display: block; font-family: Sora, sans-serif; font-size: 15px; color: var(--teal-deep); }
+  .upload span { display: block; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .up-msg { font-size: 13.5px; margin-top: 9px; font-weight: 600; color: #0B5F4E; }
+  .up-msg.bad { color: #A33A34; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; align-items: center; }
+  .btn-go { font: inherit; font-size: 16px; font-weight: 700; padding: 13px 28px; border-radius: 9px;
+            border: 0; background: var(--teal-deep); color: #fff; cursor: pointer; }
+  .btn-go:disabled { opacity: .5; cursor: default; }
+  .btn-line { font: inherit; font-size: 15px; font-weight: 600; padding: 13px 20px; border-radius: 9px;
+              border: 1px solid var(--line); background: #fff; color: var(--teal-deep); cursor: pointer; }
+
+  /* ---------- result ---------- */
+  .result { margin-top: 26px; }
+  .score-row { display: grid; grid-template-columns: 170px 1fr; gap: 24px; align-items: center;
+               background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  @media (max-width: 680px) { .score-row { grid-template-columns: 1fr; } }
+  .dial { position: relative; width: 150px; height: 150px; }
+  .dial svg { transform: rotate(-90deg); }
+  .dial .mid { position: absolute; inset: 0; display: flex; flex-direction: column;
+               align-items: center; justify-content: center; }
+  .dial .n { font-family: Sora, sans-serif; font-size: 40px; font-weight: 700; color: var(--teal-deep); line-height: 1; }
+  .dial .o { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .verdict h3 { font-family: Sora, sans-serif; font-size: 20px; color: var(--teal-deep); }
+  .verdict p { font-size: 16px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+
+  .checks { display: grid; gap: 10px; margin-top: 16px; }
+  .check { display: grid; grid-template-columns: 26px 1fr auto; gap: 12px; align-items: start;
+           background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px; }
+  .check .mark { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center;
+                 justify-content: center; font-size: 13px; font-weight: 700; color: #fff; }
+  .check.good .mark { background: #0B7A5E; }
+  .check.warn .mark { background: var(--marigold); color: #3A2A06; }
+  .check.bad  .mark { background: #A33A34; }
+  .check b { display: block; font-size: 15px; color: var(--ink); }
+  .check p { font-size: 14px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+  .check .pts { font-family: Sora, sans-serif; font-size: 14px; color: var(--muted); white-space: nowrap; }
+
+  .words { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .words span { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 99px;
+                background: #FBE9E7; color: #A33A34; }
+  .words span.have { background: #E3F3EF; color: #0B5F4E; }
+
+  .note { font-size: 14px; color: var(--muted); margin-top: 20px; line-height: 1.6;
+          border-left: 3px solid var(--line); padding-left: 14px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="tjp-header"></div>
+
+<main class="wrap">
+  <h1>CV score checker</h1>
+  <p class="lead">Paste your CV and the vacancy you are applying for. You get a score, the words the
+    vacancy uses that your CV does not, and the things worth fixing before you send it.</p>
+  <p class="privacy">Nothing is uploaded or saved. The checking happens in your browser.</p>
+
+  <div class="grid">
+    <div class="box">
+      <h2>Your CV</h2>
+      <p class="hint">Upload the file, or paste the text. Either works — the layout does not
+        matter for this, only the words.</p>
+
+      <div class="upload" id="up">
+        <input type="file" id="cv-file" accept=".pdf,.docx,.txt,.doc,text/plain" hidden>
+        <b>Upload your CV</b>
+        <span>PDF, Word (.docx) or a text file</span>
+      </div>
+      <p class="up-msg" id="up-msg" hidden></p>
+
+      <textarea id="cv" placeholder="…or paste the whole CV here"></textarea>
+      <div class="count"><span id="cv-words">0</span> words</div>
+    </div>
+
+    <div class="box">
+      <h2>The vacancy</h2>
+      <p class="hint">Pick one of the current vacancies, or paste the notification text yourself.</p>
+      <select id="job"><option value="">Loading vacancies…</option></select>
+      <textarea id="jd" placeholder="…or paste the vacancy details here"></textarea>
+      <div class="count"><span id="jd-words">0</span> words</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-go" id="go" type="button">Check it</button>
+    <button class="btn-line" id="clear" type="button">Clear</button>
+    <span class="count" id="msg"></span>
+  </div>
+
+  <section class="result" id="result" hidden>
+    <div class="score-row">
+      <div class="dial">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <circle cx="75" cy="75" r="62" fill="none" stroke="#E3ECEA" stroke-width="14"></circle>
+          <circle id="arc" cx="75" cy="75" r="62" fill="none" stroke="#0B9488" stroke-width="14"
+                  stroke-linecap="round" stroke-dasharray="389.6" stroke-dashoffset="389.6"></circle>
+        </svg>
+        <div class="mid"><span class="n" id="score">0</span><span class="o">out of 100</span></div>
+      </div>
+      <div class="verdict">
+        <h3 id="verdict-title"></h3>
+        <p id="verdict-text"></p>
+      </div>
+    </div>
+
+    <div class="checks" id="checks"></div>
+
+    <p class="note">This is a guide, not a verdict. It reads your CV the way a busy person skimming
+      it would — does it use the words the vacancy uses, is it the right length, is it easy to
+      contact you. It is not the recruitment board's own system, and no tool can tell you what
+      that will do.</p>
+  </section>
+</main>
+
+<div id="tjp-footer"></div>
+
+<script src="config.js"></script>
+<script src="tjp-header.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+
+  /* Words too common to mean anything. Matching on "the" tells nobody anything. */
+  const STOP = new Set(`a an and are as at be been being by for from has have had he her his in is it
+    its of on or that the their them they this to was were will with you your our we us not no any all
+    may can shall should must other such than then there these those which who whom what when where
+    lower upper division various given duties sincere hardworking etc note notes above mentioned
+    how also more most some only very each both per via into upon under over out up down about after
+    before during while if else so because between against above below same own just now new etc
+    candidate candidates applicant applicants application applications apply applying post posts
+    vacancy vacancies advertisement notification recruitment details date dates last age limit
+    years year month months number numbers name shall required require requires requirement
+    requirements eligible eligibility qualification qualifications`.split(/\s+/));
+
+  const words = t => (t.toLowerCase().match(/[a-z][a-z+#.]{1,}/g) || []);
+  const terms = t => {
+    const seen = new Map();
+    for (const w of words(t)) {
+      if (w.length < 4 || STOP.has(w)) continue;
+      seen.set(w, (seen.get(w) || 0) + 1);
+    }
+    return seen;
+  };
+
+  const ACTION = /\b(managed|led|built|created|designed|developed|delivered|improved|increased|reduced|handled|prepared|trained|supervised|organised|organized|coordinated|implemented|analysed|analyzed|maintained|achieved|launched|negotiated|resolved|taught|audited|processed|supported)\b/gi;
+
+  function count(id, src) { $(id).textContent = (src.value.trim().match(/\S+/g) || []).length; }
+
+  /* ---------- reading an uploaded CV ----------
+     The two readers are fetched only when someone actually picks a file, so a
+     slow or blocked CDN never stops the page loading or the paste box working. */
+  const upMsg = (t, bad) => {
+    const m = $("up-msg");
+    m.textContent = t; m.className = "up-msg" + (bad ? " bad" : ""); m.hidden = !t;
+  };
+
+  let loading = {};
+  function script(src) {
+    if (loading[src]) return loading[src];
+    loading[src] = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("could not load " + src));
+      document.head.appendChild(s);
+    });
+    return loading[src];
+  }
+
+  async function readPdf(file) {
+    await script("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+    const lib = window.pdfjsLib;
+    lib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    const buf = await file.arrayBuffer();
+    const doc = await lib.getDocument({ data: buf }).promise;
+    const pages = [];
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i);
+      const content = await page.getTextContent();
+      pages.push(content.items.map(it => it.str).join(" "));
+    }
+    return pages.join("\n\n");
+  }
+
+  async function readDocx(file) {
+    await script("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
+    const zip = await window.JSZip.loadAsync(await file.arrayBuffer());
+    const entry = zip.file("word/document.xml");
+    if (!entry) throw new Error("that does not look like a .docx file");
+    const xml = await entry.async("string");
+    return xml
+      .replace(/<w:p[ >][\s\S]*?<\/w:p>|<w:p\/>/g, m => m + "\n")  // keep paragraph breaks
+      .replace(/<[^>]+>/g, "")
+      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  async function takeFile(file) {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) return upMsg("That file is over 10 MB. Is it the right one?", true);
+    const name = file.name.toLowerCase();
+    upMsg("Reading " + file.name + "…");
+    try {
+      let text;
+      if (name.endsWith(".pdf")) text = await readPdf(file);
+      else if (name.endsWith(".docx")) text = await readDocx(file);
+      else if (name.endsWith(".txt")) text = await file.text();
+      else if (name.endsWith(".doc")) {
+        return upMsg("Old .doc files cannot be read here. Open it in Word and save as .docx, or paste the text.", true);
+      } else {
+        return upMsg("Use a PDF, a .docx or a text file — or paste the text instead.", true);
+      }
+
+      text = (text || "").replace(/\u0000/g, "").trim();
+      if (text.replace(/\s+/g, "").length < 80) {
+        return upMsg("Almost no text came out. If the CV is a scan or a photograph, the words are a " +
+                     "picture rather than text — paste them in instead.", true);
+      }
+      $("cv").value = text;
+      count("cv-words", $("cv"));
+      upMsg("Read " + file.name + ". Check it below, then press Check it.");
+    } catch (err) {
+      console.error(err);
+      upMsg("Couldn't read that file. Paste the text in instead.", true);
+    }
+  }
+
+  $("up").addEventListener("click", () => $("cv-file").click());
+  $("cv-file").addEventListener("change", e => takeFile(e.target.files[0]));
+  ["dragenter", "dragover"].forEach(ev =>
+    $("up").addEventListener(ev, e => { e.preventDefault(); $("up").classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev =>
+    $("up").addEventListener(ev, e => { e.preventDefault(); $("up").classList.remove("over"); }));
+  $("up").addEventListener("drop", e => {
+    if (e.dataTransfer && e.dataTransfer.files) takeFile(e.dataTransfer.files[0]);
+  });
+  $("cv").addEventListener("input", () => count("cv-words", $("cv")));
+  $("jd").addEventListener("input", () => count("jd-words", $("jd")));
+
+  /* ---------- the vacancies ---------- */
+  let jobs = [];
+  async function loadJobs() {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase.from("jobs")
+      .select("id, title, organisation, qualification, experience, description, industry")
+      .or(`last_date.gte.${today},last_date.is.null`)
+      .order("created_at", { ascending: false })
+      .limit(300);
+    const sel = $("job");
+    sel.innerHTML = "";
+    sel.append(new Option("Paste the vacancy myself", ""));
+    if (error || !data || !data.length) { console.error(error); return; }
+    jobs = data;
+    for (const j of jobs) {
+      sel.append(new Option(j.title + (j.organisation ? " — " + j.organisation : ""), j.id));
+    }
+  }
+
+  $("job").addEventListener("change", () => {
+    const j = jobs.find(x => x.id === $("job").value);
+    if (!j) return;
+    $("jd").value = [j.title, j.organisation, j.qualification, j.experience, j.industry, j.description]
+      .filter(Boolean).join("\n");
+    count("jd-words", $("jd"));
+  });
+
+  /* ---------- the scoring ---------- */
+  function assess(cv, jd) {
+    const out = [];
+    const cvLower = cv.toLowerCase();
+    const cvWordCount = (cv.trim().match(/\S+/g) || []).length;
+
+    // 1. the words the vacancy leans on
+    const jdTerms = [...terms(jd).entries()].sort((a, b) => b[1] - a[1]).slice(0, 18).map(x => x[0]);
+    const have = jdTerms.filter(w => cvLower.includes(w));
+    const miss = jdTerms.filter(w => !cvLower.includes(w));
+    const kwPts = jdTerms.length ? Math.round((have.length / jdTerms.length) * 40) : 0;
+    out.push({
+      key: "keywords", pts: kwPts, max: 40,
+      state: kwPts >= 30 ? "good" : kwPts >= 18 ? "warn" : "bad",
+      title: "The words the vacancy uses",
+      text: jdTerms.length
+        ? `Your CV contains ${have.length} of the ${jdTerms.length} terms this vacancy leans on.`
+        : "The vacancy text was too short to pull anything useful from.",
+      have, miss
+    });
+
+    // 2. length
+    let lenPts, lenState, lenText;
+    if (cvWordCount < 150) { lenPts = 2; lenState = "bad"; lenText = `${cvWordCount} words is too thin. A one-page CV runs to roughly 350 to 500.`; }
+    else if (cvWordCount < 300) { lenPts = 8; lenState = "warn"; lenText = `${cvWordCount} words is on the short side. There is room to say more about what you did.`; }
+    else if (cvWordCount <= 900) { lenPts = 15; lenState = "good"; lenText = `${cvWordCount} words. About right — one to two pages.`; }
+    else { lenPts = 8; lenState = "warn"; lenText = `${cvWordCount} words runs past two pages. Cut the oldest roles back to a line each.`; }
+    out.push({ key: "length", pts: lenPts, max: 15, state: lenState, title: "Length", text: lenText });
+
+    // 3. can they contact you
+    const email = /[^\s@]+@[^\s@]+\.[a-z]{2,}/i.test(cv);
+    // People write numbers as 98710 00295, +91-98710-00295, (0381) ... . Strip
+    // everything that is not a digit first, then look for a ten-digit Indian
+    // mobile, with or without the country code in front of it.
+    const onlyDigits = cv.replace(/\D+/g, " ").trim();
+    const phone = /(^|\s)(91)?[6-9]\d{9}(\s|$)/.test(onlyDigits)
+               || /[6-9]\d{9}/.test(onlyDigits.replace(/\s+/g, ""));
+    const contactPts = (email ? 8 : 0) + (phone ? 7 : 0);
+    out.push({
+      key: "contact", pts: contactPts, max: 15,
+      state: contactPts === 15 ? "good" : contactPts > 0 ? "warn" : "bad",
+      title: "Getting hold of you",
+      text: contactPts === 15 ? "Email address and mobile number both present."
+        : email ? "Email found, but no ten-digit mobile number."
+        : phone ? "Mobile number found, but no email address."
+        : "Neither an email address nor a mobile number was found. This is the first thing to fix."
+    });
+
+    // 4. the sections people look for
+    const sections = [
+      ["education", /\b(education|qualification|academic|school|college|university|b\.?a\b|b\.?sc|b\.?com|m\.?a\b|m\.?sc|graduat)/i],
+      ["experience", /\b(experience|employment|work history|worked|internship|trainee)\b/i],
+      ["skills", /\b(skills?|competenc|proficien|software|computer)\b/i]
+    ];
+    const found = sections.filter(([, re]) => re.test(cv)).map(([n]) => n);
+    const secPts = Math.round((found.length / sections.length) * 15);
+    out.push({
+      key: "sections", pts: secPts, max: 15,
+      state: found.length === 3 ? "good" : found.length === 2 ? "warn" : "bad",
+      title: "The sections a reader looks for",
+      text: found.length === 3
+        ? "Education, experience and skills are all there."
+        : "Missing: " + sections.map(([n]) => n).filter(n => !found.includes(n)).join(", ") +
+          ". Add a heading for each, even if the section is short."
+    });
+
+    // 5. did you say what you actually achieved
+    const verbs = (cv.match(ACTION) || []).length;
+    const numbers = (cv.match(/\b\d+(\.\d+)?\s?(%|percent|lakh|crore|students|people|members|files|cases|reports)\b/gi) || []).length;
+    const achPts = Math.min(15, verbs * 2 + numbers * 3);
+    out.push({
+      key: "achievements", pts: achPts, max: 15,
+      state: achPts >= 11 ? "good" : achPts >= 5 ? "warn" : "bad",
+      title: "What you did, not just where you were",
+      text: `${verbs} action word${verbs === 1 ? "" : "s"} and ${numbers} figure${numbers === 1 ? "" : "s"} found. ` +
+        (achPts >= 11
+          ? "Your CV says what you achieved rather than only listing posts."
+          : "Lines like “handled 40 files a day” or “trained 12 staff” carry far more than “responsible for office work”.")
+    });
+
+    return out;
+  }
+
+  function draw(checks) {
+    const total = checks.reduce((s, c) => s + c.pts, 0);
+    $("result").hidden = false;
+    $("score").textContent = total;
+
+    const C = 2 * Math.PI * 62;
+    const arc = $("arc");
+    arc.setAttribute("stroke-dasharray", C.toFixed(1));
+    arc.setAttribute("stroke-dashoffset", (C * (1 - total / 100)).toFixed(1));
+    arc.setAttribute("stroke", total >= 75 ? "#0B9488" : total >= 50 ? "#BE8318" : "#A33A34");
+
+    $("verdict-title").textContent =
+      total >= 85 ? "Ready to send" :
+      total >= 70 ? "Close" :
+      total >= 50 ? "Worth another half hour" : "Needs real work first";
+    $("verdict-text").textContent =
+      total >= 85 ? "This reads well against the vacancy. Check the spelling and send it."
+      : total >= 70 ? "Fix the amber items below and it is there."
+      : total >= 50 ? "The bones are right. The items marked below are what a reader notices first."
+      : "Start with anything marked in red — those are the things that get a CV put down unread.";
+
+    const box = $("checks"); box.innerHTML = "";
+    for (const c of checks) {
+      const row = el("div", "check " + c.state);
+      row.append(el("div", "mark", c.state === "good" ? "✓" : c.state === "warn" ? "!" : "✕"));
+      const mid = el("div");
+      mid.append(el("b", "", c.title), el("p", "", c.text));
+
+      if (c.key === "keywords" && (c.miss || []).length) {
+        const w = el("div", "words");
+        c.miss.slice(0, 12).forEach(m => w.append(el("span", "", m)));
+        (c.have || []).slice(0, 6).forEach(m => w.append(el("span", "have", m)));
+        mid.append(w);
+        mid.append(el("p", "", "Red are words the vacancy uses that yours does not. Only add the ones that are honestly true of you."));
+      }
+      row.append(mid, el("div", "pts", c.pts + "/" + c.max));
+      box.append(row);
+    }
+    $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  $("go").addEventListener("click", () => {
+    const cv = $("cv").value.trim(), jd = $("jd").value.trim();
+    if (cv.length < 120) { $("msg").textContent = "Paste a bit more of your CV first."; return; }
+    if (jd.length < 40) { $("msg").textContent = "Pick a vacancy, or paste its details."; return; }
+    $("msg").textContent = "";
+    draw(assess(cv, jd));
+  });
+
+  $("clear").addEventListener("click", () => {
+    $("cv").value = ""; $("jd").value = ""; $("job").value = ""; $("cv-file").value = "";
+    upMsg("");
+    count("cv-words", $("cv")); count("jd-words", $("jd"));
+    $("result").hidden = true; $("msg").textContent = "";
+  });
+
+  loadJobs();
+</script>
+</body>
+</html>
