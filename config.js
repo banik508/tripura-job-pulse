@@ -68,6 +68,7 @@ window.TJP_CONFIG = {
     ["admin.html", "Jobs"],
     ["admin-vacancies.html", "Vacancy submissions"],
     ["admin-blog.html", "Blog"],
+    ["admin-gk.html", "General knowledge"],
     ["admin-cards.html", "Job cards"],
     ["admin-study.html", "Study material"],
     ["admin-tests.html", "Mock tests"],

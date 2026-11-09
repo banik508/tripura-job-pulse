@@ -40,7 +40,8 @@
     { label: "Prepare", items: [
       ["study-material.html",  "book",  "Study material",  "Modules written to the official syllabus"],
       ["mock-tests.html",      "clock", "Mock tests",      "Timed practice, marked the moment you submit"],
-      ["current-affairs.html", "news",  "Current affairs", "Tripura, India and world, twice a day"]
+      ["current-affairs.html", "news",  "Current affairs", "Tripura, India and world, twice a day"],
+      ["gk.html",              "bulb",  "General knowledge", "The GK that turns up in Tripura papers, plus a quick quiz"]
     ]},
     { label: "Certifications", href: "certifications.html" },
     { label: "Career Toolkit", items: [
@@ -65,7 +66,8 @@
     ["Find work", [["jobs.html","Tripura jobs"],["jobs-india.html","Jobs within India"],
                    ["jobs-remote.html","Remote jobs"],["plans.html","Job plans"]]],
     ["Prepare",   [["study-material.html","Study material"],["mock-tests.html","Mock tests"],
-                   ["current-affairs.html","Current affairs"]]],
+                   ["current-affairs.html","Current affairs"],
+                   ["gk.html","General knowledge"]]],
     ["Career Toolkit", [["cv.html","CV builder"],["typing.html","Typing test"],
                         ["certifications.html","Certifications"],["verify.html","Verify a certificate"]]],
     // privacy.html and delete-account.html are built but not uploaded yet.

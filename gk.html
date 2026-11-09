@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>General knowledge | Tripura Job Pulse</title>
+<meta name="description" content="General knowledge for Tripura recruitment examinations — Tripura GK, polity, history, geography and more, with a quick quiz you can take in two minutes.">
+<link rel="canonical" href="https://tripurajobpulse.com/gk.html">
+<meta property="og:title" content="General knowledge for Tripura exams">
+<meta property="og:description" content="Tripura GK, polity, history and geography, with a quick quiz you can take in two minutes.">
+<meta property="og:url" content="https://tripurajobpulse.com/gk.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tripura Job Pulse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
+<style>
+  .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+  .wrap h1 { font-family: Sora, sans-serif; font-size: 34px; color: var(--teal-deep); }
+  .wrap .lead { font-size: 18px; color: var(--muted); margin-top: 10px; max-width: 640px; }
+
+  /* ---------- quiz ---------- */
+  .quiz { background: linear-gradient(135deg, #0B3A38, #15706B); border-radius: 16px;
+          padding: 24px 24px 26px; margin-top: 26px; color: #fff; position: relative; overflow: hidden; }
+  .quiz::after { content: ""; position: absolute; right: -90px; top: -70px; width: 260px; height: 260px;
+                 border-radius: 50%; border: 50px solid rgba(255,255,255,.05); }
+  .quiz h2 { font-family: Sora, sans-serif; font-size: 22px; position: relative; }
+  .quiz p.sub { color: #B7CFCB; margin-top: 7px; font-size: 16px; position: relative; max-width: 520px; }
+  .quiz .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; position: relative; }
+  .quiz select { font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 9px;
+                 border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1); color: #fff; }
+  .quiz select option { color: #10302E; }
+  .btn-gold { font: inherit; font-size: 15px; font-weight: 700; padding: 11px 24px; border-radius: 9px;
+              border: 0; background: var(--marigold); color: #3A2A06; cursor: pointer; }
+  .btn-gold:disabled { opacity: .6; cursor: default; }
+  .btn-line { font: inherit; font-size: 15px; font-weight: 600; padding: 11px 20px; border-radius: 9px;
+              border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff; cursor: pointer; }
+
+  .q-head { display: flex; justify-content: space-between; align-items: baseline;
+            font-size: 14px; color: #B7CFCB; position: relative; }
+  .q-text { font-family: Sora, sans-serif; font-size: 22px; line-height: 1.35; margin-top: 12px; position: relative; }
+  .q-opts { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; position: relative; }
+  .q-opt { display: flex; gap: 12px; align-items: center; text-align: left; font: inherit; font-size: 16px;
+           padding: 13px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.28);
+           background: rgba(255,255,255,.08); color: #fff; cursor: pointer; }
+  .q-opt:hover:not(:disabled) { background: rgba(255,255,255,.16); }
+  .q-opt b { font-family: Sora, sans-serif; min-width: 20px; }
+  .q-opt.right { background: var(--marigold); color: #3A2A06; border-color: var(--marigold); }
+  .q-opt.wrong { background: #9E3A34; border-color: #9E3A34; }
+  .q-opt:disabled { cursor: default; }
+  .q-why { margin-top: 16px; font-size: 15.5px; line-height: 1.6; color: #D8E8E5;
+           background: rgba(255,255,255,.1); border-radius: 10px; padding: 14px 16px; position: relative; }
+  .q-bar { height: 5px; border-radius: 99px; background: rgba(255,255,255,.18); margin-top: 18px; position: relative; }
+  .q-bar i { display: block; height: 100%; border-radius: 99px; background: var(--marigold); transition: width .25s; }
+  .score { font-family: Sora, sans-serif; font-size: 46px; position: relative; }
+
+  /* ---------- capsules ---------- */
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+  .chip { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 15px; border-radius: 99px;
+          border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
+  .caps { display: grid; gap: 14px; margin-top: 20px; }
+  .cap { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 17px 19px; }
+  .cap .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .cap .tag { font-size: 12px; font-weight: 600; background: var(--teal-soft); color: var(--teal-deep);
+              padding: 2px 10px; border-radius: 99px; }
+  .cap .tag.fact { background: #FFF3DA; color: #7A5413; }
+  .cap h3 { font-family: Sora, sans-serif; font-size: 17.5px; line-height: 1.4;
+            color: var(--teal-deep); margin-top: 9px; }
+  .cap ol { margin: 12px 0 0 20px; color: var(--ink); font-size: 15.5px; }
+  .cap ol li + li { margin-top: 5px; }
+  .cap .reveal { font: inherit; font-size: 14px; font-weight: 600; color: var(--teal);
+                 background: none; border: 0; padding: 0; margin-top: 12px; cursor: pointer; text-decoration: underline; }
+  .cap .ans { margin-top: 12px; border-left: 3px solid var(--marigold); padding-left: 13px; }
+  .cap .ans b { color: var(--teal-deep); }
+  .cap .ans p { font-size: 15px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
+  .cap .src { font-size: 13px; color: #8AA09D; margin-top: 10px; }
+  .empty { background: #fff; border: 1px dashed var(--line); border-radius: 12px;
+           padding: 36px 20px; text-align: center; color: var(--muted); margin-top: 20px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="tjp-header"></div>
+
+<main class="wrap">
+  <h1>General knowledge</h1>
+  <p class="lead">The general knowledge that actually turns up in Tripura recruitment papers —
+    state GK, polity, history and geography. Take the quiz, or read through the bank below.</p>
+
+  <section class="quiz" id="quiz">
+    <div id="q-start">
+      <h2>Quick quiz</h2>
+      <p class="sub">Ten questions, marked as you go, with the reason behind each answer.
+        No sign-in, nothing recorded.</p>
+      <div class="controls">
+        <select id="q-topic"><option value="">All topics</option></select>
+        <button class="btn-gold" id="q-go" type="button">Start</button>
+      </div>
+    </div>
+
+    <div id="q-play" hidden>
+      <div class="q-head"><span id="q-count"></span><span id="q-topic-label"></span></div>
+      <p class="q-text" id="q-text"></p>
+      <div class="q-opts" id="q-opts"></div>
+      <div class="q-why" id="q-why" hidden></div>
+      <div class="q-bar"><i id="q-prog" style="width:0%"></i></div>
+      <div class="controls"><button class="btn-gold" id="q-next" type="button" hidden>Next</button></div>
+    </div>
+
+    <div id="q-done" hidden>
+      <h2>Finished</h2>
+      <p class="score" id="q-score"></p>
+      <p class="sub" id="q-verdict"></p>
+      <div class="controls">
+        <button class="btn-gold" id="q-again" type="button">Go again</button>
+        <a class="btn-line" href="mock-tests.html" style="text-decoration:none">Try a full mock test</a>
+      </div>
+    </div>
+  </section>
+
+  <h2 style="font-family:Sora,sans-serif;font-size:20px;color:var(--teal-deep);margin-top:40px">The bank</h2>
+  <div class="chips" id="chips"></div>
+  <div class="caps" id="caps"></div>
+  <div class="empty" id="caps-empty" hidden>Nothing here yet. Come back shortly.</div>
+</main>
+
+<div id="tjp-footer"></div>
+
+<script src="config.js"></script>
+<script src="tjp-header.js"></script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const LETTERS = ["A", "B", "C", "D"];
+
+  /* =================== the quiz =================== */
+  let quiz = [], at = 0, right = 0;
+
+  async function start() {
+    const topic = $("q-topic").value;
+    $("q-go").disabled = true; $("q-go").textContent = "Loading…";
+    const { data, error } = await supabase.rpc("gk_quiz", { p_topic: topic || null, p_count: 10 });
+    $("q-go").disabled = false; $("q-go").textContent = "Start";
+
+    if (error) { console.error(error); return; }
+    quiz = data || [];
+    if (!quiz.length) return;
+
+    at = 0; right = 0;
+    $("q-start").hidden = true; $("q-done").hidden = true; $("q-play").hidden = false;
+    $("q-topic-label").textContent = topic || "All topics";
+    show();
+  }
+
+  function show() {
+    const q = quiz[at];
+    $("q-count").textContent = "Question " + (at + 1) + " of " + quiz.length;
+    $("q-text").textContent = q.question;
+    $("q-why").hidden = true;
+    $("q-next").hidden = true;
+    $("q-prog").style.width = ((at) / quiz.length * 100) + "%";
+
+    const box = $("q-opts"); box.innerHTML = "";
+    (q.options || []).forEach((opt, i) => {
+      const b = el("button", "q-opt");
+      b.type = "button";
+      b.append(el("b", "", LETTERS[i]), el("span", "", opt));
+      b.onclick = () => answer(i);
+      box.append(b);
+    });
+  }
+
+  function answer(picked) {
+    const q = quiz[at];
+    const buttons = [...$("q-opts").children];
+    buttons.forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.answer_index) b.classList.add("right");
+      else if (i === picked) b.classList.add("wrong");
+    });
+    if (picked === q.answer_index) right++;
+
+    if (q.explanation) { $("q-why").textContent = q.explanation; $("q-why").hidden = false; }
+    $("q-prog").style.width = ((at + 1) / quiz.length * 100) + "%";
+    $("q-next").hidden = false;
+    $("q-next").textContent = at + 1 < quiz.length ? "Next" : "See the score";
+  }
+
+  $("q-next").addEventListener("click", () => {
+    at++;
+    if (at < quiz.length) return show();
+    $("q-play").hidden = true; $("q-done").hidden = false;
+    $("q-score").textContent = right + " out of " + quiz.length;
+    const pct = right / quiz.length;
+    $("q-verdict").textContent =
+      pct === 1 ? "Every one. Try a harder topic."
+      : pct >= 0.7 ? "Solid. The ones you missed are worth a second look."
+      : pct >= 0.4 ? "A fair start. Read through the bank below and go again."
+      : "Worth working through the bank below before the next attempt.";
+  });
+
+  $("q-go").addEventListener("click", start);
+  $("q-again").addEventListener("click", start);
+
+  /* =================== the bank =================== */
+  let all = [], topic = "";
+
+  function drawCaps() {
+    const shown = topic ? all.filter(i => i.topic === topic) : all;
+    const box = $("caps"); box.innerHTML = "";
+    $("caps-empty").hidden = shown.length > 0;
+
+    for (const it of shown) {
+      const cap = el("div", "cap");
+      const top = el("div", "top");
+      top.append(el("span", "tag", it.topic));
+      if (it.kind === "fact") top.append(el("span", "tag fact", "Fact"));
+      cap.append(top, el("h3", "", it.question));
+
+      if (it.kind === "question" && (it.options || []).length) {
+        const ol = document.createElement("ol");
+        ol.type = "A";
+        for (const o of it.options) ol.append(el("li", "", o));
+        cap.append(ol);
+      }
+
+      const ans = el("div", "ans");
+      ans.hidden = true;
+      const line = el("p");
+      if (it.kind === "question") {
+        line.append(el("b", "", "Answer: " + LETTERS[it.answer_index] + ". " + (it.options || [])[it.answer_index]));
+      } else if (it.answer) {
+        line.append(el("b", "", it.answer));
+      }
+      ans.append(line);
+      if (it.explanation) ans.append(el("p", "", it.explanation));
+
+      const btn = el("button", "reveal", "Show the answer");
+      btn.type = "button";
+      btn.onclick = () => {
+        ans.hidden = !ans.hidden;
+        btn.textContent = ans.hidden ? "Show the answer" : "Hide the answer";
+      };
+      if (it.kind === "question" || it.answer || it.explanation) cap.append(btn, ans);
+
+      if (it.source_name) {
+        const s = el("div", "src");
+        if (it.source_url) {
+          const a = el("a", "", "Source: " + it.source_name);
+          a.href = it.source_url; a.target = "_blank"; a.rel = "noopener";
+          s.append(a);
+        } else s.textContent = "Source: " + it.source_name;
+        cap.append(s);
+      }
+      box.append(cap);
+    }
+  }
+
+  async function load() {
+    const { data, error } = await supabase.from("gk_items")
+      .select("*").eq("status", "published").order("created_at", { ascending: false }).limit(300);
+    if (error) { console.error(error); $("caps-empty").hidden = false; return; }
+    all = data || [];
+
+    const topics = [...new Set(all.map(i => i.topic).filter(Boolean))].sort();
+    for (const t of topics) {
+      const o = document.createElement("option"); o.value = t; o.textContent = t;
+      $("q-topic").append(o);
+    }
+
+    const chips = $("chips");
+    const mk = (label, value) => {
+      const b = el("button", "chip", label);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(value === topic));
+      b.onclick = () => {
+        topic = value;
+        [...chips.children].forEach(c => c.setAttribute("aria-pressed", "false"));
+        b.setAttribute("aria-pressed", "true");
+        drawCaps();
+      };
+      chips.append(b);
+    };
+    mk("Everything", "");
+    topics.forEach(t => mk(t, t));
+
+    // No questions means no quiz; say so rather than offering a button that does nothing.
+    if (!all.some(i => i.kind === "question")) {
+      $("q-go").disabled = true;
+      $("q-go").textContent = "No questions yet";
+    }
+    drawCaps();
+  }
+
+  load();
+</script>
+</body>
+</html>
