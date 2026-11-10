@@ -63,6 +63,11 @@ STATIC = [
     ("learn.html", "0.6", "monthly"),
     ("plans.html", "0.5", "monthly"),
     ("blog.html", "0.8", "weekly"),
+    ("gk.html", "0.8", "weekly"),
+    ("resize.html", "0.7", "monthly"),
+    ("cv-score.html", "0.7", "monthly"),
+    ("salary.html", "0.7", "monthly"),
+    ("privacy.html", "0.3", "yearly"),
     ("login.html", "0.3", "monthly"),
 ]
 
@@ -519,7 +524,11 @@ def md_inline(text):
     # links first, so the text inside them is not mangled by the rules below
     text = re.sub(r"\[([^\]]+)\]\((https?://[^\s)]+)\)",
                   r'<a href="\2" target="_blank" rel="noopener">\1</a>', text)
-    text = re.sub(r"\[([^\]]+)\]\((?!https?://)([^\s)]+)\)", r'<a href="\2">\1</a>', text)
+    # A post lives at /blog/<slug>.html, so a link written as "cv.html" would
+    # resolve to /blog/cv.html and 404. Relative links get sent up one level.
+    text = re.sub(r"\[([^\]]+)\]\((?!https?://|#|/|\.\./|mailto:)([^\s)]+)\)",
+                  r'<a href="../\2">\1</a>', text)
+    text = re.sub(r"\[([^\]]+)\]\((#|/|\.\./|mailto:)([^\s)]*)\)", r'<a href="\2\3">\1</a>', text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", text)
     text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
