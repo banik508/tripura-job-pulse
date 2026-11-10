@@ -56,6 +56,26 @@
     <lastmod>2026-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority></url>
+  <url><loc>https://tripurajobpulse.com/gk.html</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority></url>
+  <url><loc>https://tripurajobpulse.com/resize.html</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority></url>
+  <url><loc>https://tripurajobpulse.com/cv-score.html</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority></url>
+  <url><loc>https://tripurajobpulse.com/salary.html</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority></url>
+  <url><loc>https://tripurajobpulse.com/privacy.html</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority></url>
   <url><loc>https://tripurajobpulse.com/login.html</loc>
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
@@ -2178,4 +2198,8 @@
     <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority></url>
+  <url><loc>https://tripurajobpulse.com/blog/how-to-write-a-cv-for-a-tripura-government-job.html</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority></url>
 </urlset>
