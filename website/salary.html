@@ -90,18 +90,10 @@
       </div>
 
       <div class="ctl">
-        <label>Where you are posted <span class="sub">— this sets the house rent allowance</span></label>
-        <div class="radios" id="city">
-          <label><input type="radio" name="city" value="x"> Class X</label>
-          <label><input type="radio" name="city" value="y"> Class Y</label>
-          <label><input type="radio" name="city" value="z" checked> Class Z</label>
-        </div>
-      </div>
-
-      <div class="ctl">
         <label><input type="checkbox" id="hra-on" checked style="width:auto;accent-color:var(--teal)">
           I receive house rent allowance</label>
         <p class="sub" style="margin-top:4px">Untick it if you are in government quarters.</p>
+        <p class="sub" id="hra-note" style="margin-top:4px"></p>
       </div>
 
       <div class="ctl">
@@ -155,12 +147,18 @@
   function calculate() {
     if (!settings) return;
     const basic = Math.max(0, Number($("basic").value) || 0);
-    const cls = (document.querySelector('input[name="city"]:checked') || {}).value || "z";
-    const hraPct = $("hra-on").checked
-      ? Number(settings["hra_" + cls + "_percent"] || 0) : 0;
+    const hraPct = $("hra-on").checked ? Number(settings.hra_percent || 0) : 0;
 
     const da  = basic * Number(settings.da_percent || 0) / 100;
-    const hra = basic * hraPct / 100;
+
+    // House rent allowance is a percentage of basic, but with a monthly
+    // ceiling. Ignoring the ceiling quietly overstates the salary of anyone
+    // on a higher basic - the people most likely to be checking it.
+    const cap = Number(settings.hra_cap || 0);
+    const hraRaw = basic * hraPct / 100;
+    const hra = cap > 0 ? Math.min(hraRaw, cap) : hraRaw;
+    const capped = cap > 0 && hraRaw > cap;
+
     const ta  = Number(settings.ta_amount || 0);
     const gross = basic + da + hra + ta;
 
@@ -173,7 +171,10 @@
     const tbody = $("rows"); tbody.innerHTML = "";
     row(tbody, "Basic pay", basic);
     row(tbody, `Dearness allowance (${settings.da_percent}%)`, da);
-    if (hraPct) row(tbody, `House rent allowance (${hraPct}%, class ${cls.toUpperCase()})`, hra);
+    if (hraPct) {
+      row(tbody, "House rent allowance (" + hraPct + "%" +
+          (capped ? ", at the " + rupees(cap) + " ceiling" : "") + ")", hra);
+    }
     if (ta) row(tbody, "Transport allowance", ta);
     row(tbody, "Gross", gross, "sum");
     if (nps) row(tbody, `Pension contribution (${settings.nps_percent}% of basic + DA)`, nps, "minus");
@@ -215,7 +216,12 @@
     });
 
     ["basic", "hra-on", "nps-on"].forEach(id => $(id).addEventListener("input", calculate));
-    document.querySelectorAll('input[name="city"]').forEach(r => r.addEventListener("change", calculate));
+
+    const cap = Number(settings.hra_cap || 0);
+    $("hra-note").textContent = cap > 0
+      ? "House rent allowance is " + settings.hra_percent + "% of basic pay, up to " +
+        rupees(cap) + " a month."
+      : "House rent allowance is " + settings.hra_percent + "% of basic pay.";
 
     const bits = [];
     if (settings.effective_from) {

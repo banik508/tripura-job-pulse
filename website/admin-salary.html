@@ -89,20 +89,16 @@
     <div class="card">
       <div class="fields">
         <div class="field">
-          <label for="da">Dearness allowance <span class="sub">%</span></label>
-          <input type="number" id="da" step="0.01" min="0" max="500">
+          <label for="da">Dearness allowance <span class="sub">% of basic</span></label>
+          <input type="number" id="da" step="0.01" min="0" max="500" placeholder="44">
         </div>
         <div class="field">
-          <label for="hx">House rent, class X <span class="sub">%</span></label>
-          <input type="number" id="hx" step="0.01" min="0" max="100">
+          <label for="hra">House rent allowance <span class="sub">% of basic</span></label>
+          <input type="number" id="hra" step="0.01" min="0" max="100" placeholder="10">
         </div>
         <div class="field">
-          <label for="hy">House rent, class Y <span class="sub">%</span></label>
-          <input type="number" id="hy" step="0.01" min="0" max="100">
-        </div>
-        <div class="field">
-          <label for="hz">House rent, class Z <span class="sub">%</span></label>
-          <input type="number" id="hz" step="0.01" min="0" max="100">
+          <label for="cap">Ceiling on house rent <span class="sub">rupees a month, 0 for none</span></label>
+          <input type="number" id="cap" step="1" min="0" placeholder="10000">
         </div>
         <div class="field">
           <label for="ta">Transport allowance <span class="sub">rupees a month</span></label>
@@ -210,29 +206,33 @@
   function preview() {
     const basic = levels.length ? Number(levels[0].basic) : 18000;
     const da = basic * num("da") / 100;
-    const hra = basic * num("hz") / 100;
+    const raw = basic * num("hra") / 100;
+    const hra = num("cap") > 0 ? Math.min(raw, num("cap")) : raw;
     const gross = basic + da + hra + num("ta");
     const inhand = gross - (basic + da) * num("nps") / 100 - num("pt");
     $("preview").innerHTML = "";
     $("preview").append(
-      document.createTextNode("On a basic of " + rupees(basic) + " in a class Z posting, that comes to "),
+      document.createTextNode("On a basic of " + rupees(basic) + ", that comes to "),
       el("b", "", rupees(gross) + " gross"),
       document.createTextNode(" and "),
       el("b", "", rupees(inhand) + " in hand"),
       document.createTextNode(".")
     );
   }
-  ["da", "hx", "hy", "hz", "ta", "nps", "pt"].forEach(id => $(id).addEventListener("input", preview));
+  ["da", "hra", "cap", "ta", "nps", "pt"].forEach(id => $(id).addEventListener("input", preview));
 
   /* ---------- settings ---------- */
   $("save").addEventListener("click", async () => {
     if ($("live").checked && !levels.length) {
       return say("Add at least one pay level before switching the calculator on.");
     }
+    if ($("live").checked && num("da") === 0) {
+      return say("Dearness allowance is still zero. Enter it from the official order before going live.");
+    }
     $("save").disabled = true; $("save").textContent = "Saving…";
     const { error } = await supabase.from("pay_settings").update({
       da_percent: num("da"),
-      hra_x_percent: num("hx"), hra_y_percent: num("hy"), hra_z_percent: num("hz"),
+      hra_percent: num("hra"), hra_cap: num("cap"),
       ta_amount: num("ta"), nps_percent: num("nps"), pt_amount: num("pt"),
       effective_from: $("eff").value || null,
       source_note: $("src").value.trim() || null,
@@ -295,9 +295,8 @@
     if (s.error) { console.error(s.error); return say("Couldn't load the figures: " + s.error.message); }
     const d = s.data || {};
     $("da").value = d.da_percent ?? 0;
-    $("hx").value = d.hra_x_percent ?? 0;
-    $("hy").value = d.hra_y_percent ?? 0;
-    $("hz").value = d.hra_z_percent ?? 0;
+    $("hra").value = d.hra_percent ?? 0;
+    $("cap").value = d.hra_cap ?? 0;
     $("ta").value = d.ta_amount ?? 0;
     $("nps").value = d.nps_percent ?? 0;
     $("pt").value = d.pt_amount ?? 0;
