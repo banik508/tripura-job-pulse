@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Career roadmap builder | Tripura Job Pulse</title>
+<meta name="description" content="Tell it where you are and what you want to do. Get an ordered plan with dates, the gaps you need to close, and the vacancies that fit — as a PDF you can keep.">
+<link rel="canonical" href="https://tripurajobpulse.com/roadmap.html">
+<meta property="og:title" content="Career roadmap builder">
+<meta property="og:description" content="An ordered plan from where you are to the post you want, as a PDF you can keep.">
+<meta property="og:url" content="https://tripurajobpulse.com/roadmap.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tripura Job Pulse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tjp-header.css">
+<style>
+  .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+  .wrap h1 { font-family: Sora, sans-serif; font-size: 32px; color: var(--teal-deep); }
+  .wrap .lead { font-size: 17.5px; color: var(--muted); margin-top: 10px; max-width: 640px; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px;
+          padding: 20px 22px; margin-top: 18px; }
+  .card h2 { font-family: Sora, sans-serif; font-size: 17px; color: var(--teal-deep); }
+  .card .hint { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 15px; margin-top: 14px; }
+  .f label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .f .sub { font-weight: 400; color: var(--muted); font-size: 13px; }
+  select, input[type=text], input[type=number] { font: inherit; font-size: 15px; width: 100%;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chip { font: inherit; font-size: 14px; font-weight: 600; padding: 9px 15px; border-radius: 99px;
+          border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
+
+  .go { font: inherit; font-size: 16px; font-weight: 700; padding: 14px 30px; border-radius: 10px;
+        border: 0; background: var(--teal-deep); color: #fff; cursor: pointer; margin-top: 20px; }
+  .go:disabled { opacity: .5; cursor: default; }
+  .msg-line { font-size: 14px; color: #A33A34; font-weight: 600; margin-top: 10px; }
+
+  /* ---------- the plan ---------- */
+  .plan { margin-top: 30px; }
+  .banner { background: linear-gradient(135deg, #0B3A38, #15706B); border-radius: 14px;
+            padding: 24px 26px; color: #fff; }
+  .banner h2 { font-family: Sora, sans-serif; font-size: 23px; }
+  .banner p { color: #B7CFCB; margin-top: 8px; font-size: 16px; line-height: 1.6; }
+  .banner .who { font-size: 14px; color: #9FC4BE; margin-top: 14px; }
+
+  h3.step { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); margin-top: 30px;
+            padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+
+  .tasks { display: grid; gap: 10px; margin-top: 14px; }
+  .task { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start;
+          background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px; }
+  .task .box { width: 20px; height: 20px; border: 2px solid var(--teal); border-radius: 5px; margin-top: 2px; }
+  .task b { display: block; font-size: 15.5px; color: var(--ink); }
+  .task p { font-size: 14px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+  .task a { color: var(--teal); font-weight: 600; }
+  .task.now { border-left: 4px solid var(--marigold); }
+
+  .phase { background: #fff; border: 1px solid var(--line); border-radius: 12px;
+           padding: 16px 18px; margin-top: 12px; }
+  .phase .when { font-family: Sora, sans-serif; font-size: 13px; text-transform: uppercase;
+                 letter-spacing: .6px; color: var(--marigold); }
+  .phase h4 { font-family: Sora, sans-serif; font-size: 16px; color: var(--teal-deep); margin-top: 4px; }
+  .phase ul { margin: 9px 0 0 20px; font-size: 15px; color: var(--ink); }
+  .phase li + li { margin-top: 5px; }
+
+  .pivot { background: #FFF8EA; border: 1px solid var(--marigold); border-radius: 12px;
+           padding: 18px 20px; margin-top: 14px; }
+  .pivot h4 { font-family: Sora, sans-serif; font-size: 16px; color: #7A5413; }
+  .pivot p { font-size: 15px; color: #7A5413; margin-top: 7px; line-height: 1.6; }
+  .pivot .routes { display: grid; gap: 10px; margin-top: 12px; }
+  .route { background: #fff; border: 1px solid #E8D5AE; border-radius: 10px; padding: 13px 15px; }
+  .route b { display: block; font-family: Sora, sans-serif; font-size: 15px; color: var(--teal-deep); }
+  .route span { display: block; font-size: 12.5px; font-weight: 600; color: var(--marigold); margin-top: 2px; }
+  .route p { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  .vac { display: grid; gap: 10px; margin-top: 14px; }
+  .vac a { display: block; background: #fff; border: 1px solid var(--line); border-radius: 11px;
+           padding: 13px 15px; text-decoration: none; }
+  .vac a:hover { border-color: var(--teal); }
+  .vac b { display: block; font-size: 15.5px; color: var(--teal-deep); }
+  .vac span { display: block; font-size: 13.5px; color: var(--muted); margin-top: 3px; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+  .btn-line { font: inherit; font-size: 15px; font-weight: 600; padding: 13px 22px; border-radius: 9px;
+              border: 1px solid var(--line); background: #fff; color: var(--teal-deep); cursor: pointer; }
+  .btn-gold { font: inherit; font-size: 15px; font-weight: 700; padding: 13px 26px; border-radius: 9px;
+              border: 0; background: var(--marigold); color: #3A2A06; cursor: pointer; }
+
+  .caveat { font-size: 14px; color: var(--muted); margin-top: 24px; line-height: 1.65;
+            border-left: 3px solid var(--line); padding-left: 14px; }
+  [hidden] { display: none !important; }
+
+  /* ---------- the printed version ----------
+     The PDF people keep is this page printed. Real text, real fonts, selectable
+     and searchable - better than anything drawn into a canvas. */
+  .print-head { display: none; }
+  @media print {
+    @page { margin: 14mm; }
+    body { background: #fff; }
+    #tjp-header, #tjp-footer, .site-header, nav, footer,
+    .wrap > h1, .wrap > .lead, #form, .actions, .no-print { display: none !important; }
+    .wrap { max-width: none; padding: 0; }
+    .print-head { display: block; border-bottom: 3px solid #0E4F4C; padding-bottom: 10px; margin-bottom: 16px; }
+    .print-head b { font-family: Sora, sans-serif; font-size: 19px; color: #0E4F4C; }
+    .print-head b i { font-style: normal; color: #BE8318; }
+    .print-head span { display: block; font-size: 12px; color: #5C7572; margin-top: 3px; }
+    .banner { background: #0E4F4C !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .plan { margin-top: 0; }
+    h3.step { page-break-after: avoid; margin-top: 18px; }
+    .task, .phase, .route, .vac a { page-break-inside: avoid; }
+    .pivot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    a[href]::after { content: ""; }
+  }
+</style>
+</head>
+<body>
+
+<div id="tjp-header"></div>
+
+<main class="wrap">
+  <h1>Career roadmap builder</h1>
+  <p class="lead">Tell it where you are and what you want to do. It gives back an ordered plan,
+    the gaps you need to close, and the vacancies that fit — as a PDF you can keep.</p>
+
+  <div id="form">
+    <div class="card">
+      <h2>Where you are now</h2>
+      <p class="hint">Nothing here is saved or sent anywhere. It all happens in your browser.</p>
+      <div class="fields">
+        <div class="f">
+          <label for="qual">Highest qualification</label>
+          <select id="qual">
+            <option value="madhyamik">Madhyamik (Class 10)</option>
+            <option value="hs">Higher Secondary (Class 12)</option>
+            <option value="iti">ITI or diploma</option>
+            <option value="arts" selected>Graduate — arts or commerce</option>
+            <option value="science">Graduate — science</option>
+            <option value="bio">Graduate — biotechnology or life sciences</option>
+            <option value="engg">Graduate — engineering or technology</option>
+            <option value="computer">Graduate — computer science or IT</option>
+            <option value="edu">B.Ed or D.El.Ed</option>
+            <option value="pg">Postgraduate</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="age">Your age</label>
+          <input type="number" id="age" min="14" max="60" value="24">
+        </div>
+        <div class="f">
+          <label for="status">What you are doing now</label>
+          <select id="status">
+            <option value="studying">Still studying</option>
+            <option value="preparing" selected>Preparing full time</option>
+            <option value="working">Working</option>
+            <option value="looking">Looking, not preparing yet</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="hours">Hours you can study a day</label>
+          <select id="hours">
+            <option value="1">About 1</option>
+            <option value="3" selected>2 to 3</option>
+            <option value="5">4 to 6</option>
+            <option value="8">More than 6</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="typing">Typing speed <span class="sub">words a minute</span></label>
+          <select id="typing">
+            <option value="0" selected>I do not know</option>
+            <option value="15">Under 20</option>
+            <option value="25">20 to 30</option>
+            <option value="35">Over 30</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="computer">Computer use</label>
+          <select id="computer">
+            <option value="none">Barely used one</option>
+            <option value="basic" selected>Basic — typing, internet</option>
+            <option value="office">Comfortable with Word and Excel</option>
+            <option value="code">I can write code</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Where you want to get to</h2>
+      <p class="hint">Pick the kind of post you are working towards.</p>
+      <div class="chips" id="tracks"></div>
+
+      <div class="f" style="margin-top:20px">
+        <label for="interest">And what are you actually interested in?
+          <span class="sub">— even if it has nothing to do with your qualification</span></label>
+        <select id="interest">
+          <option value="same" selected>The same as the track above</option>
+          <option value="teaching">Teaching</option>
+          <option value="healthcare">Healthcare</option>
+          <option value="software">Software and IT</option>
+          <option value="data">Data and analytics</option>
+          <option value="robotics">Robotics, electronics, automation</option>
+          <option value="design">Design, media, content</option>
+          <option value="agri">Agriculture and food</option>
+          <option value="lab">Laboratory and research</option>
+          <option value="finance">Accounts and finance</option>
+          <option value="business">Running my own thing</option>
+        </select>
+      </div>
+      <p class="hint" style="margin-top:8px">If this is different from the track, the plan will
+        include an honest route towards it alongside the government preparation — not instead of it.</p>
+
+      <button class="go" id="build" type="button">Build my roadmap</button>
+      <p class="msg-line" id="msg" hidden></p>
+    </div>
+  </div>
+
+  <section class="plan" id="plan" hidden>
+    <div class="print-head">
+      <b>Tripura <i>Job Pulse</i></b>
+      <span id="print-when"></span>
+    </div>
+
+    <div class="banner">
+      <h2 id="b-title"></h2>
+      <p id="b-text"></p>
+      <p class="who" id="b-who"></p>
+    </div>
+
+    <h3 class="step">Start with these</h3>
+    <div class="tasks" id="tasks"></div>
+
+    <h3 class="step">The order to do it in</h3>
+    <div id="phases"></div>
+
+    <div id="pivot-wrap" hidden>
+      <h3 class="step">Towards what you actually want</h3>
+      <div class="pivot" id="pivot"></div>
+    </div>
+
+    <div id="vac-wrap" hidden>
+      <h3 class="step">Vacancies open now on this track</h3>
+      <div class="vac" id="vac"></div>
+    </div>
+
+    <p class="caveat" id="caveat"></p>
+
+    <div class="actions no-print">
+      <button class="btn-gold" id="pdf" type="button">Download as PDF</button>
+      <button class="btn-line" id="again" type="button">Change my answers</button>
+    </div>
+  </section>
+</main>
+
+<div id="tjp-footer"></div>
+
+<script src="config.js"></script>
+<script src="tjp-header.js"></script>
+<script>
+  /* The roadmap itself is worked out entirely in this browser and needs no
+     database. Supabase is loaded only for the two optional extras - filling
+     your age in from your profile, and listing live vacancies at the end -
+     and it is loaded lazily, so a slow or blocked CDN cannot stop the tool
+     from working. */
+  var _sb = null;
+  async function getSupabase() {
+    if (_sb !== null) return _sb;
+    try {
+      var cfg = window.TJP_CONFIG || {};
+      if (!cfg.SUPABASE_URL || !cfg.SUPABASE_KEY) { _sb = false; return false; }
+      var m = await import("/lib/supabase.js");
+      _sb = m.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY);
+    } catch (e) { _sb = false; }
+    return _sb;
+  }
+
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const link = (href, text) => { const a = el("a", "", text); a.href = href; return a; };
+
+  /* ===================== the tracks ===================== */
+  const TRACKS = {
+    clerical: {
+      name: "State government clerical",
+      blurb: "LDC, Group C and Group D, junior assistant and similar posts.",
+      minQual: ["madhyamik", "hs", "iti", "arts", "science", "bio", "engg", "computer", "edu", "pg"],
+      needsTyping: true,
+      written: ["General knowledge and current affairs", "English or Bengali", "Arithmetic and reasoning"],
+      keywords: ["clerk", "ldc", "assistant", "group c", "group d", "office", "data entry"],
+      // "assistant" alone pulls in Assistant Teacher and Staff Nurse posts,
+      // which belong to other tracks. Exclusions are checked first.
+      exclude: ["teacher", "tet", "nurse", "constable", "police", "rifles", "lecturer", "professor"]
+    },
+    teaching: {
+      name: "Teaching",
+      blurb: "Posts that require a teacher eligibility test.",
+      minQual: ["edu", "arts", "science", "bio", "pg"],
+      needsTyping: false,
+      written: ["Child development and pedagogy", "Language", "Subject knowledge", "Tripura general knowledge"],
+      keywords: ["teacher", "tet", "lecturer", "instructor", "education"],
+      exclude: ["constable", "police"]
+    },
+    uniformed: {
+      name: "Police, TSR and uniformed services",
+      blurb: "A physical standard and a written paper, in that order.",
+      minQual: ["madhyamik", "hs", "iti", "arts", "science", "bio", "engg", "computer", "pg"],
+      needsTyping: false,
+      written: ["General knowledge", "Reasoning", "Arithmetic"],
+      keywords: ["police", "constable", "tsr", "rifles", "fire", "guard", "warden"],
+      exclude: ["teacher", "clerk"]
+    },
+    private: {
+      name: "Private and remote work",
+      blurb: "No examination. A good CV, a demonstrable skill, and applying steadily.",
+      minQual: ["madhyamik", "hs", "iti", "arts", "science", "bio", "engg", "computer", "edu", "pg"],
+      needsTyping: false,
+      written: [],
+      keywords: [], exclude: []
+    }
+  };
+
+  const QUAL_LABEL = {
+    madhyamik: "Madhyamik", hs: "Higher Secondary", iti: "ITI or diploma",
+    arts: "an arts or commerce degree", science: "a science degree",
+    bio: "a biotechnology or life sciences degree", engg: "an engineering degree",
+    computer: "a computer science degree", edu: "a teaching qualification", pg: "a postgraduate degree"
+  };
+
+  /* What a qualification genuinely carries into another field. These are
+     judgements, not facts, and the page says so. */
+  const TRANSFERS = {
+    bio: "laboratory discipline, following a protocol exactly, recording results honestly, and handling data",
+    science: "method, measurement, and being comfortable with numbers and instruments",
+    engg: "problem solving, drawings and specifications, and technical vocabulary",
+    computer: "logic, programming, and working with systems",
+    arts: "writing, argument, and dealing with people and records",
+    pg: "independent study and the discipline of finishing a long piece of work",
+    edu: "explaining things clearly and managing a room",
+    iti: "practical hands-on skill and workshop safety",
+    hs: "a base to build a specific skill on",
+    madhyamik: "a base to build a specific skill on"
+  };
+
+  const INTEREST = {
+    teaching:   { name: "teaching",            skill: "a teaching qualification and subject depth",
+                  near: "private tuition and coaching work, which you can start now" },
+    healthcare: { name: "healthcare",          skill: "a recognised clinical or paramedical qualification",
+                  near: "laboratory, pharmacy and hospital administration roles" },
+    software:   { name: "software and IT",     skill: "one language learnt properly, and three things you have actually built",
+                  near: "support, testing and data entry roles that get you inside a technology company" },
+    data:       { name: "data and analytics",  skill: "spreadsheets to a high standard, then SQL, then one analysis tool",
+                  near: "reporting and MIS roles in any organisation that keeps records" },
+    robotics:   { name: "robotics, electronics and automation",
+                  skill: "electronics fundamentals, a microcontroller board you program yourself, and basic programming",
+                  near: "instrumentation, maintenance and laboratory equipment roles" },
+    design:     { name: "design, media and content",
+                  skill: "a portfolio of finished work, which matters far more than any certificate",
+                  near: "content writing, social media and small design jobs, often remote" },
+    agri:       { name: "agriculture and food", skill: "a formal agriculture qualification, or demonstrable field experience",
+                  near: "extension work, food processing and quality roles" },
+    lab:        { name: "laboratory and research", skill: "specific instrument experience and a research project you can describe",
+                  near: "technician posts in hospitals, colleges and testing laboratories" },
+    finance:    { name: "accounts and finance", skill: "accounting software and a book-keeping qualification",
+                  near: "accounts assistant and billing roles in any firm" },
+    business:   { name: "working for yourself", skill: "one paying customer before anything else",
+                  near: "freelance work alongside your current preparation" }
+  };
+
+  /* ===================== the form ===================== */
+  let track = "clerical";
+  const chips = $("tracks");
+  Object.entries(TRACKS).forEach(([key, t]) => {
+    const b = el("button", "chip", t.name);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(key === track));
+    b.onclick = () => {
+      track = key;
+      [...chips.children].forEach(c => c.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+    };
+    chips.append(b);
+  });
+
+  /* Pre-fill from the profile when someone is already signed in. */
+  (async () => {
+    try {
+      /* Cheap check first: no stored session means no reason to load the
+         library at all for a signed-out visitor. */
+      let looksSignedIn = false;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf("sb-") === 0 && k.indexOf("auth-token") > -1) { looksSignedIn = true; break; }
+        }
+      } catch (e) {}
+      if (!looksSignedIn) return;
+
+      const supabase = await getSupabase();
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data } = await supabase.from("profiles")
+        .select("date_of_birth, highest_qualification").eq("id", session.user.id).maybeSingle();
+      if (!data) return;
+      if (data.date_of_birth) {
+        const years = Math.floor((Date.now() - new Date(data.date_of_birth)) / 31557600000);
+        if (years > 13 && years < 61) $("age").value = years;
+      }
+      const q = (data.highest_qualification || "").toLowerCase();
+      const guess =
+        /b\.?ed|d\.?el\.?ed/.test(q) ? "edu" :
+        /m\.?a\b|m\.?sc|m\.?com|post ?grad/.test(q) ? "pg" :
+        /b\.?tech|engineer/.test(q) ? "engg" :
+        /bca|computer|b\.?c\.?a/.test(q) ? "computer" :
+        /bio|zoolog|botan|microbio/.test(q) ? "bio" :
+        /b\.?sc|science/.test(q) ? "science" :
+        /b\.?a\b|b\.?com|arts|commerce/.test(q) ? "arts" :
+        /iti|diploma|polytechnic/.test(q) ? "iti" :
+        /12|higher secondary|hs\b/.test(q) ? "hs" :
+        /10|madhyamik/.test(q) ? "madhyamik" : null;
+      if (guess) $("qual").value = guess;
+    } catch (e) { /* signed out, or storage blocked - the form still works */ }
+  })();
+
+  /* ===================== building the plan ===================== */
+  function buildTasks(a, t) {
+    const out = [];
+
+    if (t.needsTyping) {
+      const speed = Number(a.typing);
+      if (speed === 0) {
+        out.push({ now: true, title: "Find out your typing speed",
+          text: "This track has a typing test. You cannot plan around a number you do not have.",
+          href: "typing.html", linkText: "Take the typing test" });
+      } else if (speed < 30) {
+        out.push({ now: true, title: "Get your typing to 30 words a minute",
+          text: "You are at about " + speed + ". Ten focused minutes a day, accuracy before speed. The test is qualifying, so it cannot raise your rank — only cost you the post.",
+          href: "typing.html", linkText: "Practise here" });
+      }
+    }
+
+    if (a.computer === "none" || a.computer === "basic") {
+      out.push({ title: "Get a computer certificate",
+        text: "Most clerical and office posts ask for basic computer knowledge, and a verifiable certificate answers that question on paper.",
+        href: "certifications.html", linkText: "Free exam, certificate on passing" });
+    }
+
+    if (t.written.length) {
+      out.push({ title: "Take one mock test this week",
+        text: "Before you study anything. A bad score now is information; a bad score in week eight is a disaster.",
+        href: "mock-tests.html", linkText: "Free timed mock tests" });
+      out.push({ title: "Start the general knowledge bank",
+        text: "Twenty minutes a day. It is the section where effort turns into marks most reliably.",
+        href: "gk.html", linkText: "GK bank and quiz" });
+    }
+
+    out.push({ title: "Get your CV into shape",
+      text: "You will need it for every application, and for verification later.",
+      href: "cv.html", linkText: "Build it from your profile" });
+
+    out.push({ title: "Prepare your photograph and signature now",
+      text: "At the sizes portals ask for, saved somewhere you can find them. This is where people lose forms on the last day.",
+      href: "resize.html", linkText: "Resize them properly" });
+
+    out.push({ title: "Collect your certificates and category papers",
+      text: "Originals and clean photocopies, in one folder. Some certificates take weeks to obtain, and the closing date will not wait." });
+
+    return out;
+  }
+
+  function buildPhases(a, t) {
+    const hrs = Number(a.hours);
+    const pace = hrs <= 1 ? "slow" : hrs >= 5 ? "fast" : "steady";
+    const span = pace === "fast" ? [4, 8, 10, 12] : pace === "slow" ? [8, 16, 20, 24] : [6, 12, 15, 18];
+    const P = [];
+
+    if (t.written.length) {
+      P.push({ when: "Weeks 1 to " + span[0], title: "The heavy sections",
+        items: t.written.slice(0, 3).map(w => w + " — one topic at a time, finished before the next")
+          .concat(["One timed paper a week, from week one",
+                   "A mistakes notebook: every wrong answer, and why"]) });
+      P.push({ when: "Weeks " + (span[0] + 1) + " to " + span[1], title: "Everything else, and speed",
+        items: ["The smaller sections of the syllabus",
+                "Two papers a week, under time",
+                "Go back over the mistakes notebook weekly"] });
+      P.push({ when: "Weeks " + (span[1] + 1) + " to " + span[2], title: "Full papers only",
+        items: ["A complete paper, timed, with no phone",
+                "Two hours afterwards on what you got wrong — this matters more than the paper",
+                t.needsTyping ? "Typing practice every day until you are comfortably past 30" : "Revise the weakest section"] });
+      P.push({ when: "Last " + (span[3] - span[2]) + " weeks before any exam", title: "Revision, nothing new",
+        items: ["Your own notes and your own mistakes",
+                "Documents, admit card and identification in one place",
+                "Sleep properly the night before"] });
+    } else {
+      P.push({ when: "Weeks 1 to 2", title: "Make yourself presentable on paper",
+        items: ["A CV tailored to each role, not one sent everywhere",
+                "Check it against the advertisement before sending",
+                "A plain email address with your name in it"] });
+      P.push({ when: "Weeks 3 to 8", title: "Build one demonstrable skill",
+        items: ["Pick one thing and go deep rather than four things shallowly",
+                "Produce something finished that you can show",
+                "A certificate helps; finished work helps more"] });
+      P.push({ when: "Ongoing", title: "Apply steadily",
+        items: ["A fixed number of applications a week, written down",
+                "Follow up once, politely, after a week",
+                "Keep a record of where you applied and when"] });
+    }
+    return P;
+  }
+
+  function buildPivot(a) {
+    if (a.interest === "same") return null;
+    const want = INTEREST[a.interest];
+    if (!want) return null;
+    const carries = TRANSFERS[a.qual] || "what you have already learnt";
+    return {
+      want,
+      carries,
+      qualLabel: QUAL_LABEL[a.qual] || "your qualification",
+      routes: [
+        { b: "Start this week, costs nothing",
+          s: "Days, not months",
+          p: "Look for " + want.near + ". These use what you already have, and they put you inside the field where the next opportunity is visible." },
+        { b: "Add the one skill that unlocks it",
+          s: "Three to six months, alongside your preparation",
+          p: "For " + want.name + ", that means " + want.skill + ". One skill learnt properly beats three half-learnt, and finished work beats a certificate." },
+        { b: "Requalify formally",
+          s: "One to three years",
+          p: "A full qualification in " + want.name + ". It is the slowest and most expensive route and sometimes the only real one. Worth deciding deliberately rather than drifting into it." }
+      ]
+    };
+  }
+
+  /* ===================== drawing ===================== */
+  function draw(a) {
+    const t = TRACKS[track];
+
+    $("b-title").textContent = "Your roadmap: " + t.name;
+    $("b-text").textContent = t.blurb;
+    $("b-who").textContent =
+      "Built for someone aged " + a.age + " with " + (QUAL_LABEL[a.qual] || "that qualification") +
+      ", " + (a.status === "working" ? "working" : a.status === "studying" ? "still studying" :
+              a.status === "preparing" ? "preparing full time" : "looking") +
+      ", with about " + (a.hours === "1" ? "an hour" : a.hours === "8" ? "more than six hours" :
+                         a.hours === "5" ? "four to six hours" : "two to three hours") + " a day.";
+
+    const taskBox = $("tasks"); taskBox.innerHTML = "";
+    for (const task of buildTasks(a, t)) {
+      const row = el("div", "task" + (task.now ? " now" : ""));
+      row.append(el("div", "box"));
+      const mid = el("div");
+      mid.append(el("b", "", task.title));
+      if (task.text) mid.append(el("p", "", task.text));
+      if (task.href) {
+        const p = el("p");
+        p.append(link(task.href, task.linkText));
+        mid.append(p);
+      }
+      row.append(mid);
+      taskBox.append(row);
+    }
+
+    const phaseBox = $("phases"); phaseBox.innerHTML = "";
+    for (const ph of buildPhases(a, t)) {
+      const d = el("div", "phase");
+      d.append(el("div", "when", ph.when), el("h4", "", ph.title));
+      const ul = document.createElement("ul");
+      ph.items.forEach(i => ul.append(el("li", "", i)));
+      d.append(ul);
+      phaseBox.append(d);
+    }
+
+    const pv = buildPivot(a);
+    $("pivot-wrap").hidden = !pv;
+    if (pv) {
+      const box = $("pivot"); box.innerHTML = "";
+      box.append(el("h4", "", "You have " + pv.qualLabel + " and you want to work in " + pv.want.name + "."));
+      box.append(el("p", "", "That is a real gap, and pretending otherwise would not help you. But you are not starting from nothing: " +
+        pv.qualLabel + " carries " + pv.carries + ", and all of it counts."));
+      box.append(el("p", "", "There are three routes, and they are not alternatives — most people who get there do the first and second at once."));
+      const routes = el("div", "routes");
+      pv.routes.forEach(r => {
+        const d = el("div", "route");
+        d.append(el("b", "", r.b), el("span", "", r.s), el("p", "", r.p));
+        routes.append(d);
+      });
+      box.append(routes);
+      const note = el("p", "", "In Tripura the local demand for some of these is thin, which makes remote work the practical answer rather than a lesser one. ");
+      note.append(link("jobs-remote.html", "Remote vacancies are listed here"));
+      note.append(document.createTextNode("."));
+      box.append(note);
+    }
+
+    $("caveat").textContent =
+      "This plan is a starting structure, not a rule. Every recruitment publishes its own eligibility, " +
+      "age limits and selection pattern, and the notification is always the authority — not this page. " +
+      "Check your eligibility in the advertisement itself before you pay any fee.";
+
+    $("print-when").textContent = "Career roadmap · " +
+      new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+
+    $("form").hidden = true;
+    $("plan").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    loadVacancies(t);
+  }
+
+  async function loadVacancies(t) {
+    if (!t.keywords.length) { $("vac-wrap").hidden = true; return; }
+    try {
+      const supabase = await getSupabase();
+      if (!supabase) { $("vac-wrap").hidden = true; return; }
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await supabase.from("jobs")
+        .select("id, title, organisation, location, last_date, qualification")
+        .or(`last_date.gte.${today},last_date.is.null`)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error || !data) return;
+
+      const hits = data.filter(j => {
+        const hay = ((j.title || "") + " " + (j.organisation || "")).toLowerCase();
+        if ((t.exclude || []).some(k => hay.includes(k))) return false;
+        return t.keywords.some(k => hay.includes(k));
+      }).slice(0, 6);
+
+      if (!hits.length) { $("vac-wrap").hidden = true; return; }
+      const box = $("vac"); box.innerHTML = "";
+      for (const j of hits) {
+        const a = el("a");
+        a.href = "job.html?id=" + encodeURIComponent(j.id);
+        a.append(el("b", "", j.title));
+        const bits = [j.organisation, j.location,
+          j.last_date ? "closes " + new Date(j.last_date + "T00:00:00")
+            .toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null].filter(Boolean);
+        a.append(el("span", "", bits.join(" · ")));
+        box.append(a);
+      }
+      $("vac-wrap").hidden = false;
+    } catch (e) { $("vac-wrap").hidden = true; }
+  }
+
+  /* ===================== wiring ===================== */
+  $("build").addEventListener("click", () => {
+    const age = Number($("age").value);
+    if (!(age >= 14 && age <= 60)) {
+      $("msg").textContent = "Enter an age between 14 and 60.";
+      $("msg").hidden = false;
+      return;
+    }
+    $("msg").hidden = true;
+    draw({
+      qual: $("qual").value, age, status: $("status").value, hours: $("hours").value,
+      typing: $("typing").value, computer: $("computer").value, interest: $("interest").value
+    });
+  });
+
+  $("again").addEventListener("click", () => {
+    $("plan").hidden = true;
+    $("form").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // The PDF is this page printed. Real text, real fonts, and it works on every
+  // device without downloading a library that might not arrive.
+  $("pdf").addEventListener("click", () => window.print());
+</script>
+</body>
+</html>

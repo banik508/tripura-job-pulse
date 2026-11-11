@@ -192,8 +192,8 @@
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-  import qrcode from "https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.mjs";
+  import { createClient } from "/lib/supabase.js";
+  import qrcode from "/lib/qrcode.js";
 
   const { SUPABASE_URL, SUPABASE_KEY, UPI_ID, UPI_NAME, SITE_URL } = window.TJP_CONFIG;
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);

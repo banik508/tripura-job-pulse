@@ -50,7 +50,7 @@
                                       "Exact size and file limits the portals ask for"],
       ["salary.html",   "calculator", "Salary calculator","Pay level to in-hand salary"],
       ["typing.html",   "keyboard",   "Typing test",     "Practice for the clerical typing stage"],
-      [null,            "route",      "Career roadmap",  "Your path from where you are to the post you want"]
+      ["roadmap.html",  "route",      "Career roadmap",  "Your path from where you are to the post you want"]
     ]},
     { label: "Blog", href: "blog.html" }
   ];
@@ -70,7 +70,8 @@
                    ["gk.html","General knowledge"]]],
     ["Career Toolkit", [["cv.html","CV builder"],["cv-score.html","CV score checker"],
                         ["resize.html","Photo and signature resizer"],["salary.html","Salary calculator"],
-                        ["typing.html","Typing test"],["verify.html","Verify a certificate"]]],
+                        ["typing.html","Typing test"],["roadmap.html","Career roadmap"],
+                        ["verify.html","Verify a certificate"]]],
     ["More",      [["index.html#contact","Post a vacancy"],["index.html#contact","Contact us"],
                    ["blog.html","Blog"],["plans.html","Job plans"],
                    ["privacy.html","Privacy policy"],["delete-account.html","Delete your account"],
@@ -102,14 +103,15 @@
       out += '<div class="nav-item' + (open ? " here" : "") + '">' +
              '<button class="nav-btn" type="button" aria-expanded="false">' + esc(m.label) +
              ' <span class="chev"></span></button>' +
-             '<div class="drop' + (m.items.length < 4 ? " one-col" : "") + '">' +
+             '<div class="drop">' +
              m.items.map(function (it) {
+               // Name only. The one-line explanations made every panel wide
+               // enough to wrap, which is harder to read than the plain list.
                var href = it[0], tag = href ? "a" : "span";
                var attrs = href ? ' href="' + U(href) + '"' : ' class="soon-item"';
-               return "<" + tag + attrs + '><span class="di"><span class="icon" data-icon="' + it[1] +
-                      '"></span></span><span><b>' + esc(it[2]) +
+               return "<" + tag + attrs + "><b>" + esc(it[2]) +
                       (href ? "" : ' <span class="soon">soon</span>') +
-                      "</b><i>" + esc(it[3]) + "</i></span></" + tag + ">";
+                      "</b></" + tag + ">";
              }).join("") +
              "</div></div>";
     });

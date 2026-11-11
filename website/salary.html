@@ -126,7 +126,7 @@
 <script src="config.js"></script>
 <script src="tjp-header.js"></script>
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import { createClient } from "/lib/supabase.js";
   const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -238,7 +238,13 @@
     calculate();
   }
 
-  load();
+  // A thrown error used to leave the page sitting on "Loading..." for ever,
+  // because nothing caught it. Say so instead.
+  load().catch(err => {
+    console.error(err);
+    const s = document.querySelector(".state");
+    if (s) s.textContent = "Could not load. Check your connection and refresh the page.";
+  });
 </script>
 </body>
 </html>

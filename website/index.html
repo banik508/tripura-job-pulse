@@ -754,7 +754,7 @@
 <script src="config.js"></script>
 <script src="tjp-header.js"></script>
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import { createClient } from "/lib/supabase.js";
   const CFG = window.TJP_CONFIG || {};
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
   const $ = id => document.getElementById(id);

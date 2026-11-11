@@ -156,8 +156,11 @@
 <script src="config.js"></script>
 <script src="subjects.js"></script>
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-  import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
+  import { createClient } from "/lib/supabase.js";
+  let XLSX = null;
+  // Loaded only when a spreadsheet is actually read, so a slow or blocked
+  // SheetJS CDN can no longer stop this page from loading at all.
+  const loadXLSX = async () => (XLSX = XLSX || await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs"));
   const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = id => document.getElementById(id);
@@ -227,6 +230,7 @@
     if (!$("u-test").value) { showMsg($("upload-msg"), "Create a test first, then choose it above."); $("u-file").value = ""; return; }
     let rows;
     try {
+      await loadXLSX();
       const wb = XLSX.read(await file.arrayBuffer());
       const sheet = wb.Sheets["Questions"] || wb.Sheets[wb.SheetNames[0]];
       rows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });

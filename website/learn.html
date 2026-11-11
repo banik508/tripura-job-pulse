@@ -102,7 +102,7 @@
 
 <script src="config.js"></script>
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  import { createClient } from "/lib/supabase.js";
   const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = id => document.getElementById(id);
