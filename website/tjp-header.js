@@ -298,7 +298,13 @@
     });
   }
 
-  if (document.readyState === "loading") {
+  // This script is loaded at the end of the body, so both placeholders are
+  // already parsed and the header can be built right away. Waiting for
+  // DOMContentLoaded would build it AFTER each page's module script runs,
+  // and any page reaching for a header element would throw and stop.
+  if (document.getElementById("tjp-header") || document.getElementById("tjp-footer")) {
+    mount();
+  } else if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", mount);
   } else {
     mount();

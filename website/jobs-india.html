@@ -124,7 +124,6 @@
   const SHOW_TYPE = true;
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
 
   let all = [], type = "all";
   if (!SHOW_TYPE) document.getElementById("type-group").hidden = true;

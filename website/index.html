@@ -826,8 +826,9 @@
     // One RPC, so no table is exposed to the browser just to show a number.
     const { data, error } = await supabase.rpc("public_stats");
     if (error || !data) return;              // strip stays hidden until the SQL is in place
-    const s = Array.isArray(data) ? data[0] : data;
-    const pairs = [["s-jobs", s.live_jobs], ["s-members", s.members],
+    const s = (Array.isArray(data) ? data[0] : data) || null;
+    if (!s) return;                          // an empty result is not an error
+    const pairs =[["s-jobs", s.live_jobs], ["s-members", s.members],
                    ["s-questions", s.questions], ["s-modules", s.modules]];
     if (pairs.every(([, v]) => v == null)) return;
     $("stats").hidden = false;

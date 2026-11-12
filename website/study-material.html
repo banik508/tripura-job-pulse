@@ -116,7 +116,6 @@
   const ICON_BASE = "https://cdn.jsdelivr.net/npm/@tabler/icons@3.47.0/icons/outline/";
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
 
   let materials = [], payments = [], filter = "all";
 

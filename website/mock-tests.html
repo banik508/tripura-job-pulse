@@ -62,7 +62,6 @@
   const fmt = n => Number(n) % 1 === 0 ? String(Number(n)) : Number(n).toFixed(2).replace(/0$/, "");
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
 
   let tests = [], lastAttempt = {}, filter = "all";
 

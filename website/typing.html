@@ -225,8 +225,6 @@
   supabase.auth.getSession().then(({ data }) => {
     session = data && data.session;
     if (!session) return;
-    $("account-link").textContent = "My profile";
-    $("account-link").href = "profile.html";
     $("t-note").textContent = "Two minutes. Good luck.";
     loadHistory();
   }).catch(err => console.error(err));

@@ -196,12 +196,6 @@
     say("Thank you. We have your request and will contact you about batch timing and fees.", "ok");
   });
 
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) {
-      $("account-link").textContent = "My profile";
-      $("account-link").href = "profile.html";
-    }
-  });
 </script>
 <script src="tjp-header.js"></script>
 </body>

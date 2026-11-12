@@ -154,7 +154,6 @@ function drawCertificate(jsPDF, c, siteUrl) {
 }
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (session) { $("account-link").textContent = "My profile"; $("account-link").href = "profile.html"; }
 
   let exams = [], certs = [];
 
