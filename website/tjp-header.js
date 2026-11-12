@@ -127,14 +127,17 @@
     // Hidden until a session is found. Every page then has a way out.
     out += '<button class="signout" id="signout-link" type="button" hidden>Sign out</button>';
 
-    return '<nav class="nav"><div class="inner">' +
+    // Keep the id on the element that replaces the placeholder. config.js
+    // looks for it to know this header is already in place; without it,
+    // config.js builds a second header of its own on top of this one.
+    return '<nav class="nav" id="tjp-header"><div class="inner">' +
            '<a class="brand" href="' + U("index.html") + '">Tripura <span>Job Pulse</span></a>' +
            '<button class="burger" id="tjp-burger" aria-label="Menu" aria-expanded="false">&#9776;</button>' +
            '<div class="menu" id="tjp-menu">' + out + "</div></div></nav>";
   }
 
   function footerHTML() {
-    return '<footer class="site"><div class="fwrap"><div class="cols"><div>' +
+    return '<footer class="site" id="tjp-footer"><div class="fwrap"><div class="cols"><div>' +
       '<p class="brandline">Tripura <span>Job Pulse</span></p>' +
       '<p class="tag">Jobs, preparation and skills for Tripura’s job seekers, in one place.</p>' +
       '<div class="foot-social">' + SOCIAL.concat([["LINKEDIN", "brand-linkedin", "LinkedIn"]]).map(function (s) {
