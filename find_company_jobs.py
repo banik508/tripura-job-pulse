@@ -18,6 +18,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -90,14 +91,45 @@ LET_IN = re.compile(r"\b(india|apac|asia|asia[- ]pacific|worldwide|global|"
                     r"anywhere|any location|all locations)\b", re.I)
 
 
-def get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            return json.loads(r.read(6_000_000).decode("utf-8", "replace"))
-    except (urllib.error.HTTPError, urllib.error.URLError, ValueError, OSError) as e:
-        print(f"    could not read: {e}")
-        return None
+def get(url, tries=3):
+    """One failed call should not cost a whole company's listings. CRED's
+    board answered the survey and refused the next run an hour later."""
+    last = None
+    for attempt in range(tries):
+        req = urllib.request.Request(
+            url, headers={"User-Agent": UA, "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                return json.loads(r.read(6_000_000).decode("utf-8", "replace"))
+        except (urllib.error.HTTPError, urllib.error.URLError,
+                ValueError, OSError) as e:
+            last = e
+            if attempt + 1 < tries:
+                time.sleep(2 * (attempt + 1))
+    print(f"    could not read after {tries} tries: {last}")
+    return None
+
+
+def fetch_board(platform, slug):
+    """SmartRecruiters answers at most 100 postings at a time. Asking once
+    quietly lost about half of Swiggy's jobs, so this walks the pages. The
+    other platforms return everything in one reply."""
+    if platform != "smartrecruiters":
+        return get(URLS[platform].format(s=slug))
+
+    content, offset = [], 0
+    while True:
+        page = get("https://api.smartrecruiters.com/v1/companies/"
+                   f"{slug}/postings?limit=100&offset={offset}")
+        if not page:
+            break
+        items = page.get("content") or []
+        content.extend(items)
+        total = int(page.get("totalFound") or 0)
+        offset += len(items)
+        if not items or offset >= total or offset > 2000:
+            break
+    return {"content": content, "totalFound": len(content)}
 
 
 def place(text):
@@ -173,7 +205,7 @@ def collect():
     rows, report = [], []
     for name, platform, slug, sector in BOARDS:
         print(f"  {name} ({platform})")
-        data = get(URLS[platform].format(s=slug))
+        data = fetch_board(platform, slug)
         if data is None:
             report.append((name, 0, 0, "could not read"))
             continue
