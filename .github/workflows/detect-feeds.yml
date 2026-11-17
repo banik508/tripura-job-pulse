@@ -1,0 +1,32 @@
+# Ask the hiring platforms which companies have a readable job feed.
+#
+# Only public JSON APIs are called - nothing scrapes a website. Run by hand
+# from the Actions tab whenever the company list changes.
+
+name: Find readable job feeds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  feeds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Ask each platform
+        run: python detect_feeds.py companies.txt
+
+      - name: Keep the results
+        uses: actions/upload-artifact@v4
+        with:
+          name: feed-results
+          path: feed-results.csv
+          retention-days: 30
