@@ -93,3 +93,93 @@ Protiviti | protiviti.com
 BDO India | bdo.in
 Redseer Strategy Consultants | redseer.com
 Praxis Global Alliance | praxisga.com
+
+# Healthcare providers and diagnostics
+Apollo Hospitals | apollohospitals.com
+Fortis Healthcare | fortishealthcare.com
+Max Healthcare | maxhealthcare.in
+Manipal Hospitals | manipalhospitals.com
+Narayana Health | narayanahealth.org
+Medanta | medanta.org
+Aster DM Healthcare | asterdmhealthcare.com
+KIMS Hospitals | kimshospitals.com
+Rainbow Childrens Hospital | rainbowhospitals.in
+HCG Oncology | hcgoncology.com
+Dr Lal PathLabs | lalpathlabs.com
+Metropolis Healthcare | metropolisindia.com
+Agilus Diagnostics | agilusdiagnostics.com
+Thyrocare | thyrocare.com
+Tata 1mg | 1mg.com
+PharmEasy | pharmeasy.in
+Practo | practo.com
+Healthians | healthians.com
+Innovaccer | innovaccer.com
+Qure.ai | qure.ai
+
+# Private banks
+HDFC Bank | hdfcbank.com
+ICICI Bank | icicibank.com
+Axis Bank | axisbank.com
+Kotak Mahindra Bank | kotak.com
+IndusInd Bank | indusind.com
+Yes Bank | yesbank.in
+IDFC First Bank | idfcfirstbank.com
+Federal Bank | federalbank.co.in
+RBL Bank | rblbank.com
+Bandhan Bank | bandhanbank.com
+South Indian Bank | southindianbank.com
+Karur Vysya Bank | kvb.co.in
+City Union Bank | cityunionbank.com
+DCB Bank | dcbbank.com
+CSB Bank | csb.co.in
+Tamilnad Mercantile Bank | tmb.in
+AU Small Finance Bank | aubank.in
+Ujjivan Small Finance Bank | ujjivansfb.in
+Equitas Small Finance Bank | equitasbank.com
+Jana Small Finance Bank | janabank.com
+
+# Financial services and fintech
+Bajaj Finserv | bajajfinserv.in
+HDFC Life | hdfclife.com
+SBI Life | sbilife.co.in
+ICICI Lombard | icicilombard.com
+Razorpay | razorpay.com
+PhonePe | phonepe.com
+Paytm | paytm.com
+Groww | groww.in
+Zerodha | zerodha.com
+CRED | cred.club
+Navi | navi.com
+Pine Labs | pinelabs.com
+
+# Indian product and internet companies
+Zoho | zoho.com
+Freshworks | freshworks.com
+Zomato | zomato.com
+Swiggy | swiggy.com
+Flipkart | flipkart.com
+Myntra | myntra.com
+Meesho | meesho.io
+Postman | postman.com
+BrowserStack | browserstack.com
+Chargebee | chargebee.com
+Hasura | hasura.io
+Sprinklr | sprinklr.com
+MoEngage | moengage.com
+InMobi | inmobi.com
+Urban Company | urbancompany.com
+Dream Sports | dreamsports.group
+Zeta | zeta.tech
+Darwinbox | darwinbox.com
+
+# Remote-first companies that hire in India
+GitLab | gitlab.com
+Automattic | automattic.com
+Zapier | zapier.com
+Deel | deel.com
+Remote | remote.com
+Canonical | canonical.com
+Grafana Labs | grafana.com
+HashiCorp | hashicorp.com
+Elastic | elastic.co
+Mozilla | mozilla.org
