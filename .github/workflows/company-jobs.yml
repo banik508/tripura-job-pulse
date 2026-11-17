@@ -1,0 +1,39 @@
+# Collect vacancies from company job boards.
+#
+# Run it by hand first with "Dry run" ticked - it will report what it would
+# add without writing anything. Once that looks right, run it for real.
+
+name: Collect company jobs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run - report only, write nothing"
+        type: boolean
+        default: true
+  schedule:
+    - cron: "40 2 * * *"      # 08:10 India time
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: pip install supabase
+
+      - name: Collect
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          DRY_RUN: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '1' || '0' }}
+        run: python find_company_jobs.py
