@@ -426,7 +426,7 @@
   <div class="stats" id="stats" hidden>
     <div class="grid">
       <div class="stat"><div class="v" data-count="0" id="s-jobs">0</div><div class="k">Live vacancies</div></div>
-      <div class="stat"><div class="v" data-count="0" id="s-members">0</div><div class="k">Members</div></div>
+      <div class="stat"><div class="v" data-count="0" id="s-blogs">0</div><div class="k">Blog posts</div></div>
       <div class="stat"><div class="v" data-count="0" id="s-questions">0</div><div class="k">Questions to practise</div></div>
       <div class="stat"><div class="v" data-count="0" id="s-modules">0</div><div class="k">Free study modules</div></div>
       <div class="stat"><div class="v">8</div><div class="k">Districts covered</div></div>
@@ -828,7 +828,7 @@
     if (error || !data) return;              // strip stays hidden until the SQL is in place
     const s = (Array.isArray(data) ? data[0] : data) || null;
     if (!s) return;                          // an empty result is not an error
-    const pairs =[["s-jobs", s.live_jobs], ["s-members", s.members],
+    const pairs =[["s-jobs", s.live_jobs], ["s-blogs", s.blogs],
                    ["s-questions", s.questions], ["s-modules", s.modules]];
     if (pairs.every(([, v]) => v == null)) return;
     $("stats").hidden = false;

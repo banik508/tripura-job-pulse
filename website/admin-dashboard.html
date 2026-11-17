@@ -63,6 +63,11 @@
   .chart-note { font-size: 14px; color: var(--muted); margin-top: 14px; padding-top: 13px;
                 border-top: 1px solid var(--line); line-height: 1.6; }
   .chart-note b { font-family: Sora, sans-serif; color: var(--teal-deep); }
+  .chart-key { display: flex; gap: 18px; justify-content: center; margin-top: 6px; }
+  .chart-key-item { display: inline-flex; align-items: center; gap: 7px;
+                    font-size: 13px; color: var(--muted); }
+  .chart-key-dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .chart-caveat { display: block; margin-top: 7px; font-size: 12.5px; color: #7B908D; }
 
   /* ---------- funnel ---------- */
   .funnel { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
@@ -385,24 +390,52 @@
       const x = L + i * step + (step - bw) / 2;
       const top = y(v);
       const partial = r.day === todayISO;
-      const isBest = !partial && r === best && v > 0;
+      const sp = splitByDay[r.day];
+      // Colour now carries a meaning - teal is new, gold is returning - so
+      // the old gold "busiest day" highlight has gone. The dashed average
+      // line already shows which days were above the usual.
+      const useSplit = !!sp && (sp.nw + sp.rt) > 0;
 
-      const bar = svgEl("rect", {
-        x: x, y: top, width: bw, height: Math.max(0, T + ih - top),
-        rx: Math.min(5, bw / 3),
-        fill: partial ? "rgba(11,148,136,.18)" : (isBest ? "#BE8318" : "#0B9488")
-      });
-      if (partial) {
-        bar.setAttribute("stroke", "#0B9488");
-        bar.setAttribute("stroke-width", "1.5");
-        bar.setAttribute("stroke-dasharray", "3 3");
+      if (useSplit) {
+        const scale = v / (sp.nw + sp.rt);          // keep the bar's true height
+        const hNew = (T + ih - y(sp.nw * scale));
+        const hRet = Math.max(0, (T + ih - top) - hNew);
+        const r1 = Math.min(5, bw / 3);
+
+        const newBar = svgEl("rect", {
+          x: x, y: T + ih - hNew, width: bw, height: hNew,
+          fill: partial ? "rgba(11,148,136,.22)" : "#0B9488"
+        });
+        const retBar = svgEl("rect", {
+          x: x, y: top, width: bw, height: hRet, rx: r1,
+          fill: partial ? "rgba(190,131,24,.22)" : "#BE8318"
+        });
+        if (partial) {
+          [newBar, retBar].forEach(b => {
+            b.setAttribute("stroke", b === newBar ? "#0B9488" : "#BE8318");
+            b.setAttribute("stroke-width", "1.5");
+            b.setAttribute("stroke-dasharray", "3 3");
+          });
+        }
+        svg.append(newBar, retBar);
+      } else {
+        const bar = svgEl("rect", {
+          x: x, y: top, width: bw, height: Math.max(0, T + ih - top),
+          rx: Math.min(5, bw / 3),
+          fill: partial ? "rgba(11,148,136,.18)" : "#0B9488"
+        });
+        if (partial) {
+          bar.setAttribute("stroke", "#0B9488");
+          bar.setAttribute("stroke-width", "1.5");
+          bar.setAttribute("stroke-dasharray", "3 3");
+        }
+        svg.append(bar);
       }
-      svg.append(bar);
 
       if (v > 0 && (rows.length <= 32 || i % 3 === 0)) {
         const lab = svgEl("text", { x: x + bw / 2, y: top - 7, "text-anchor": "middle",
                                     "font-size": 11, "font-weight": 600,
-                                    fill: isBest ? "#8A5F10" : "#0E4F4C" });
+                                    fill: "#0E4F4C" });
         lab.textContent = num(v);
         svg.append(lab);
       }
@@ -419,7 +452,9 @@
       const title = svgEl("title");
       title.textContent = new Date(r.day + "T00:00:00")
         .toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }) +
-        " — " + num(v) + " visitors, " + num(r.views) + " views" + (partial ? " (today so far)" : "");
+        " — " + num(v) + " visitors" +
+        (sp ? " (" + num(sp.nw) + " new, " + num(sp.rt) + " returning)" : "") +
+        ", " + num(r.views) + " views" + (partial ? " (today so far)" : "");
       hit.append(title);
       svg.append(hit);
     });
@@ -440,6 +475,19 @@
     const bestDay = new Date(best.day + "T00:00:00")
       .toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" });
 
+    // Legend, only when the bars actually carry two colours.
+    if (splitTotals) {
+      const key = el("div", "chart-key");
+      [["#0B9488", "New"], ["#BE8318", "Returning"]].forEach(([c, label]) => {
+        const item = el("span", "chart-key-item");
+        const dot = el("span", "chart-key-dot");
+        dot.style.background = c;
+        item.append(dot, document.createTextNode(label));
+        key.append(item);
+      });
+      host.append(key);
+    }
+
     note.innerHTML = "";
     note.append(
       document.createTextNode("Busiest day was "),
@@ -448,8 +496,26 @@
       el("b", "", num(views) + " page views"),
       document.createTextNode(", about "),
       el("b", "", perVisitor + " pages"),
-      document.createTextNode(" per visitor. The last bar is today, still filling up.")
+      document.createTextNode(" per visitor.")
     );
+
+    if (splitTotals) {
+      const people = splitTotals.nw + splitTotals.rt;
+      const pct = people ? Math.round((splitTotals.rt / people) * 100) : 0;
+      note.append(
+        document.createTextNode(" "),
+        el("b", "", num(splitTotals.rt) + " of " + num(people) + " people (" + pct + "%)"),
+        document.createTextNode(" had been here before this period.")
+      );
+    }
+
+    note.append(document.createTextNode(" The last bar is today, still filling up."));
+
+    if (splitTotals) {
+      note.append(el("span", "chart-caveat",
+        "Counted per browser, so one person on a phone and a laptop counts twice. " +
+        "Returning is a floor, not an exact number."));
+    }
   }
 
   /* ---------- funnel ---------- */
@@ -583,11 +649,30 @@
   $("people-close").addEventListener("click", () => { $("people-list").hidden = true; });
 
   /* ---------- load ---------- */
+  // New against returning visitors. This lives in its own function, so if it
+  // is missing or fails the rest of the dashboard carries on as before and
+  // the chart simply goes back to one colour.
+  let splitByDay = {}, splitTotals = null;
+
   async function load() {
     $("refresh").disabled = true;
     $("stamp").textContent = "Loading…";
 
-    const { data: s, error } = await supabase.rpc("admin_stats_v2", { p_days: days });
+    const [{ data: s, error }, split] = await Promise.all([
+      supabase.rpc("admin_stats_v2", { p_days: days }),
+      // .then(ok, fail) rather than .catch - supabase.rpc returns a builder,
+      // which is thenable but has no .catch, and calling one throws here.
+      supabase.rpc("visitor_split", { p_days: days }).then(r => r, () => ({ data: null }))
+    ]);
+
+    splitByDay = {}; splitTotals = null;
+    if (split && split.data && Array.isArray(split.data.by_day)) {
+      splitTotals = { nw: Number(split.data.new || 0),
+                      rt: Number(split.data.returning || 0) };
+      split.data.by_day.forEach(d => {
+        splitByDay[d.day] = { nw: Number(d.new || 0), rt: Number(d.returning || 0) };
+      });
+    }
     $("refresh").disabled = false;
 
     if (error || !s) {
