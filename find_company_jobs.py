@@ -247,6 +247,26 @@ def collect():
     return rows, report, read_ok
 
 
+def jobs_key(title, organisation):
+    """How the database decides two rows are the same job."""
+    return ((title or "").strip().lower(),
+            (organisation or "").strip().lower())
+
+
+def unique_title(row, taken):
+    """A title this company does not already have. Returns None if even the
+    city does not make it distinct - better to drop one listing than to lose
+    a whole batch."""
+    base = row["title"]
+    for candidate in (base,
+                      f"{base} — {row['city']}" if row.get("city") else None,
+                      f"{base} — {row['state']}" if row.get("state") else None,
+                      f"{base} — {row['location']}" if row.get("location") else None):
+        if candidate and jobs_key(candidate, row["organisation"]) not in taken:
+            return candidate[:200]
+    return None
+
+
 def tidy(sb, live_rows, read_ok):
     """Close jobs the companies have taken down, and reopen any that came back.
 
@@ -340,13 +360,55 @@ def main():
             start += 1000
 
         fresh = [r for r in unique if r["apply_link"] not in existing]
-        for i in range(0, len(fresh), 200):
-            sb.table("jobs").insert(fresh[i:i + 200]).execute()
+
+        # The table allows one row per title + organisation. A company often
+        # advertises the same role in several cities, so the title has to say
+        # which city, or the second one is refused and takes the whole batch
+        # down with it.
+        taken = set()
+        start = 0
+        while True:
+            got = sb.table("jobs").select("title,organisation") \
+                    .range(start, start + 999).execute().data or []
+            taken |= {jobs_key(g.get("title"), g.get("organisation")) for g in got}
+            if len(got) < 1000:
+                break
+            start += 1000
+
+        ready, skipped = [], 0
+        for r in fresh:
+            title = unique_title(r, taken)
+            if title is None:
+                skipped += 1
+                continue
+            r["title"] = title
+            taken.add(jobs_key(title, r["organisation"]))
+            ready.append(r)
+
+        added, refused = 0, 0
+        for i in range(0, len(ready), 100):
+            batch = ready[i:i + 100]
+            try:
+                sb.table("jobs").insert(batch).execute()
+                added += len(batch)
+            except Exception as e:
+                # One awkward row must not cost the other ninety-nine.
+                print(f"    batch refused ({e}); inserting one at a time")
+                for row in batch:
+                    try:
+                        sb.table("jobs").insert(row).execute()
+                        added += 1
+                    except Exception:
+                        refused += 1
+        fresh = ready
 
         closed, reopened = tidy(sb, unique, read_ok)
 
-        summary.append(f"\n**Added {len(fresh)}. "
+        summary.append(f"\n**Added {added}. "
                        f"{len(unique) - len(fresh)} were already on the site.**")
+        if skipped or refused:
+            summary.append(f"{skipped + refused} skipped as the same role "
+                           f"already listed for that company.")
         if closed or reopened:
             summary.append(f"Closed {closed} that the companies have taken down"
                            + (f", reopened {reopened} that came back." if reopened else "."))
