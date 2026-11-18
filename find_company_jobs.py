@@ -21,7 +21,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 TIMEOUT = 20
 UA = "Mozilla/5.0 (compatible; TripuraJobPulse/1.0; +https://tripurajobpulse.com)"
@@ -203,10 +203,15 @@ READERS = {"greenhouse": from_greenhouse, "lever": from_lever, "ashby": from_ash
 
 def collect():
     rows, report = [], []
+    read_ok = set()          # sources we genuinely read this time
     for name, platform, slug, sector in BOARDS:
         print(f"  {name} ({platform})")
         data = fetch_board(platform, slug)
         if data is None:
+            # Deliberately NOT added to read_ok. A board that timed out
+            # tells us nothing about which of its jobs are still open, and
+            # treating silence as "all closed" would wipe a company's
+            # listings over one bad minute.
             report.append((name, 0, 0, "could not read"))
             continue
 
@@ -234,8 +239,59 @@ def collect():
             })
             kept += 1
         report.append((name, total, kept, ""))
+        # A board that answered but listed nothing at all is suspicious
+        # rather than informative, so it does not license closing either.
+        if total > 0:
+            read_ok.add(f"company:{platform}:{slug}")
         print(f"    {kept} of {total} kept")
-    return rows, report
+    return rows, report, read_ok
+
+
+def tidy(sb, live_rows, read_ok):
+    """Close jobs the companies have taken down, and reopen any that came back.
+
+    Collected jobs carry no closing date, so without this they sit on the
+    site for ever and people apply for posts that were filled months ago.
+
+    Only sources in read_ok are touched. If a board failed to answer, its
+    jobs are left exactly as they are - the alternative is wiping a
+    company's listings because of one timeout.
+    """
+    if not read_ok:
+        return 0, 0
+
+    live_links = {r["apply_link"] for r in live_rows}
+    yesterday = date.today() - timedelta(days=1)
+
+    held = []
+    start = 0
+    while True:
+        got = sb.table("jobs").select("id,apply_link,source,last_date") \
+                .like("source", "company:%").range(start, start + 999).execute().data or []
+        held.extend(got)
+        if len(got) < 1000:
+            break
+        start += 1000
+
+    to_close, to_open = [], []
+    for row in held:
+        if row.get("source") not in read_ok:
+            continue
+        on_board = row.get("apply_link") in live_links
+        if not on_board and row.get("last_date") is None:
+            to_close.append(row["id"])
+        elif on_board and row.get("last_date") is not None:
+            to_open.append(row["id"])
+
+    for i in range(0, len(to_close), 100):
+        sb.table("jobs").update({"last_date": yesterday.isoformat()}) \
+          .in_("id", to_close[i:i + 100]).execute()
+    for i in range(0, len(to_open), 100):
+        sb.table("jobs").update({"last_date": None}) \
+          .in_("id", to_open[i:i + 100]).execute()
+
+    print(f"  closed {len(to_close)}, reopened {len(to_open)}")
+    return len(to_close), len(to_open)
 
 
 def main():
@@ -243,7 +299,7 @@ def main():
     print(f"Reading {len(BOARDS)} company job boards"
           f"{' (dry run - nothing will be written)' if dry else ''}\n")
 
-    rows, report = collect()
+    rows, report, read_ok = collect()
 
     # One board can list the same role twice; and a job already on the site
     # must not be added again.
@@ -287,8 +343,17 @@ def main():
         for i in range(0, len(fresh), 200):
             sb.table("jobs").insert(fresh[i:i + 200]).execute()
 
+        closed, reopened = tidy(sb, unique, read_ok)
+
         summary.append(f"\n**Added {len(fresh)}. "
                        f"{len(unique) - len(fresh)} were already on the site.**")
+        if closed or reopened:
+            summary.append(f"Closed {closed} that the companies have taken down"
+                           + (f", reopened {reopened} that came back." if reopened else "."))
+        skipped = [n for n, _, _, err in report if err]
+        if skipped:
+            summary.append(f"Left alone: {', '.join(skipped)} — the board could not "
+                           f"be read, so its jobs were neither closed nor changed.")
         print(f"\nAdded {len(fresh)} new jobs")
 
     text = "\n".join(summary)
