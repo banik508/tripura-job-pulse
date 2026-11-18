@@ -243,22 +243,31 @@ def job_posting_jsonld(job, url):
             "@type": "Organization",
             "name": job.get("organisation") or "Government of Tripura",
         },
-        "jobLocation": {
-            "@type": "Place",
-            "address": {
-                "@type": "PostalAddress",
-                "addressLocality": job.get("city") or "Agartala",
-                "addressRegion": job.get("state") or "Tripura",
-                "addressCountry": "IN",
-            },
-        },
         "directApply": False,
         "url": url,
     }
+
+    # Where the job actually is. The old code filled gaps with Agartala and
+    # Tripura, which was harmless while every vacancy was a Tripura
+    # government post. With national and remote jobs on the site it tells
+    # Google a GitLab remote role sits in Agartala, which is simply untrue.
+    # Nothing is invented now: a field we do not know is left out.
     if is_remote(job):
-        # Google's own flag for work-from-home roles
         data["jobLocationType"] = "TELECOMMUTE"
         data["applicantLocationRequirements"] = {"@type": "Country", "name": "India"}
+        # Google asks for jobLocation to be omitted on a fully remote role.
+    else:
+        region = (job.get("region") or "").strip().lower()
+        state = (job.get("state") or "").strip()
+        if not state:
+            state = "Tripura" if region in ("", "tripura") else "India"
+        address = {"@type": "PostalAddress",
+                   "addressRegion": state,
+                   "addressCountry": "IN"}
+        city = (job.get("city") or "").strip()
+        if city:
+            address["addressLocality"] = city
+        data["jobLocation"] = {"@type": "Place", "address": address}
     if close:
         data["validThrough"] = close.isoformat() + "T23:59:59+05:30"
     if job.get("vacancies"):
