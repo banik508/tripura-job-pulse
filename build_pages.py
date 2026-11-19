@@ -12,16 +12,18 @@ already in it. Google reads it on the first visit.
 
 What goes on each page
 ----------------------
-Government jobs   full details, exactly as a visitor sees them. These are free
-                  for everyone anyway, and they are what people in Tripura
-                  actually search for.
-Private / remote  a summary only: title, organisation, where, closing date.
-                  Full details and the apply link stay behind sign-in.
+Every open job   full details, exactly as a visitor sees them: the description,
+                 the salary, the closing date and the link to apply. Nothing on
+                 these pages asks anyone to sign in.
+Closed jobs      a short note saying the vacancy has closed, and marked
+                 noindex so it leaves search on its own.
 
 Google's rules say the structured data must match what a visitor can read
-without signing in. So the JobPosting markup - the thing that puts a job into
-the Google Jobs box - is written for government jobs only. Putting it on a
-summary page would be cloaking, and sites get penalised for it.
+without signing in, so the two move together. Because every open job now shows
+its full details to everyone, every open job also carries JobPosting markup -
+the thing that puts a vacancy into the Google Jobs box. If a gate is ever put
+back on part of the site, the markup has to come off those pages in the same
+change, or it is cloaking, and sites get penalised for it.
 
 Written to the website folder:
   job/<slug>.html   one per job
@@ -138,8 +140,17 @@ def where(job):
 
 
 def is_open(job):
-    """Is this job public? Government jobs are free for everyone."""
-    return (job.get("job_type") or "").strip().lower() == "government"
+    """Is this job readable by anyone, signed in or not?
+
+    Every job is. The apply link on a private or remote vacancy points at the
+    company's own careers page, which is public anyway, so hiding it earned
+    nothing and cost the page its Google Jobs listing. Whatever is paid for on
+    this site is the preparation around the job, not the sight of the job.
+
+    This is the single switch the page body and the JobPosting markup both
+    read, so the two can never disagree with each other.
+    """
+    return True
 
 
 # ----------------------------------------------------------------- the page
