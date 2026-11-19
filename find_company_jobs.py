@@ -14,6 +14,8 @@ no use to anyone reading this site.
   DRY_RUN=1   look and report, write nothing
 """
 
+import concurrent.futures
+import html
 import json
 import os
 import re
@@ -50,7 +52,7 @@ BOARDS = [
 ]
 
 URLS = {
-    "greenhouse":      "https://boards-api.greenhouse.io/v1/boards/{s}/jobs?content=false",
+    "greenhouse":      "https://boards-api.greenhouse.io/v1/boards/{s}/jobs?content=true",
     "lever":           "https://api.lever.co/v0/postings/{s}?mode=json",
     "ashby":           "https://api.ashbyhq.com/posting-api/job-board/{s}",
     "smartrecruiters": "https://api.smartrecruiters.com/v1/companies/{s}/postings?limit=100",
@@ -155,19 +157,74 @@ def place(text):
     return "", "", "elsewhere"
 
 
+
+def to_text(raw, limit=4000):
+    """Job descriptions arrive as HTML, and as HTML that has been escaped
+    once or twice. Turn it into plain text that reads properly on the page,
+    keeping paragraph and bullet breaks and nothing else."""
+    if not raw:
+        return ""
+    s = str(raw)
+    # Greenhouse escapes its HTML; some boards escape it twice.
+    for _ in range(2):
+        if "&lt;" in s or "&amp;" in s:
+            s = html.unescape(s)
+    s = re.sub(r"(?is)<(script|style).*?</\1>", " ", s)
+    s = re.sub(r"(?i)<li[^>]*>", "\n• ", s)
+    s = re.sub(r"(?i)<br\s*/?>", "\n", s)
+    s = re.sub(r"(?i)</(p|div|ul|ol|h[1-6]|tr)>", "\n\n", s)
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = html.unescape(s)
+    s = s.replace("\xa0", " ")
+    s = re.sub(r"[ \t]+", " ", s)
+    s = re.sub(r" *\n *", "\n", s)
+    s = re.sub(r"\n{3,}", "\n\n", s).strip()
+    if len(s) > limit:
+        cut = s.rfind("\n", 0, limit)
+        s = (s[:cut] if cut > limit * 0.6 else s[:limit]).rstrip() + "…"
+    return s
+
+
+def lever_text(j):
+    bits = [j.get("descriptionPlain") or j.get("description") or ""]
+    for section in (j.get("lists") or []):
+        if section.get("text"):
+            bits.append("\n" + section["text"])
+        bits.append(section.get("content") or "")
+    bits.append(j.get("additionalPlain") or j.get("additional") or "")
+    return "\n\n".join(b for b in bits if b)
+
+
+def smart_text(detail):
+    """SmartRecruiters keeps the words in a separate call, in named sections."""
+    sections = ((detail or {}).get("jobAd") or {}).get("sections") or {}
+    order = ["jobDescription", "qualifications", "additionalInformation", "companyDescription"]
+    out = []
+    for key in order:
+        sec = sections.get(key) or {}
+        title, text = sec.get("title"), sec.get("text")
+        if text:
+            out.append((title + "\n" if title else "") + text)
+    return "\n\n".join(out)
+
+
+def recruitee_text(j):
+    return "\n\n".join(b for b in [j.get("description"), j.get("requirements")] if b)
+
+
 # --- turning each platform's reply into the same shape ----------------------
 
 def from_greenhouse(d):
     for j in (d or {}).get("jobs", []):
         yield (j.get("title"), (j.get("location") or {}).get("name", ""),
-               j.get("absolute_url"), j.get("updated_at"))
+               j.get("absolute_url"), j.get("updated_at"), to_text(j.get("content")))
 
 
 def from_lever(d):
     for j in (d or []):
         c = j.get("categories") or {}
         yield (j.get("text"), c.get("location", ""),
-               j.get("hostedUrl") or j.get("applyUrl"), None)
+               j.get("hostedUrl") or j.get("applyUrl"), None, to_text(lever_text(j)))
 
 
 def from_ashby(d):
@@ -175,7 +232,8 @@ def from_ashby(d):
         loc = j.get("location") or ""
         if j.get("isRemote") and not REMOTE.search(loc):
             loc = (loc + " Remote").strip()
-        yield (j.get("title"), loc, j.get("jobUrl") or j.get("applyUrl"), j.get("publishedAt"))
+        yield (j.get("title"), loc, j.get("jobUrl") or j.get("applyUrl"), j.get("publishedAt"),
+               to_text(j.get("descriptionPlain") or j.get("descriptionHtml")))
 
 
 def from_smartrecruiters(d):
@@ -186,7 +244,8 @@ def from_smartrecruiters(d):
         if loc.get("remote"):
             text += " Remote"
         url = (j.get("applyUrl") or j.get("ref") or "")
-        yield (j.get("name"), text, url, j.get("releasedDate"))
+        # the words come from a second call, made later only for the jobs kept
+        yield (j.get("name"), text, url, j.get("releasedDate"), "@smart:" + str(j.get("id") or ""))
 
 
 def from_recruitee(d):
@@ -194,7 +253,7 @@ def from_recruitee(d):
         bits = [j.get("city"), j.get("country")]
         text = ", ".join(b for b in bits if b) or (j.get("location") or "")
         yield (j.get("title"), text, j.get("careers_url") or j.get("careers_apply_url"),
-               j.get("published_at"))
+               j.get("published_at"), to_text(recruitee_text(j)))
 
 
 READERS = {"greenhouse": from_greenhouse, "lever": from_lever, "ashby": from_ashby,
@@ -216,13 +275,17 @@ def collect():
             continue
 
         kept = total = 0
-        for title, loc, url, posted in READERS[platform](data):
+        pending_smart = []
+        for title, loc, url, posted, text in READERS[platform](data):
             total += 1
             if not title or not url:
                 continue
             city, state, kind = place(loc)
             if kind == "elsewhere":
                 continue
+            if isinstance(text, str) and text.startswith("@smart:"):
+                pending_smart.append((len(rows), slug, text[7:]))
+                text = ""
             rows.append({
                 "title": title.strip()[:200],
                 "organisation": name,
@@ -233,11 +296,28 @@ def collect():
                 "location": (loc or "").strip()[:120] or None,
                 "apply_link": url,
                 "how_to_apply": f"Apply on the {name} careers site.",
-                "description": f"{title.strip()} at {name}."
-                               + (f" Location: {loc.strip()}." if loc else ""),
+                # The board's own words where we have them. The one-line
+                # version is only a fallback: a page that says nothing is
+                # no use to a reader and is treated as thin by search engines.
+                "description": text or (f"{title.strip()} at {name}."
+                                        + (f" Location: {loc.strip()}." if loc else "")),
                 "source": f"company:{platform}:{slug}",
             })
             kept += 1
+        # SmartRecruiters keeps the description behind a second call, so it is
+        # fetched only for the jobs we are actually keeping.
+        if pending_smart:
+            print(f"    fetching {len(pending_smart)} descriptions")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+                texts = list(pool.map(
+                    lambda item: smart_text(get(
+                        f"https://api.smartrecruiters.com/v1/companies/{item[1]}/postings/{item[2]}")),
+                    pending_smart))
+            for (idx, _, _), body in zip(pending_smart, texts):
+                clean = to_text(body)
+                if clean:
+                    rows[idx]["description"] = clean
+
         report.append((name, total, kept, ""))
         # A board that answered but listed nothing at all is suspicious
         # rather than informative, so it does not license closing either.
@@ -265,6 +345,43 @@ def unique_title(row, taken):
         if candidate and jobs_key(candidate, row["organisation"]) not in taken:
             return candidate[:200]
     return None
+
+
+def backfill(sb, live_rows):
+    """Give jobs already on the site the description we now have for them.
+
+    Only touches rows this collector created, only where what we have is
+    materially better than what is there, and never overwrites something
+    longer than our own. A job somebody edited by hand keeps its text.
+    """
+    have = {r["apply_link"]: r["description"] for r in live_rows
+            if r.get("description") and len(r["description"]) > 200}
+    if not have:
+        return 0
+
+    held, start = [], 0
+    while True:
+        got = sb.table("jobs").select("id,apply_link,description") \
+                .like("source", "company:%").range(start, start + 999).execute().data or []
+        held.extend(got)
+        if len(got) < 1000:
+            break
+        start += 1000
+
+    done = 0
+    for row in held:
+        better = have.get(row.get("apply_link"))
+        if not better:
+            continue
+        current = row.get("description") or ""
+        # Replace only the thin placeholder, or something clearly shorter.
+        if len(current) >= len(better):
+            continue
+        sb.table("jobs").update({"description": better}).eq("id", row["id"]).execute()
+        done += 1
+    if done:
+        print(f"  filled in {done} descriptions")
+    return done
 
 
 def tidy(sb, live_rows, read_ok):
@@ -402,6 +519,11 @@ def main():
                         refused += 1
         fresh = ready
 
+        # The 625 jobs already on the site were saved with a one-line
+        # description, because the earlier version threw the real text away.
+        # Fill those in now rather than leaving a thousand thin pages behind.
+        filled = backfill(sb, unique)
+
         closed, reopened = tidy(sb, unique, read_ok)
 
         summary.append(f"\n**Added {added}. "
@@ -409,6 +531,9 @@ def main():
         if skipped or refused:
             summary.append(f"{skipped + refused} skipped as the same role "
                            f"already listed for that company.")
+        if filled:
+            summary.append(f"Replaced the one-line description on {filled} jobs "
+                           f"already on the site with the company's own wording.")
         if closed or reopened:
             summary.append(f"Closed {closed} that the companies have taken down"
                            + (f", reopened {reopened} that came back." if reopened else "."))
