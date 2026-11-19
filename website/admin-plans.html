@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin: prices and plans | Tripura Job Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page.wide { max-width: 1100px; }
+  .admin-nav { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .admin-nav a { font-size: 15px; font-weight: 500; color: var(--muted); text-decoration: none;
+                 padding: 7px 12px; border-radius: 8px; border: 1px solid transparent; }
+  .admin-nav a:hover { background: var(--teal-soft); color: var(--teal-deep); }
+  .admin-nav a[aria-current="page"] { background: var(--teal-deep); color: #fff; }
+
+  h2.sec { font-family: Sora, sans-serif; font-size: 18px; color: var(--teal-deep); margin-top: 30px;
+           padding-bottom: 8px; border-bottom: 2px solid var(--teal-soft); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-top: 16px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .field .sub { font-weight: 400; color: var(--muted); font-size: 13px; }
+  input[type=text], input[type=number] { font: inherit; font-size: 15px; width: 100%;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+  .btn-sm { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 18px; border-radius: 8px;
+            border: 0; background: var(--teal-deep); color: #fff; cursor: pointer; }
+  .btn-sm.ghost { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .btn-sm:disabled { opacity: .55; cursor: default; }
+  .said { font-size: 14px; color: var(--muted); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 15px; background: #fff; }
+  .table-wrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { background: var(--teal-soft); color: var(--teal-deep); font-weight: 600; white-space: nowrap; font-size: 14px; }
+  tr:last-child td { border-bottom: 0; }
+  td input[type=text], td input[type=number] { padding: 7px 9px; font-size: 14px; }
+  td.narrow { width: 86px; }
+  td.mid { width: 128px; }
+  td.tick { width: 74px; text-align: center; }
+  td input[type=checkbox], td input[type=radio] { width: 19px; height: 19px; accent-color: var(--teal-deep); }
+  td.code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .small-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 7px;
+               border: 1px solid var(--line); background: #fff; color: var(--teal-deep); cursor: pointer; }
+
+  .warn { display: flex; gap: 12px; background: #FFF8EA; border: 1px solid var(--marigold);
+          border-radius: 10px; padding: 14px 16px; margin-top: 16px; }
+  .warn b { display: block; font-size: 15px; color: #7A5413; }
+  .warn p { font-size: 14px; color: #7A5413; margin-top: 4px; line-height: 1.55; }
+
+  .bad { background: #FDECEC; border: 1px solid #F3C4C4; color: #8C2020;
+         border-radius: 10px; padding: 13px 15px; margin-top: 16px; font-size: 14.5px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 14px; }
+  .pv { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; position: relative; }
+  .pv.best { border-color: var(--teal-deep); box-shadow: 0 0 0 1px var(--teal-deep); }
+  .pv .tag { position: absolute; top: -11px; left: 16px; background: var(--marigold); color: #4A3200;
+             font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .pv h3 { font-family: Sora, sans-serif; font-size: 17px; color: var(--teal-deep); }
+  .pv .amt { font-family: Sora, sans-serif; font-size: 30px; color: var(--ink); margin-top: 4px; }
+  .pv .what { font-size: 15px; font-weight: 600; margin-top: 8px; }
+  .pv .fine { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html">Tripura <span>Job Pulse</span> admin</a>
+    <button id="logout" class="header-link" type="button">Sign out</button>
+  </div>
+</header>
+
+<main class="page wide">
+  <h1>Prices and plans</h1>
+  <p id="gate-msg" class="lead">Checking your access…</p>
+  <nav class="admin-nav" id="admin-nav" hidden>
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin.html">Jobs</a>
+    <a href="admin-vacancies.html">Vacancy submissions</a>
+    <a href="admin-blog.html">Blog</a>
+    <a href="admin-gk.html">General knowledge</a>
+    <a href="admin-salary.html">Pay figures</a>
+    <a href="admin-plans.html" aria-current="page">Prices</a>
+    <a href="admin-cards.html">Job cards</a>
+    <a href="admin-study.html">Study material</a>
+    <a href="admin-tests.html">Mock tests</a>
+    <a href="admin-payments.html">Payments</a>
+    <a href="admin-messages.html">Messages</a>
+  </nav>
+
+  <div id="area" hidden>
+    <div id="setup" class="bad" hidden></div>
+
+    <div class="warn">
+      <div>
+        <b>Editing a plan changes what new buyers get. It never changes what somebody already paid for.</b>
+        <p>What each payment granted is recorded when you approve it. If you drop Basic from
+           20 views to 10, everyone who already bought Basic keeps their 20.</p>
+      </div>
+    </div>
+
+    <h2 class="sec">Free allowance</h2>
+    <div class="card">
+      <div class="field" style="max-width:280px">
+        <label for="free">Free private or remote job views
+          <span class="sub">— every account gets these before paying</span></label>
+        <input type="number" id="free" min="0" step="1">
+      </div>
+    </div>
+
+    <h2 class="sec">Plans on sale</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th class="narrow">Price ₹</th><th class="mid">Gives</th>
+            <th class="narrow">How many</th><th class="tick">On sale</th>
+            <th class="tick">Most popular</th><th class="narrow">Order</th><th>Code</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <div class="row">
+      <button class="btn-sm ghost" id="add" type="button">Add a plan</button>
+      <button class="btn-sm" id="save" type="button">Save changes</button>
+      <span class="said" id="said"></span>
+    </div>
+
+    <h2 class="sec">What visitors will see</h2>
+    <div class="cards" id="preview"></div>
+    <p class="said" id="free-note" style="margin-top:12px"></p>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script type="module">
+  import { createClient } from "/lib/supabase.js";
+  const { SUPABASE_URL, SUPABASE_KEY } = window.TJP_CONFIG;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = "login.html?next=admin-plans.html"; throw new Error("not signed in"); }
+  const { data: adminRow } = await supabase.from("admins")
+    .select("user_id").eq("user_id", session.user.id).maybeSingle();
+  if (!adminRow) { $("gate-msg").textContent = "This page is only for the site admin."; throw new Error("not admin"); }
+  $("gate-msg").textContent = "Signed in as " + session.user.email + ".";
+  $("admin-nav").hidden = false;
+  $("area").hidden = false;
+
+  let plans = [];
+  let freeViews = 5;
+  let ready = false;
+
+  const money = n => "₹" + Number(n || 0).toLocaleString("en-IN");
+
+  /* What the public pages will word it as. Kept identical to the database's
+     own wording, so this preview is not a polite fiction. */
+  function blurbFor(p) {
+    return p.blurb && p.blurb.trim() ? p.blurb.trim()
+      : p.grant_kind === "views" ? `${p.grant_amount} more job views`
+                                 : "Unlimited job views";
+  }
+  function fineFor(p) {
+    return p.small_print && p.small_print.trim() ? p.small_print.trim()
+      : p.grant_kind === "views" ? "No expiry. Use them whenever you like."
+                                 : `Valid for ${p.grant_amount} days from approval. Renew any time.`;
+  }
+
+  async function load() {
+    const { data, error } = await supabase.from("plans")
+      .select("code,name,price,grant_kind,grant_amount,blurb,small_print,is_live,is_best,sort_order")
+      .order("sort_order");
+
+    if (error) {
+      // The table arrives with round11-plans.sql. Say so plainly instead of
+      // showing an empty screen that looks broken.
+      $("setup").hidden = false;
+      $("setup").innerHTML = "This page needs the <b>plans</b> table, which is created by " +
+        "<b>round11-plans.sql</b>. Run that in Supabase → SQL Editor, then reload this page." +
+        "<br><span style='font-size:13px'>" + (error.message || "") + "</span>";
+      $("save").disabled = true;
+      $("add").disabled = true;
+      return;
+    }
+
+    plans = (data || []).map(p => ({ ...p }));
+
+    const { data: s } = await supabase.from("site_settings")
+      .select("free_job_views").eq("id", 1).maybeSingle();
+    freeViews = s && s.free_job_views != null ? s.free_job_views : 5;
+    $("free").value = freeViews;
+
+    ready = true;
+    draw();
+  }
+
+  function draw() {
+    const body = $("rows");
+    body.innerHTML = "";
+
+    plans.forEach((p, i) => {
+      const tr = document.createElement("tr");
+
+      const cell = (child, cls) => {
+        const td = document.createElement("td");
+        if (cls) td.className = cls;
+        td.append(child);
+        tr.append(td);
+        return td;
+      };
+      const input = (type, value, on, attrs) => {
+        const el = document.createElement("input");
+        el.type = type; el.value = value == null ? "" : value;
+        Object.assign(el, attrs || {});
+        el.addEventListener("input", () => { on(el); preview(); });
+        return el;
+      };
+
+      cell(input("text", p.name, el => p.name = el.value));
+      cell(input("number", p.price, el => p.price = el.value, { min: 0, step: 1 }), "narrow");
+
+      const kind = document.createElement("select");
+      kind.style.cssText = "font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;width:100%";
+      [["views", "job views"], ["days", "days unlimited"]].forEach(([v, label]) => {
+        const o = document.createElement("option");
+        o.value = v; o.textContent = label; o.selected = p.grant_kind === v;
+        kind.append(o);
+      });
+      kind.addEventListener("change", () => { p.grant_kind = kind.value; preview(); });
+      cell(kind, "mid");
+
+      cell(input("number", p.grant_amount, el => p.grant_amount = el.value, { min: 1, step: 1 }), "narrow");
+
+      const live = input("checkbox", "", () => {});
+      live.checked = !!p.is_live;
+      live.addEventListener("change", () => { p.is_live = live.checked; preview(); });
+      cell(live, "tick");
+
+      // Only one plan can wear the tag, so a radio rather than a tick.
+      const best = document.createElement("input");
+      best.type = "radio"; best.name = "best"; best.checked = !!p.is_best;
+      best.addEventListener("change", () => {
+        plans.forEach(q => q.is_best = false);
+        p.is_best = true;
+        preview();
+      });
+      cell(best, "tick");
+
+      cell(input("number", p.sort_order, el => p.sort_order = el.value, { step: 1 }), "narrow");
+      cell(document.createTextNode(p.code || "(new)"), "code");
+
+      const del = document.createElement("button");
+      del.className = "small-btn";
+      del.textContent = p.is_live ? "Take off sale" : "Put on sale";
+      del.addEventListener("click", () => {
+        p.is_live = !p.is_live;
+        draw(); preview();
+      });
+      cell(del);
+
+      body.append(tr);
+    });
+
+    preview();
+  }
+
+  function preview() {
+    const host = $("preview");
+    host.innerHTML = "";
+    const live = plans.filter(p => p.is_live)
+                      .sort((a, b) => (a.sort_order - b.sort_order) || (a.price - b.price));
+    if (!live.length) {
+      host.innerHTML = "<p class='said'>No plans are on sale, so the plans page will show none.</p>";
+    }
+    live.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "pv" + (p.is_best ? " best" : "");
+      if (p.is_best) {
+        const tag = document.createElement("div");
+        tag.className = "tag"; tag.textContent = "Most popular";
+        card.append(tag);
+      }
+      const h = document.createElement("h3"); h.textContent = p.name || "(no name)";
+      const amt = document.createElement("div"); amt.className = "amt"; amt.textContent = money(p.price);
+      const what = document.createElement("div"); what.className = "what"; what.textContent = blurbFor(p);
+      const fine = document.createElement("div"); fine.className = "fine"; fine.textContent = fineFor(p);
+      card.append(h, amt, what, fine);
+      host.append(card);
+    });
+
+    const n = Number($("free").value || 0);
+    $("free-note").textContent = n > 0
+      ? `Every account gets ${n} free private or remote job view${n === 1 ? "" : "s"} before any of this applies.`
+      : "No free views — visitors must buy a plan to open any private or remote job.";
+  }
+
+  $("free").addEventListener("input", preview);
+
+  $("add").addEventListener("click", () => {
+    const code = prompt("Short code for this plan. Lower case, no spaces — it is permanent and " +
+                        "payments are recorded against it.\n\nFor example: basic100");
+    if (!code) return;
+    const clean = code.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (!clean) { alert("That code cannot be used. Letters, numbers and underscores only."); return; }
+    if (plans.some(p => p.code === clean)) { alert("There is already a plan with that code."); return; }
+    plans.push({ code: clean, name: "New plan", price: 0, grant_kind: "views", grant_amount: 10,
+                 blurb: null, small_print: null, is_live: false, is_best: false,
+                 sort_order: plans.length + 1, _new: true });
+    draw();
+  });
+
+  $("save").addEventListener("click", async () => {
+    if (!ready) return;
+
+    for (const p of plans) {
+      if (!String(p.name || "").trim()) { alert("Every plan needs a name."); return; }
+      if (!(Number(p.grant_amount) > 0)) { alert(`"${p.name}" must give more than nothing.`); return; }
+      if (Number(p.price) < 0) { alert(`"${p.name}" cannot have a negative price.`); return; }
+    }
+    if (plans.filter(p => p.is_live && p.is_best).length > 1) {
+      alert("Only one plan can be the most popular one."); return;
+    }
+
+    $("save").disabled = true;
+    $("said").textContent = "Saving…";
+
+    const rows = plans.map(p => ({
+      code: p.code,
+      name: String(p.name).trim(),
+      price: Number(p.price) || 0,
+      grant_kind: p.grant_kind,
+      grant_amount: Number(p.grant_amount),
+      blurb: p.blurb, small_print: p.small_print,
+      is_live: !!p.is_live, is_best: !!p.is_best,
+      sort_order: Number(p.sort_order) || 0,
+      updated_at: new Date().toISOString()
+    }));
+
+    const { error: e1 } = await supabase.from("plans").upsert(rows, { onConflict: "code" });
+    const { error: e2 } = await supabase.from("site_settings")
+      .upsert({ id: 1, free_job_views: Number($("free").value) || 0,
+                updated_at: new Date().toISOString() }, { onConflict: "id" });
+
+    $("save").disabled = false;
+    if (e1 || e2) {
+      console.error(e1 || e2);
+      $("said").textContent = "Could not save: " + ((e1 || e2).message || "unknown error");
+      return;
+    }
+    $("said").textContent = "Saved. The plans page and the homepage will show this straight away.";
+    plans.forEach(p => delete p._new);
+    setTimeout(() => { $("said").textContent = ""; }, 6000);
+  });
+
+  load().catch(err => {
+    console.error(err);
+    $("setup").hidden = false;
+    $("setup").textContent = "Could not load the plans. Check your connection and refresh.";
+  });
+</script>
+</body>
+</html>

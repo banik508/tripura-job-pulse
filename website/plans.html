@@ -76,7 +76,7 @@
 
   <div id="balance" class="balance" hidden></div>
   <div id="grid" class="grid"></div>
-  <p class="free-note">Every account gets 5 free private or remote job views. Opening the same job again never uses another view.</p>
+  <p class="free-note" id="free-note">Every account gets 5 free private or remote job views. Opening the same job again never uses another view.</p>
 
   <section id="history" class="history" hidden>
     <h2>Your plan payments</h2>
@@ -103,12 +103,43 @@
   const $ = id => document.getElementById(id);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 
-  const PLANS = [
+  /* What is on sale comes from the database, so prices can be changed from
+     the admin screen without touching this page. These are the values that
+     were here before, kept as a fallback: if the plans table has not been
+     created yet, or the call fails, the page shows what it always showed
+     rather than an empty screen. */
+  let PLANS = [
     { code: "basic20",   name: "Basic",     price: 49, what: "20 more job views", small: "No expiry. Use them whenever you like." },
     { code: "std50",     name: "Standard",  price: 79, what: "50 more job views", small: "No expiry. Best value per job.", best: true },
     { code: "unlimited", name: "Unlimited", price: 99, what: "Unlimited job views", small: "Valid for 30 days from approval. Renew any time." }
   ];
+  let FREE_VIEWS = 5;
+
+  try {
+    const { data, error } = await supabase.rpc("live_plans");
+    if (!error && data && Array.isArray(data.plans) && data.plans.length) {
+      PLANS = data.plans.map(p => ({
+        code: p.code, name: p.name, price: Number(p.price),
+        what: p.blurb, small: p.small_print, best: !!p.is_best
+      }));
+      if (data.free_job_views != null) FREE_VIEWS = Number(data.free_job_views);
+    }
+  } catch (e) {
+    console.error("Using the built-in plans:", e);
+  }
+
   const planName = code => (PLANS.find(p => p.code === code) || { name: code }).name;
+
+  // The sentence above the plans has to agree with the setting, or it will
+  // quietly tell people the wrong thing the first time it is changed.
+  {
+    const note = document.getElementById("free-note");
+    if (note) {
+      note.textContent = `Every account gets ${FREE_VIEWS} free private or remote job `
+        + (FREE_VIEWS === 1 ? "view" : "views")
+        + ". Opening the same job again never uses another view.";
+    }
+  }
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = "login.html?next=plans.html"; throw new Error("Not signed in"); }

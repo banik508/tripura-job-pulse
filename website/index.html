@@ -361,6 +361,53 @@
 <meta name="twitter:description" content="Government, private and remote vacancies for Tripura in one place, with free mock tests, study material, skill certificates and a CV builder.">
 <meta name="twitter:image" content="https://tripurajobpulse.com/og-cover.png">
 <script type="application/ld+json" data-site>[{"@context":"https://schema.org","@type":"WebSite","name":"Tripura Job Pulse","url":"https://tripurajobpulse.com/","inLanguage":"en-IN","description":"Government, private and remote vacancies for Tripura, with study material, free mock tests and a CV builder."},{"@context":"https://schema.org","@type":"Organization","name":"Tripura Job Pulse","url":"https://tripurajobpulse.com/","logo":"https://tripurajobpulse.com/og-cover.png","areaServed":{"@type":"State","name":"Tripura"},"sameAs":["https://www.facebook.com/tripurajobpulse","https://www.instagram.com/tripurajobpulse/","https://www.youtube.com/@TripuraJobPulse"]}]</script>
+<script type="module">
+  /* Keep the prices on this page in step with the ones you can edit in the
+     admin screen. If the plans table is not there, or the call fails, the
+     words already written into the page above are left exactly as they are -
+     so this can only ever improve the page, never empty it. */
+  import { createClient } from "/lib/supabase.js";
+  try {
+    const cfg = window.TJP_CONFIG || {};
+    if (cfg.SUPABASE_URL && cfg.SUPABASE_KEY) {
+      const sb = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY);
+      const { data, error } = await sb.rpc("live_plans");
+      if (!error && data && Array.isArray(data.plans) && data.plans.length) {
+        const money = n => "₹" + Number(n || 0).toLocaleString("en-IN");
+        const live = data.plans.slice().sort((a, b) => Number(a.price) - Number(b.price));
+
+        const range = document.getElementById("plan-range");
+        if (range) {
+          const lo = money(live[0].price), hi = money(live[live.length - 1].price);
+          range.textContent = lo === hi ? lo : lo + " – " + hi;
+        }
+
+        const list = document.getElementById("plan-list");
+        if (list) {
+          list.innerHTML = "";
+          for (const pl of live) {
+            const li = document.createElement("li");
+            li.textContent = pl.grant_kind === "days"
+              ? `Unlimited for ${pl.grant_amount} days at ${money(pl.price)}`
+              : `${pl.grant_amount} jobs for ${money(pl.price)}`;
+            list.append(li);
+          }
+          const upi = document.createElement("li");
+          upi.textContent = "Pay by UPI, no subscription";
+          list.append(upi);
+        }
+
+        const free = document.getElementById("free-views-li");
+        if (free && data.free_job_views != null) {
+          const n = Number(data.free_job_views);
+          free.textContent = `${n} private or remote job view${n === 1 ? "" : "s"}`;
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Homepage prices left as written:", e);
+  }
+</script>
 </head>
 <body>
 
@@ -557,12 +604,12 @@
       <div class="price reveal">
         <h3>Always free</h3>
         <p class="amt">₹0</p>
-        <ul><li>All government job details</li><li>Daily current affairs</li><li>Every mock test</li><li>CV builder</li><li>5 private or remote job views</li></ul>
+        <ul><li>All government job details</li><li>Daily current affairs</li><li>Every mock test</li><li>CV builder</li><li id="free-views-li">5 private or remote job views</li></ul>
       </div>
       <div class="price reveal">
         <h3>Private &amp; remote jobs</h3>
-        <p class="amt">₹49 – ₹99</p>
-        <ul><li>20 jobs for ₹49</li><li>50 jobs for ₹79</li><li>Unlimited for 30 days at ₹99</li><li>Pay by UPI, no subscription</li></ul>
+        <p class="amt" id="plan-range">₹49 – ₹99</p>
+        <ul id="plan-list"><li>20 jobs for ₹49</li><li>50 jobs for ₹79</li><li>Unlimited for 30 days at ₹99</li><li>Pay by UPI, no subscription</li></ul>
       </div>
       <div class="price reveal">
         <h3>Study &amp; certificates</h3>
