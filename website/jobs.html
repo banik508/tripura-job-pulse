@@ -203,11 +203,7 @@
     $("list").innerHTML = "";
     for (const j of jobs) {
       const a = el("a", "job");
-      // Link to the job's own page when it has been built - that is the one
-      // carrying the Google Jobs markup. A job added since the last rebuild
-      // has no page yet, so it keeps the old link rather than a dead one.
-      a.href = j.slug ? "job/" + j.slug + ".html"
-                      : "job.html?id=" + encodeURIComponent(j.id);
+      a.href = "job.html?id=" + encodeURIComponent(j.id);
       a.append(el("h3", "", j.title));
       if (j.organisation) a.append(el("p", "org", j.organisation));
 
@@ -242,7 +238,7 @@
     for (let from = 0; ; from += PAGE) {
       const { data, error } = await supabase
         .from("jobs")
-        .select("id, slug, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at")
+        .select("id, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at")
         .eq("region", REGION)
         .or(`last_date.gte.${todayISO()},last_date.is.null`)
         .order("created_at", { ascending: false })

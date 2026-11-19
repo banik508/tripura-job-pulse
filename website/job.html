@@ -66,19 +66,6 @@
   const job = res.job;
   const summary = res.summary;
   document.title = job.title + " | Tripura Job Pulse";
-
-  // This page is reached as job.html?id=..., a different address for every
-  // job but the same HTML. Point search engines at the job's real page so
-  // the two are not treated as competing duplicates.
-  if (job.slug) {
-    let link = document.querySelector('link[rel="canonical"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "canonical";
-      document.head.appendChild(link);
-    }
-    link.href = "https://tripurajobpulse.com/job/" + job.slug + ".html";
-  }
   content.innerHTML = "";
   content.append(el("h1", "", job.title));
   if (job.organisation) content.append(el("p", "org", job.organisation));
