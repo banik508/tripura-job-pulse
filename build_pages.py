@@ -959,6 +959,22 @@ def main():
         with open(os.path.join(JOBDIR, slug + ".html"), "w", encoding="utf-8") as f:
             f.write(render(job, slug))
 
+    # Tell the database which page each job now has, so the job list can link
+    # straight to it. A job added since the last build simply has no slug and
+    # keeps the old link until its page exists - nothing ever points at a
+    # page that has not been written.
+    try:
+        pending = [(job["id"], slug) for slug, job in entries
+                   if job.get("slug") != slug]
+        for i in range(0, len(pending), 100):
+            for job_id, slug in pending[i:i + 100]:
+                sb.table("jobs").update({"slug": slug}).eq("id", job_id).execute()
+        if pending:
+            print(f"  recorded the page name for {len(pending)} jobs")
+    except Exception as e:
+        # Never let this stop the pages being written.
+        print(f"  could not record page names: {e}")
+
     entries.sort(key=lambda e: (not is_open(e[1]), e[1].get("title") or ""))
 
     with open(os.path.join(JOBDIR, "index.html"), "w", encoding="utf-8") as f:
