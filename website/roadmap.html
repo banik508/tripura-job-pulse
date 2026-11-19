@@ -632,7 +632,7 @@
       if (!supabase) { $("vac-wrap").hidden = true; return; }
       const today = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase.from("jobs")
-        .select("id, title, organisation, location, last_date, qualification")
+        .select("id, slug, title, organisation, location, last_date, qualification")
         .or(`last_date.gte.${today},last_date.is.null`)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -648,7 +648,8 @@
       const box = $("vac"); box.innerHTML = "";
       for (const j of hits) {
         const a = el("a");
-        a.href = "job.html?id=" + encodeURIComponent(j.id);
+        a.href = j.slug ? "job/" + j.slug + ".html"
+                        : "job.html?id=" + encodeURIComponent(j.id);
         a.append(el("b", "", j.title));
         const bits = [j.organisation, j.location,
           j.last_date ? "closes " + new Date(j.last_date + "T00:00:00")
