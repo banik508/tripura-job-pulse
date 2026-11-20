@@ -269,7 +269,13 @@
         console.error(error);
         // Anything already fetched is worth showing rather than nothing at all.
         if (!rows.length) {
-          showState("Couldn't load jobs.", "Check your internet connection and refresh the page.");
+          // Say what actually went wrong. "Check your connection" sent us
+          // hunting in the wrong place for two days; the database's own
+          // words are worth more than a polite guess.
+          const why = [error.message, error.details, error.hint]
+            .filter(Boolean).join(" — ") || "no message";
+          showState("Couldn't load jobs.",
+                    (error.code ? error.code + ": " : "") + why);
           return;
         }
         break;
