@@ -22,6 +22,8 @@
   .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-top: 16px; }
   .field label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
   .field .sub { font-weight: 400; color: var(--muted); font-size: 13px; }
+  .card .hint { font-size: 13.5px; color: var(--muted); line-height: 1.55; margin: 14px 0 0; max-width: 60ch; }
+  .card .hint strong { color: var(--teal-deep, #0E4F4C); }
   input[type=text], input[type=number] { font: inherit; font-size: 15px; width: 100%;
     padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
 
@@ -111,6 +113,14 @@
           <span class="sub">— every account gets these before paying</span></label>
         <input type="number" id="free" min="0" step="1">
       </div>
+      <p class="hint">Put <strong>999999</strong> here to make every job free for
+        everyone. Anything from 1000 upwards counts as no limit: the site then
+        stops showing a views-left counter and says the jobs are free, rather
+        than printing the number.</p>
+      <p class="hint">Never create a plan priced <strong>₹0</strong>. A free plan
+        still sends the person into the payment screen and then waits for you to
+        approve it. If something should be free, raise the allowance above
+        instead.</p>
     </div>
 
     <h2 class="sec">Plans on sale</h2>

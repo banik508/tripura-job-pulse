@@ -372,7 +372,23 @@
     if (cfg.SUPABASE_URL && cfg.SUPABASE_KEY) {
       const sb = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY);
       const { data, error } = await sb.rpc("live_plans");
-      if (!error && data && Array.isArray(data.plans) && data.plans.length) {
+
+      /* No live plan means you switched them all off in admin-plans.html on
+         purpose, so the card offering them is taken off the page and the
+         free card stops promising a limited number of views. A call that
+         fails is a different thing entirely and changes nothing. */
+      if (!error && data && Array.isArray(data.plans) && data.plans.length === 0) {
+        const range = document.getElementById("plan-range");
+        const card = range && range.closest(".price");
+        if (card) card.remove();
+        const free = document.getElementById("free-views-li");
+        if (free) free.textContent = "Every job in full, with the apply link";
+        const intro = document.querySelector("#pricing .intro");
+        if (intro) {
+          intro.textContent = "Every vacancy, daily current affairs and every mock test are free. "
+            + "Small one-time payments for study material and certificates keep the site running.";
+        }
+      } else if (!error && data && Array.isArray(data.plans) && data.plans.length) {
         const money = n => "₹" + Number(n || 0).toLocaleString("en-IN");
         const live = data.plans.slice().sort((a, b) => Number(a.price) - Number(b.price));
 
@@ -400,7 +416,11 @@
         const free = document.getElementById("free-views-li");
         if (free && data.free_job_views != null) {
           const n = Number(data.free_job_views);
-          free.textContent = `${n} private or remote job view${n === 1 ? "" : "s"}`;
+          // A free allowance in the thousands means no limit. Say so in
+          // words rather than printing the number someone typed.
+          free.textContent = n >= 1000
+            ? "Every job in full, with the apply link"
+            : `${n} private or remote job view${n === 1 ? "" : "s"}`;
         }
       }
     }

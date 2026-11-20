@@ -115,13 +115,28 @@
   ];
   let FREE_VIEWS = 5;
 
+  /* Nothing on sale.
+     Untick "live" on every plan in admin-plans.html and this page stops
+     selling: no cards, no balance, no prices. Tick one back on and it
+     returns, with whatever wording and price you gave it. There is no code
+     change either way, and no deploy.
+     The distinction that matters below: a call that FAILS leaves the page
+     exactly as written, while a call that SUCCEEDS and comes back with no
+     live plan means you switched them off on purpose. */
+  let SELLING = true;
+
   try {
     const { data, error } = await supabase.rpc("live_plans");
-    if (!error && data && Array.isArray(data.plans) && data.plans.length) {
-      PLANS = data.plans.map(p => ({
-        code: p.code, name: p.name, price: Number(p.price),
-        what: p.blurb, small: p.small_print, best: !!p.is_best
-      }));
+    if (!error && data && Array.isArray(data.plans)) {
+      if (data.plans.length) {
+        PLANS = data.plans.map(p => ({
+          code: p.code, name: p.name, price: Number(p.price),
+          what: p.blurb, small: p.small_print, best: !!p.is_best
+        }));
+      } else {
+        SELLING = false;
+        PLANS = [];
+      }
       if (data.free_job_views != null) FREE_VIEWS = Number(data.free_job_views);
     }
   } catch (e) {
@@ -130,14 +145,37 @@
 
   const planName = code => (PLANS.find(p => p.code === code) || { name: code }).name;
 
-  // The sentence above the plans has to agree with the setting, or it will
-  // quietly tell people the wrong thing the first time it is changed.
+  /* A free allowance in the thousands is how you say "no limit" with a field
+     that only takes a number. Past this point the site stops counting out
+     loud: no balance strip, and the words say free rather than printing a
+     silly figure like 999999. */
+  const NO_LIMIT = FREE_VIEWS >= 1000;
+
+  // The words on the page have to agree with what is actually on sale, or
+  // the page quietly tells people the wrong thing the first time you change
+  // it. Both states are written out here rather than left to chance.
   {
     const note = document.getElementById("free-note");
-    if (note) {
-      note.textContent = `Every account gets ${FREE_VIEWS} free private or remote job `
-        + (FREE_VIEWS === 1 ? "view" : "views")
-        + ". Opening the same job again never uses another view.";
+    const lead = document.querySelector("main.plans .lead");
+    const head = document.querySelector("main.plans h1");
+    if (SELLING && !NO_LIMIT) {
+      if (note) {
+        note.textContent = `Every account gets ${FREE_VIEWS} free private or remote job `
+          + (FREE_VIEWS === 1 ? "view" : "views")
+          + ". Opening the same job again never uses another view.";
+      }
+    } else if (SELLING && NO_LIMIT) {
+      if (note) {
+        note.textContent = "Every vacancy is free to read in full. The plans below are "
+          + "for the preparation around the job, not for seeing it.";
+      }
+    } else {
+      if (head) head.textContent = "Nothing to pay for jobs";
+      if (lead) lead.textContent = "Every vacancy on this site — government, private and remote — is free to read in full, with the official link to apply.";
+      if (note) {
+        note.textContent = "If paid plans come back later, they will be for study material and "
+          + "certificates, not for seeing a job.";
+      }
     }
   }
 
@@ -159,7 +197,10 @@
   function renderBalance(s) {
     const box = $("balance");
     box.innerHTML = "";
-    if (!s) { box.hidden = true; return; }
+    // A view count is meaningless with nothing on sale, and worse than
+    // meaningless when the jobs are free: "5 job views left" is the exact
+    // thing that made a new account think it was being rationed.
+    if (!s || !SELLING || NO_LIMIT) { box.hidden = true; return; }
     box.hidden = false;
     const stat = (num, lbl) => { const d = el("div"); d.append(el("div", "num", String(num)), el("div", "lbl", lbl)); return d; };
     if (s.unlimited_until) {

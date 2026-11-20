@@ -71,7 +71,7 @@
 
 <main class="page jobs">
   <h1>Jobs within India</h1>
-  <p class="lead">Government and private vacancies in other states, newest first. Sign in to see full details and how to apply.</p>
+  <p class="lead">Government and private vacancies in other states, newest first. Every listing is free to read in full, with the official link to apply.</p>
 
   <div class="toolbar" style="margin-top:20px">
     <input id="search" type="search" placeholder="Search by job title or organisation" aria-label="Search jobs">
@@ -203,7 +203,9 @@
     $("list").innerHTML = "";
     for (const j of jobs) {
       const a = el("a", "job");
-      a.href = "job.html?id=" + encodeURIComponent(j.id);
+      // The job's own page when it exists, otherwise the old address.
+      a.href = j.slug ? "job/" + j.slug + ".html"
+                      : "job.html?id=" + encodeURIComponent(j.id);
       a.append(el("h3", "", j.title));
       if (j.organisation) a.append(el("p", "org", j.organisation));
 
@@ -235,14 +237,33 @@
     // until a short page comes back.
     const PAGE = 1000;
     const rows = [];
+
+    // "slug" is the name of the job's own page. If the column has not been
+    // added yet, or the API has not noticed it, asking for it fails the whole
+    // query and the page shows nothing. So we ask once, and on that specific
+    // complaint we drop it and carry on. The list must never depend on it.
+    let fields = "id, slug, id, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at";
+    const FALLBACK = "id, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at";
+
     for (let from = 0; ; from += PAGE) {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("jobs")
-        .select("id, title, organisation, job_type, location, city, state, experience, industry, last_date, created_at")
+        .select(fields)
         .eq("region", REGION)
         .or(`last_date.gte.${todayISO()},last_date.is.null`)
         .order("created_at", { ascending: false })
         .range(from, from + PAGE - 1);
+
+      if (error && fields !== FALLBACK && /slug|column/i.test(error.message || "")) {
+        fields = FALLBACK;
+        ({ data, error } = await supabase
+          .from("jobs")
+          .select(fields)
+          .eq("region", REGION)
+          .or(`last_date.gte.${todayISO()},last_date.is.null`)
+          .order("created_at", { ascending: false })
+          .range(from, from + PAGE - 1));
+      }
 
       if (error) {
         console.error(error);
