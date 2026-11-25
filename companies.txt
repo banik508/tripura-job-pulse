@@ -183,3 +183,182 @@ Grafana Labs | grafana.com
 HashiCorp | hashicorp.com
 Elastic | elastic.co
 Mozilla | mozilla.org
+# Consumer internet and marketplaces
+Flipkart | flipkart.com
+Myntra | myntra.com
+Nykaa | nykaa.com
+Zomato | zomato.com
+Zepto | zeptonow.com
+Blinkit | blinkit.com
+Urban Company | urbancompany.com
+MakeMyTrip | makemytrip.com
+ixigo | ixigo.com
+Cleartrip | cleartrip.com
+OYO | oyorooms.com
+BookMyShow | bookmyshow.com
+Licious | licious.in
+Country Delight | countrydelight.in
+Purplle | purplle.com
+Lenskart | lenskart.com
+FirstCry | firstcry.com
+ShareChat | sharechat.com
+Dream11 | dream11.com
+Mobile Premier League | mpl.live
+Games24x7 | games24x7.com
+Nazara Technologies | nazara.com
+
+# Fintech
+Razorpay | razorpay.com
+Cashfree Payments | cashfree.com
+PhonePe | phonepe.com
+Paytm | paytm.com
+Pine Labs | pinelabs.com
+BharatPe | bharatpe.com
+Jupiter Money | jupiter.money
+Fi Money | fi.money
+slice | sliceit.com
+KreditBee | kreditbee.in
+Navi | navi.com
+Lendingkart | lendingkart.com
+Moneyview | moneyview.in
+CoinDCX | coindcx.com
+CoinSwitch | coinswitch.co
+Zerodha | zerodha.com
+Upstox | upstox.com
+Angel One | angelone.in
+smallcase | smallcase.com
+INDmoney | indmoney.com
+Perfios | perfios.com
+Signzy | signzy.com
+Setu | setu.co
+Decentro | decentro.tech
+Juspay | juspay.in
+M2P Fintech | m2pfintech.com
+Yubi | go-yubi.com
+Open Financial Technologies | bankopen.co
+Chargebee | chargebee.com
+
+# Software and SaaS
+Zoho | zoho.com
+Postman | postman.com
+BrowserStack | browserstack.com
+Hasura | hasura.io
+Darwinbox | darwinbox.com
+Whatfix | whatfix.com
+LeadSquared | leadsquared.com
+MoEngage | moengage.com
+CleverTap | clevertap.com
+WebEngage | webengage.com
+Netcore Cloud | netcorecloud.com
+Innovaccer | innovaccer.com
+Icertis | icertis.com
+Mindtickle | mindtickle.com
+Sprinklr | sprinklr.com
+Druva | druva.com
+Nutanix | nutanix.com
+HighRadius | highradius.com
+Uniphore | uniphore.com
+Gupshup | gupshup.io
+Exotel | exotel.com
+Kaleyra | kaleyra.com
+Locus | locus.sh
+FarEye | fareye.com
+Zetwerk | zetwerk.com
+Atlan | atlan.com
+Scalefusion | scalefusion.com
+Zluri | zluri.com
+Rocketlane | rocketlane.com
+SpotDraft | spotdraft.com
+
+# Health and diagnostics
+Practo | practo.com
+Tata 1mg | 1mg.com
+PharmEasy | pharmeasy.in
+Cult.fit | cult.fit
+HealthifyMe | healthifyme.com
+MediBuddy | medibuddy.in
+Pristyn Care | pristyncare.com
+Thyrocare | thyrocare.com
+Dr Lal PathLabs | lalpathlabs.com
+Redcliffe Labs | redcliffelabs.com
+Molbio Diagnostics | molbiodiagnostics.com
+Mylab Discovery Solutions | mylabglobal.com
+Qure.ai | qure.ai
+SigTuple | sigtuple.com
+Wysa | wysa.com
+
+# Education
+Unacademy | unacademy.com
+Vedantu | vedantu.com
+PhysicsWallah | pw.live
+upGrad | upgrad.com
+Simplilearn | simplilearn.com
+Scaler | scaler.com
+Newton School | newtonschool.co
+Emeritus | emeritus.org
+Great Learning | mygreatlearning.com
+Cuemath | cuemath.com
+
+# Logistics and mobility
+Delhivery | delhivery.com
+Ecom Express | ecomexpress.in
+Shadowfax | shadowfax.in
+Porter | porter.in
+Rapido | rapido.bike
+Ather Energy | atherenergy.com
+Ultraviolette | ultraviolette.com
+Euler Motors | eulermotors.com
+BluSmart | blu-smart.com
+Zypp Electric | zypp.app
+Shiprocket | shiprocket.in
+BlackBuck | blackbuck.com
+Ola Electric | olaelectric.com
+
+# Data, AI and deep tech
+Sarvam AI | sarvam.ai
+Tiger Analytics | tigeranalytics.com
+Gramener | gramener.com
+Observe.AI | observe.ai
+Haptik | haptik.ai
+Yellow.ai | yellow.ai
+Mad Street Den | madstreetden.com
+Agnikul Cosmos | agnikul.in
+Skyroot Aerospace | skyroot.in
+Pixxel | pixxel.space
+Dhruva Space | dhruvaspace.com
+Tonbo Imaging | tonboimaging.com
+
+# Global firms with large India engineering centres
+Atlassian | atlassian.com
+Databricks | databricks.com
+Stripe | stripe.com
+Uber | uber.com
+Twilio | twilio.com
+HashiCorp | hashicorp.com
+Confluent | confluent.io
+Cloudflare | cloudflare.com
+DigitalOcean | digitalocean.com
+MongoDB | mongodb.com
+Snowflake | snowflake.com
+Datadog | datadoghq.com
+Grammarly | grammarly.com
+Figma | figma.com
+Notion | notion.so
+Miro | miro.com
+Intercom | intercom.com
+Amplitude | amplitude.com
+Sentry | sentry.io
+JFrog | jfrog.com
+Harness | harness.io
+Temporal | temporal.io
+Vercel | vercel.com
+Supabase | supabase.com
+Linear | linear.app
+Retool | retool.com
+Airtable | airtable.com
+Asana | asana.com
+Thoughtworks | thoughtworks.com
+Globant | globant.com
+Nagarro | nagarro.com
+Happiest Minds | happiestminds.com
+
