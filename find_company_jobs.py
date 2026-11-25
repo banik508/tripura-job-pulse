@@ -49,6 +49,49 @@ BOARDS = [
     ("Elastic",         "greenhouse",      "elastic",        "IT"),
     ("Canonical",       "greenhouse",      "canonical",      "IT"),
     ("Zapier",          "ashby",           "zapier",         "IT"),
+    # --- added 25 Nov 2026, from the Find readable job feeds run -------------
+    # The number after each is how many of that board's jobs were in India or
+    # remote when it was checked. Boards whose slug was too generic to trust
+    # were deliberately left out - see the note at the bottom of this block.
+    ("Paytm",           "lever",           "paytm",          "Fintech"),
+    ("Stripe",          "greenhouse",      "stripe",         "Fintech"),
+    ("Databricks",      "greenhouse",      "databricks",     "IT"),
+    ("Twilio",          "greenhouse",      "twilio",         "IT"),
+    ("Supabase",        "ashby",           "supabase",       "IT"),
+    ("MongoDB",         "greenhouse",      "mongodb",        "IT"),
+    ("Datadog",         "greenhouse",      "datadog",        "IT"),
+    ("Temporal",        "ashby",           "temporal",       "IT"),
+    ("HighRadius",      "greenhouse",      "highradius",     "Fintech"),
+    ("Sarvam AI",       "ashby",           "sarvam",         "IT"),
+    ("Mindtickle",      "lever",           "mindtickle",     "IT"),
+    ("JFrog",           "greenhouse",      "jfrog",          "IT"),
+    ("Amplitude",       "ashby",           "amplitude",      "IT"),
+    ("Druva",           "greenhouse",      "druva",          "IT"),
+    ("ixigo",           "smartrecruiters", "ixigo",          "Internet"),
+    ("SpotDraft",       "ashby",           "spotdraft",      "IT"),
+    ("Observe.AI",      "greenhouse",      "observeai",      "IT"),
+    ("Intercom",        "greenhouse",      "intercom",       "IT"),
+    ("Unacademy",       "smartrecruiters", "unacademy",      "Education"),
+    ("Atlan",           "ashby",           "atlan",          "IT"),
+    ("Vercel",          "greenhouse",      "vercel",         "IT"),
+    ("Airtable",        "greenhouse",      "airtable",       "IT"),
+    ("Asana",           "greenhouse",      "asana",          "IT"),
+    ("Figma",           "greenhouse",      "figma",          "IT"),
+    ("Cloudflare",      "greenhouse",      "cloudflare",     "IT"),
+    ("Lendingkart",     "smartrecruiters", "lendingkart",    "Fintech"),
+    ("Upstox",          "smartrecruiters", "upstox",         "Fintech"),
+    ("Whatfix",         "smartrecruiters", "whatfix",        "IT"),
+    ("Newton School",   "smartrecruiters", "newtonschool",   "Education"),
+    ("Uber",            "smartrecruiters", "uber",           "Internet"),
+    ("Sentry",          "ashby",           "sentry",         "IT"),
+    ("Linear",          "ashby",           "linear",         "IT"),
+    ("Miro",            "ashby",           "miro",           "IT"),
+    ("Thoughtworks",    "ashby",           "thoughtworks",   "Consulting"),
+    # Left out on purpose, because the slug is a common word and the detector
+    # cannot tell one company from another by name alone. Twice before this
+    # pulled in the wrong company entirely (Apollo.io, a US parking firm, and
+    # Grant Thornton France). Open the board yourself before adding any:
+    #   apollo, metropolis, arthur, praxis, navi, pine, porter, tiger, slice, remote
 ]
 
 URLS = {
