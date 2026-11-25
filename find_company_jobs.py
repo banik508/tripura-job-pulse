@@ -25,7 +25,8 @@ import urllib.error
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 
-TIMEOUT = 20
+TIMEOUT = 60          # a 900-job board with full descriptions is slow to send
+MAX_BYTES = 80_000_000
 UA = "Mozilla/5.0 (compatible; TripuraJobPulse/1.0; +https://tripurajobpulse.com)"
 
 # company, platform, board identifier, sector
@@ -138,17 +139,29 @@ LET_IN = re.compile(r"\b(india|apac|asia|asia[- ]pacific|worldwide|global|"
 
 def get(url, tries=3):
     """One failed call should not cost a whole company's listings. CRED's
-    board answered the survey and refused the next run an hour later."""
+    board answered the survey and refused the next run an hour later.
+
+    The read limit used to be 6 MB, which silently decapitated the biggest
+    boards: the reply arrived, got cut in half, and json.loads then failed
+    with a parse error that said nothing about size. Stripe, Databricks,
+    Cloudflare and Elastic were all lost that way. The limit is now high
+    enough for any real board, and if one ever does exceed it the message
+    says so in words instead of looking like a broken feed."""
     last = None
     for attempt in range(tries):
+        got = 0
         req = urllib.request.Request(
             url, headers={"User-Agent": UA, "Accept": "application/json"})
         try:
             with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-                return json.loads(r.read(6_000_000).decode("utf-8", "replace"))
+                raw = r.read(MAX_BYTES + 1)
+            got = len(raw)
+            if got > MAX_BYTES:
+                raise ValueError(f"reply larger than {MAX_BYTES // 1_000_000} MB")
+            return json.loads(raw.decode("utf-8", "replace"))
         except (urllib.error.HTTPError, urllib.error.URLError,
                 ValueError, OSError) as e:
-            last = e
+            last = f"{type(e).__name__}: {e}" + (f" ({got:,} bytes read)" if got else "")
             if attempt + 1 < tries:
                 time.sleep(2 * (attempt + 1))
     print(f"    could not read after {tries} tries: {last}")
@@ -159,6 +172,19 @@ def fetch_board(platform, slug):
     """SmartRecruiters answers at most 100 postings at a time. Asking once
     quietly lost about half of Swiggy's jobs, so this walks the pages. The
     other platforms return everything in one reply."""
+    if platform == "greenhouse":
+        # Descriptions make these replies large. If the full one cannot be
+        # had, take the listings without descriptions rather than losing the
+        # company altogether - a job with a thin description still reaches
+        # people, and the next run's backfill fills it in.
+        board = get(URLS[platform].format(s=slug))
+        if board is None:
+            print("    retrying without descriptions")
+            board = get(URLS[platform].format(s=slug).replace("content=true", "content=false"))
+            if board is not None:
+                print(f"    read {len(board.get('jobs') or [])} jobs, descriptions to follow next run")
+        return board
+
     if platform != "smartrecruiters":
         return get(URLS[platform].format(s=slug))
 
